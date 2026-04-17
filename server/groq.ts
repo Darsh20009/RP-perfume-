@@ -83,13 +83,20 @@ const PERFUME_SYSTEM_PROMPT = `أنت "رفيف" — المستشار الذكي
 - إذا لم تعرف إجابة، اقترح التواصل مع فريق الدعم
 - استخدم إيموجي بشكل خفيف ومناسب`;
 
+export interface AdvisorProductRef {
+  id: string;
+  name: string;
+  price: string | number;
+  image?: string;
+}
+
 export async function perfumeAdvisor(
   userMessage: string,
   conversationHistory: ChatMessage[],
   products: any[]
-): Promise<string> {
+): Promise<{ response: string; products: AdvisorProductRef[] }> {
   const productList = products.map(p =>
-    `- ${p.name}: ${p.description || ""} | السعر: ${p.price} ر.س`
+    `- [ID:${p.id || p._id}] ${p.name}: ${p.description || ""} | السعر: ${p.price} ر.س`
   ).join("\n");
 
   const systemMsg = `${PERFUME_SYSTEM_PROMPT}
@@ -97,7 +104,11 @@ export async function perfumeAdvisor(
 **المنتجات المتاحة حالياً:**
 ${productList || "لا توجد منتجات متاحة حالياً"}
 
-عندما يسألك العميل عن اقتراحات، اقترح منتجات محددة بأسمائها وأسعارها من القائمة أعلاه.`;
+**قواعد إضافية مهمة:**
+- عندما تقترح منتجاً محدداً، يجب أن تذكره بصيغة: [PRODUCT:معرف_المنتج]
+- مثال: "أنصحك بعطر [PRODUCT:abc123] الذي يناسب ذوقك"
+- اقترح من 1 إلى 3 منتجات كحد أقصى لكل رد
+- اقترح فقط من القائمة أعلاه ولا تخترع منتجات`;
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemMsg },
@@ -105,7 +116,36 @@ ${productList || "لا توجد منتجات متاحة حالياً"}
     { role: "user", content: userMessage },
   ];
 
-  return groqChat(messages);
+  const raw = await groqChat(messages);
+
+  // Extract product references
+  const refs: AdvisorProductRef[] = [];
+  const seen = new Set<string>();
+  const refRegex = /\[PRODUCT:([^\]]+)\]/g;
+  let match: RegExpExecArray | null;
+  while ((match = refRegex.exec(raw)) !== null) {
+    const id = match[1].trim();
+    if (seen.has(id)) continue;
+    const product = products.find(p => String(p.id || p._id) === id);
+    if (product) {
+      seen.add(id);
+      refs.push({
+        id: String(product.id || product._id),
+        name: product.name,
+        price: product.price,
+        image: Array.isArray(product.images) ? product.images[0] : undefined,
+      });
+    }
+  }
+  // Strip markers from text shown to user, then clean up dangling punctuation/spaces
+  const response = raw
+    .replace(refRegex, "")
+    .replace(/\s*[,،]\s*([،,.!؟?])/g, "$1")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s+([،,.!؟?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { response, products: refs };
 }
 
 const SUPPORT_SYSTEM_PROMPT = `أنت "رفيف" — مساعد الدعم الفني لمتجر رفيف العود (RF Perfume).

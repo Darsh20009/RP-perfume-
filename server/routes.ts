@@ -2005,16 +2005,16 @@ export async function registerRoutes(
   app.post("/api/ai/perfume-advisor", async (req, res) => {
     try {
       if (!isGroqConfigured()) {
-        return res.json({ response: "المستشار غير متاح حالياً. يرجى التواصل مع فريق الدعم." });
+        return res.json({ response: "المستشار غير متاح حالياً. يرجى التواصل مع فريق الدعم.", products: [] });
       }
       const { message, history } = req.body;
       if (!message) return res.status(400).json({ error: "الرسالة مطلوبة" });
       const products = await storage.getProducts();
-      const response = await perfumeAdvisor(message, history || [], products);
-      res.json({ response });
+      const result = await perfumeAdvisor(message, history || [], products);
+      res.json(result);
     } catch (err: any) {
       console.error("[AI] perfume-advisor error:", err?.message);
-      res.json({ response: "عذراً، حدث خطأ. يرجى المحاولة مرة أخرى." });
+      res.json({ response: "عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.", products: [] });
     }
   });
 

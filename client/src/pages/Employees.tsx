@@ -171,7 +171,7 @@ export default function Employees() {
                       disabled={checkPhoneMutation.isPending}
                       type="tel"
                     />
-                    <p className="text-xs text-muted-foreground">مثال: 0567326086 أو 0512345678</p>
+                    <p className="text-xs text-muted-foreground">مثال: 0551329821 أو 0512345678</p>
                   </div>
                   <Button 
                     className="w-full mt-4 gap-2" 

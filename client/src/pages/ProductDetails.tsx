@@ -4,9 +4,9 @@ import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { useRoute } from "wouter";
 import { useState, useEffect, useMemo } from "react";
-import { ShoppingBag, Check, Heart, Star, Send, Loader2 } from "lucide-react";
+import { ShoppingBag, Check, Heart, Star, Send, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
 import { InstallmentSection } from "@/components/payment/InstallmentSection";
 import { SizeAdvisor } from "@/components/ai/SizeAdvisor";
@@ -32,6 +32,7 @@ export default function ProductDetails() {
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Wishlist state
@@ -98,16 +99,32 @@ export default function ProductDetails() {
   // Collect all unique images (product images only, excluding variant images as per request)
   const allImages = product?.images || [];
 
-  // Auto-rotate images every 2 seconds
+  // Auto-rotate images every 4 seconds with creative slide direction
   useEffect(() => {
     if (allImages.length <= 1) return;
     
     const interval = setInterval(() => {
+      setSlideDirection(1);
       setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-    }, 5000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [allImages.length]);
+
+  const goToImage = (idx: number) => {
+    setSlideDirection(idx > currentImageIndex ? 1 : -1);
+    setCurrentImageIndex(idx);
+  };
+
+  const nextImage = () => {
+    setSlideDirection(1);
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = () => {
+    setSlideDirection(-1);
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
 
   // Update current image when variant changes (if variant has an image)
   useEffect(() => {
@@ -231,39 +248,97 @@ export default function ProductDetails() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div 
-              className="aspect-[3/4] bg-white overflow-hidden shadow-2xl border border-black/5 group flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 cursor-pointer pt-[1px] pb-[1px] pl-[40px] pr-[40px]"
-              onClick={() => {
-                const img = allImages[currentImageIndex];
-                if (img) window.open(img, '_blank');
-              }}
-            >
-              <div className="relative w-full h-full flex items-center justify-center">
-                <img 
-                  key={currentImageIndex}
-                  src={allImages[currentImageIndex] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80"} 
-                  alt={product.name} 
-                  className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-1000"
-                />
+            <div className="aspect-[3/4] bg-white overflow-hidden shadow-2xl border border-black/5 group flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 pt-[1px] pb-[1px] pl-[40px] pr-[40px] relative">
+              <div 
+                className="relative w-full h-full flex items-center justify-center overflow-hidden cursor-pointer"
+                onClick={() => {
+                  const img = allImages[currentImageIndex];
+                  if (img) window.open(img, '_blank');
+                }}
+              >
+                <AnimatePresence mode="wait" custom={slideDirection}>
+                  <motion.img 
+                    key={currentImageIndex}
+                    src={allImages[currentImageIndex] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80"} 
+                    alt={product.name}
+                    custom={slideDirection}
+                    initial={{ x: slideDirection > 0 ? 400 : -400, opacity: 0, scale: 0.85, rotate: slideDirection > 0 ? 5 : -5 }}
+                    animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ x: slideDirection > 0 ? -400 : 400, opacity: 0, scale: 0.85, rotate: slideDirection > 0 ? -5 : 5 }}
+                    transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-1000"
+                    data-testid={`img-product-${currentImageIndex}`}
+                  />
+                </AnimatePresence>
+
+                {/* Navigation arrows */}
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-black hover:text-white transition-all duration-300 z-10"
+                      data-testid="button-prev-image"
+                      aria-label="prev"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-black hover:text-white transition-all duration-300 z-10"
+                      data-testid="button-next-image"
+                      aria-label="next"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+
+                    {/* Image counter */}
+                    <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest z-10">
+                      {currentImageIndex + 1} / {allImages.length}
+                    </div>
+
+                    {/* Progress dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                      {allImages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={(e) => { e.stopPropagation(); goToImage(idx); }}
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            currentImageIndex === idx ? 'w-8 bg-black' : 'w-1.5 bg-black/30 hover:bg-black/60'
+                          }`}
+                          aria-label={`image ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               
               {/* Thumbnails */}
               {allImages.length > 1 && (
                 <div className="flex gap-3 mt-6 overflow-x-auto py-2 w-full justify-center no-scrollbar px-2">
                   {allImages.map((img, idx) => (
-                    <button
+                    <motion.button
                       key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
+                      onClick={() => goToImage(idx)}
+                      whileHover={{ scale: 1.1, y: -4 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.08, type: "spring", stiffness: 200 }}
                       className={`
                         relative w-16 h-20 flex-shrink-0 border-2 transition-all duration-300 overflow-hidden
                         ${currentImageIndex === idx ? 'border-black scale-105 shadow-md' : 'border-black/5 opacity-60 hover:opacity-100'}
                       `}
+                      data-testid={`button-thumbnail-${idx}`}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       {currentImageIndex === idx && (
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-black" />
+                        <motion.div
+                          layoutId="thumb-indicator"
+                          className="absolute bottom-0 left-0 w-full h-1 bg-black"
+                        />
                       )}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               )}
@@ -302,15 +377,23 @@ export default function ProductDetails() {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] mb-6 text-black/40">{t('colorLabel')}</label>
                 <div className={`flex flex-wrap gap-4 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                  {colors.map((color: string) => (
-                    <div key={color} className="relative group">
-                      <button
+                  {colors.map((color: string, idx: number) => (
+                    <motion.div
+                      key={color}
+                      className="relative group"
+                      initial={{ opacity: 0, x: language === 'ar' ? 60 : -60, scale: 0.6, rotate: language === 'ar' ? 15 : -15 }}
+                      animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
+                      transition={{ delay: idx * 0.1, type: "spring", stiffness: 180, damping: 14 }}
+                    >
+                      <motion.button
                         onClick={() => setSelectedColor(color)}
+                        whileHover={{ scale: 1.15, rotate: 5 }}
+                        whileTap={{ scale: 0.92 }}
                         className={`
                           relative w-20 h-20 rounded-full overflow-hidden transition-all duration-300 p-0.5 border-2
                           ${selectedColor === color 
-                            ? 'border-black scale-110 shadow-xl' 
-                            : 'border-transparent hover:border-black/20 hover:scale-105'}
+                            ? 'border-black scale-110 shadow-xl ring-4 ring-black/10' 
+                            : 'border-transparent hover:border-black/20'}
                         `}
                         data-testid={`button-color-${color}`}
                       >
@@ -329,11 +412,16 @@ export default function ProductDetails() {
                         )}
                         
                         {selectedColor === color && (
-                          <div className="absolute inset-0 bg-black/10 flex items-center justify-center backdrop-blur-[1px]">
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                            className="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-[1px]"
+                          >
                             <Check className="h-5 w-5 text-white drop-shadow-md" />
-                          </div>
+                          </motion.div>
                         )}
-                      </button>
+                      </motion.button>
                       
                       {/* Tooltip-like label */}
                       <div className={`
@@ -344,7 +432,7 @@ export default function ProductDetails() {
                           {color}
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -353,12 +441,17 @@ export default function ProductDetails() {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] mb-6 text-black/40">{t('sizeLabel')}</label>
                 <div className={`flex flex-wrap gap-4 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                  {availableSizes.map((size: string) => (
-                    <button
+                  {availableSizes.map((size: string, idx: number) => (
+                    <motion.button
                       key={size}
                       onClick={() => setSelectedSize(size)}
+                      initial={{ opacity: 0, y: 30, scale: 0.7 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: idx * 0.08, type: "spring", stiffness: 200, damping: 15 }}
+                      whileHover={{ scale: 1.08, y: -4 }}
+                      whileTap={{ scale: 0.95 }}
                       className={`
-                        px-6 py-3 border-2 rounded-none font-bold uppercase tracking-widest text-sm transition-all duration-300
+                        px-6 py-3 border-2 rounded-none font-bold uppercase tracking-widest text-sm transition-colors duration-300
                         ${selectedSize === size
                           ? 'border-black bg-black text-white shadow-lg'
                           : 'border-black/20 hover:border-black text-black hover:bg-black/5'}
@@ -366,7 +459,7 @@ export default function ProductDetails() {
                       data-testid={`button-size-${size}`}
                     >
                       {size}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>

@@ -3,12 +3,21 @@ import { Send, X, Loader2, Sparkles, Headphones } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 const LOGO_LIGHT = "/images/logos/logo-light-nobg.png";
+
+interface AdvisorProduct {
+  id: string;
+  name: string;
+  price: string | number;
+  image?: string;
+}
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  products?: AdvisorProduct[];
 }
 
 type TabType = "advisor" | "support";
@@ -18,6 +27,7 @@ const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=966551329821";
 
 export const UnifiedChat = memo(function UnifiedChat() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [view, setView] = useState<ViewMode>("closed");
   const [activeTab, setActiveTab] = useState<TabType>("advisor");
   const [advisorMessages, setAdvisorMessages] = useState<Message[]>([]);
@@ -79,7 +89,11 @@ export const UnifiedChat = memo(function UnifiedChat() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.response || "عذراً، لم أستلم رداً." }]);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: data.response || "عذراً، لم أستلم رداً.",
+        products: Array.isArray(data.products) ? data.products : undefined,
+      }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "عذراً، حدث خطأ في الاتصال. حاول مرة أخرى." }]);
     } finally {
@@ -274,17 +288,57 @@ export const UnifiedChat = memo(function UnifiedChat() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#faf8f5]/40">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-start" : "justify-end"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line shadow-sm ${
-                      msg.role === "user"
-                        ? `text-white rounded-tr-none`
-                        : "bg-white text-[#1a2744] rounded-tl-none border border-gray-100"
-                    }`}
-                    style={msg.role === "user" ? { background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#b8944f" : "#0f1a2e"})` } : undefined}
-                  >
-                    {msg.content}
+                <div key={i} className="space-y-2">
+                  <div className={`flex ${msg.role === "user" ? "justify-start" : "justify-end"}`}>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line shadow-sm ${
+                        msg.role === "user"
+                          ? `text-white rounded-tr-none`
+                          : "bg-white text-[#1a2744] rounded-tl-none border border-gray-100"
+                      }`}
+                      style={msg.role === "user" ? { background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#b8944f" : "#0f1a2e"})` } : undefined}
+                    >
+                      {msg.content}
+                    </div>
                   </div>
+
+                  {/* Recommended product cards */}
+                  {msg.products && msg.products.length > 0 && (
+                    <div className="flex flex-col gap-2 pr-2">
+                      {msg.products.map((p, idx) => (
+                        <motion.button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setLocation(`/products/${p.id}`); setViewMode("closed"); }}
+                          initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          transition={{ delay: idx * 0.12, type: "spring", stiffness: 200, damping: 18 }}
+                          whileHover={{ scale: 1.02, x: -4 }}
+                          className="flex items-center gap-3 bg-white rounded-2xl border border-[#c9a96e]/20 p-2.5 shadow-md hover:shadow-xl hover:border-[#c9a96e] transition-all group text-right w-full"
+                          data-testid={`card-recommended-${p.id}`}
+                        >
+                          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#faf8f5] to-[#f0ebe0]">
+                            {p.image ? (
+                              <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Sparkles className="h-6 w-6 text-[#c9a96e]" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 text-right">
+                            <p className="font-black text-sm text-[#1a2744] truncate">{p.name}</p>
+                            <p className="text-[11px] text-[#c9a96e] font-bold mt-0.5">
+                              {Number(p.price).toLocaleString("ar-SA")} ر.س
+                            </p>
+                            <span className="inline-block text-[9px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                              عرض المنتج ←
+                            </span>
+                          </div>
+                        </motion.a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               {isLoading && (
