@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Send, X, Loader2, Sparkles, Headphones } from "lucide-react";
+import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
+import type { Product } from "@shared/schema";
 
 const LOGO_LIGHT = "/images/logos/logo-light-nobg.png";
 
@@ -28,6 +32,31 @@ const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=966551329821";
 export const UnifiedChat = memo(function UnifiedChat() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const addToCart = useCart(s => s.addItem);
+  const { data: allProducts } = useQuery<Product[]>({ queryKey: ["/api/products"] });
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+
+  const handleAddToCart = useCallback((productRef: AdvisorProduct) => {
+    const product = allProducts?.find(p => (p as any).id === productRef.id || (p as any)._id === productRef.id);
+    if (!product) {
+      toast({ title: "تعذر إضافة المنتج", description: "يرجى فتح صفحة المنتج لاختيار الحجم واللون.", variant: "destructive" });
+      return;
+    }
+    const variants: any[] = (product as any).variants || [];
+    const variant = variants.find(v => (v.stock ?? 0) > 0) || variants[0];
+    if (!variant) {
+      toast({ title: "غير متوفر حالياً", variant: "destructive" });
+      return;
+    }
+    addToCart(product as any, variant, 1);
+    setAddedIds(prev => new Set(prev).add(productRef.id));
+    toast({ title: "✨ تمت الإضافة للسلة", description: productRef.name });
+    setTimeout(() => {
+      setAddedIds(prev => { const n = new Set(prev); n.delete(productRef.id); return n; });
+    }, 2500);
+  }, [allProducts, addToCart, toast]);
+
   const [view, setView] = useState<ViewMode>("closed");
   const [activeTab, setActiveTab] = useState<TabType>("advisor");
   const [advisorMessages, setAdvisorMessages] = useState<Message[]>([]);
@@ -306,36 +335,71 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   {msg.products && msg.products.length > 0 && (
                     <div className="flex flex-col gap-2 pr-2">
                       {msg.products.map((p, idx) => (
-                        <motion.button
+                        <motion.div
                           key={p.id}
-                          type="button"
-                          onClick={() => { setLocation(`/products/${p.id}`); setViewMode("closed"); }}
                           initial={{ opacity: 0, x: 50, scale: 0.9 }}
                           animate={{ opacity: 1, x: 0, scale: 1 }}
                           transition={{ delay: idx * 0.12, type: "spring", stiffness: 200, damping: 18 }}
-                          whileHover={{ scale: 1.02, x: -4 }}
-                          className="flex items-center gap-3 bg-white rounded-2xl border border-[#c9a96e]/20 p-2.5 shadow-md hover:shadow-xl hover:border-[#c9a96e] transition-all group text-right w-full"
+                          className="bg-white rounded-2xl border border-[#c9a96e]/30 p-3 shadow-md hover:shadow-xl hover:border-[#c9a96e] transition-all group overflow-hidden relative"
                           data-testid={`card-recommended-${p.id}`}
                         >
-                          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#faf8f5] to-[#f0ebe0]">
-                            {p.image ? (
-                              <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Sparkles className="h-6 w-6 text-[#c9a96e]" />
+                          <div className="absolute -top-1 -right-1 bg-gradient-to-br from-[#c9a96e] to-[#b8944f] text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg shadow">
+                            توصية رفيف ✨
+                          </div>
+                          <div className="flex items-stretch gap-3">
+                            <button
+                              type="button"
+                              onClick={() => { setLocation(`/products/${p.id}`); setView("closed"); }}
+                              className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#faf8f5] to-[#f0ebe0] relative"
+                              aria-label={`فتح ${p.name}`}
+                            >
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Sparkles className="h-6 w-6 text-[#c9a96e]" />
+                                </div>
+                              )}
+                            </button>
+                            <div className="flex-1 min-w-0 text-right flex flex-col justify-between">
+                              <div>
+                                <p className="font-black text-sm text-[#1a2744] line-clamp-2 leading-tight">{p.name}</p>
+                                <p className="text-base text-[#c9a96e] font-black mt-1">
+                                  {Number(p.price).toLocaleString("ar-SA")} <span className="text-[10px]">ر.س</span>
+                                </p>
                               </div>
-                            )}
+                              <div className="flex gap-1.5 mt-2">
+                                <motion.button
+                                  type="button"
+                                  whileTap={{ scale: 0.94 }}
+                                  onClick={() => handleAddToCart(p)}
+                                  disabled={addedIds.has(p.id)}
+                                  className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-black px-2 py-1.5 rounded-lg transition-all ${
+                                    addedIds.has(p.id)
+                                      ? "bg-emerald-500 text-white"
+                                      : "bg-gradient-to-r from-[#c9a96e] to-[#b8944f] text-white hover:shadow-lg"
+                                  }`}
+                                  data-testid={`button-add-cart-${p.id}`}
+                                >
+                                  {addedIds.has(p.id) ? (
+                                    <><Check className="h-3 w-3" /> أُضيف</>
+                                  ) : (
+                                    <><ShoppingBag className="h-3 w-3" /> أضف للسلة</>
+                                  )}
+                                </motion.button>
+                                <motion.button
+                                  type="button"
+                                  whileTap={{ scale: 0.94 }}
+                                  onClick={() => { setLocation(`/products/${p.id}`); setView("closed"); }}
+                                  className="flex items-center justify-center gap-1 text-[11px] font-black px-2 py-1.5 rounded-lg bg-[#1a2744]/5 text-[#1a2744] hover:bg-[#1a2744]/10 transition-all"
+                                  data-testid={`button-view-${p.id}`}
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </motion.button>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0 text-right">
-                            <p className="font-black text-sm text-[#1a2744] truncate">{p.name}</p>
-                            <p className="text-[11px] text-[#c9a96e] font-bold mt-0.5">
-                              {Number(p.price).toLocaleString("ar-SA")} ر.س
-                            </p>
-                            <span className="inline-block text-[9px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
-                              عرض المنتج ←
-                            </span>
-                          </div>
-                        </motion.a>
+                        </motion.div>
                       ))}
                     </div>
                   )}
