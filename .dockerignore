@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.cache
+.local
+.replit
+.vite
+attached_assets/screenshots
+*.log
+.env
+.env.*

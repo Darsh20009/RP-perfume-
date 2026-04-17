@@ -1,0 +1,59 @@
+modules = ["nodejs-20", "python-3.11"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 24678
+externalPort = 3001
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+publicDir = "dist"
+run = ["node", "dist/index.js"]
+
+[userenv]
+
+[userenv.shared]
+PORT = "5000"
+MONGODB_URI = "mongodb+srv://rf-purfume:ASDqwe123@perfume.txcy7zh.mongodb.net/?appName=Perfume"
+SMTP2GO_SENDER = "noreply@rfperfume.sa"
+SMTP2GO_SENDER_NAME = "رفيف"
+SMTP2GO_API_KEY = "api-35DF1F4ED1CC44F6BC415BB69FC3371E"
+GROQ_API_KEY_1 = "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"
+GROQ_API_KEY_2 = "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"
+GROQ_API_KEY_3 = "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"
+GROQ_API_KEY_4 = "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"
+STORE_CR_NUMBER = "1010978041"
+STORE_TAX_NUMBER = "312037024200003"

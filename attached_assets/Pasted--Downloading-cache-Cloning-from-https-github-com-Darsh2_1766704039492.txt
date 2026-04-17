@@ -1,0 +1,71 @@
+==> Downloading cache...
+==> Cloning from https://github.com/Darsh20009/genmz-shop
+==> Checking out commit cc3bec920c7928ea63a51c38a0aac85263c79ad6 in branch main
+==> Downloaded 194MB in 3s. Extraction took 3s.
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+up to date, audited 491 packages in 871ms
+69 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> rest-express@1.0.0 build
+> tsx script/build.ts
+building client...
+vite v7.3.0 building client environment for production...
+transforming...
+✓ 2740 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                                          2.41 kB │ gzip:   0.89 kB
+../dist/public/assets/Gen_M_Z_LOGO_1766644527859-B3_1eWd-.png                    170.82 kB
+../dist/public/assets/Screenshot_2025-12-25_100724_1766646961782-CQ8lNQfc.png    339.24 kB
+../dist/public/assets/Screenshot_2025-12-25_100613_1766646961781-CrtaqZo4.png    377.07 kB
+../dist/public/assets/Screenshot_2025-12-25_100641_1766646961781-3rwUMiBC.png    471.85 kB
+../dist/public/assets/Screenshot_2025-12-25_100700_1766646961782-wbdpFn5T.png    547.61 kB
+../dist/public/assets/index-DxWY8RaV.css                                         103.75 kB │ gzip:  15.66 kB
+../dist/public/assets/index-bdmVuEVe.js                                        1,113.56 kB │ gzip: 326.00 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.20s
+building server...
+  dist/index.js  4.2mb ⚠️
+⚡ Done in 503ms
+==> Uploading build...
+==> Uploaded in 11.1s. Compression took 2.6s
+==> Build successful 🎉
+==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+==> Deploying...
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+Connected to MongoDB
+Seeding admin user...
+Admin user created with phone 0552469643 and password 20262030
+file:///opt/render/project/src/dist/index.js:104420
+  const distPath = path2.resolve(__dirname, "public");
+                                 ^
+ReferenceError: __dirname is not defined
+    at serveStatic (file:///opt/render/project/src/dist/index.js:104420:34)
+    at file:///opt/render/project/src/dist/index.js:104509:5
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js v22.16.0
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+Connected to MongoDB
+Seeding admin user...
+Admin user created with phone 0552469643 and password 20262030
+file:///opt/render/project/src/dist/index.js:104420
+  const distPath = path2.resolve(__dirname, "public");
+                                 ^
+ReferenceError: __dirname is not defined
+    at serveStatic (file:///opt/render/project/src/dist/index.js:104420:34)
+    at file:///opt/render/project/src/dist/index.js:104509:5
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js v22.16.0
+Need better ways to work with logs? Try theRender CLI, Render MCP Server, or

@@ -1,0 +1,31 @@
+ظبط اللوجهات في الموقع يعني عند المنتج عن خيار التقسيط بي تابي خلي اللوجو تابي يكون موجود مع الصفحة الخارجيه حقتها نفس هذا <tamara-widget class="tamara-product-widget" type="tamara-summary" inline-type="2" uuid="500e7f22-194a-4d61-8094-be5987f6b01f" amount="199"></tamara-widget><div class="tamara-summary-widget__container tamara-summary-widget__small tamara-summary-widget__bundle-ui tamara-summary-widget--inline-outlined tamara-summary-widget__inline-template-2" dir="rtl"><div class="badge-wrapper"></div><div class="summary-widget-content"><div class="content-wrapper"><span class="tamara-summary-widget__inline__text">أو قسم فاتورتك على </span><span class="tamara-widget__number-of-installments-node">4</span><span class="tamara-summary-widget__inline__text"> دفعات بقيمة </span><span class="tamara-summary-widget__amount SAR">49.75 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="4 3.04 17 17.92"><path d="M13.3663 5.63343C14.0415 4.87558 14.4564 4.53534 15.2713 4.10518V16.7248L13.3663 17.1184V5.63343Z" fill="black"></path><path d="M19.4529 11.978C19.8478 11.1444 19.8943 10.7739 20 9.91875L5.39805 13.0894C5.05179 13.8607 4.94033 14.2919 4.88696 15.0576L19.4529 11.978Z" fill="black"></path><path d="M19.4529 15.8433C19.8478 15.0097 19.8943 14.6392 20 13.7841L13.436 15.1734C13.3896 15.9375 13.4429 16.3295 13.3896 17.0953L19.4529 15.8433Z" fill="black"></path><path d="M19.4529 19.7081C19.8478 18.8745 19.8943 18.504 20 17.6489L14.0168 18.9477C13.7148 19.3645 13.5289 20.0592 13.3896 20.9601L19.4529 19.7081Z" fill="black"></path><path d="M9.95136 18.392C10.5321 17.6742 11.1361 16.7711 11.5543 16.0301L4.51109 17.5568C4.16482 18.3281 4.05336 18.7592 4 19.525L9.95136 18.392Z" fill="black"></path><path d="M9.64935 4.56829C10.3245 3.81044 10.7394 3.4702 11.5543 3.04004V16.0765L9.64935 16.4701V4.56829Z" fill="black"></path></svg></span><span class="tamara-summary-widget__inline__text"> بدون رسوم تأخير، متوافقة مع الشريعة الإسلامية </span><span class="tamara-inline-learn-more-link">تعرّف على خياراتك</span><span class="tamara-summary-widget__inline__text"> </span><img class="tamara-inline-badge tamara-badge" src="https://cdn.tamara.co/widget-v2/assets/lavendar-logo.703d190a.svg" alt="Tamara"></div></div></div><tamara-widget class="tamara-product-widget" type="tamara-summary" inline-type="2" uuid="500e7f22-194a-4d61-8094-be5987f6b01f" amount="199"></tamara-widget><script defer="" src="https://cdn.tamara.co/widget-v2/tamara-widget.js"></script><script>
+window.tamaraWidgetConfig = {
+lang: 'ar',
+country: 'SA',
+publicKey: 'e56d8ae9-bb47-408b-8451-959ba5ef25c7',
+css: .tamara-product-widget { @all: unset !important; } .tamara-summary-widget__amount { font-weight: 600 !important; } .tamara-summary-widget__container { font-family: inherit !important; justify-content: space-between !important; }
+};
+
+    function initTamaraWidget() {
+        window.loadTamaraProductWidget({
+            price: 199,
+            sale_price:  null ,
+            lang: 'ar',
+            country: 'SA'
+        });
+    }
+    document.addEventListener('DOMContentLoaded', initTamaraWidget);
+</script><script defer="" src="/js/product_tamara_attribute_listener.js"></script> و تابي <div class="tabby-product-widget" style="margin-top: 15px" data-currency="SAR" data-lang="ar"><div><span class="styles__containerPortal--c9f84"></span></div><div></div></div><script type="text/javascript" src="https://checkout.tabby.ai/tabby-promo.js"></script><script type="text/javascript" src="/js/product_tabby_attribute_listener.js?v=1.0.04"></script>
+        function initTabbyWidget() {
+            if (window.TabbyPromo) {
+                window.TabbyPromo = new TabbyPromo({
+                    selector: '.tabby-product-widget',
+                    currency: 'SAR',
+                    lang: 'ar',
+                    price:  199 ,
+                    installmentsCount: 4 ,
+                    source: 'product'
+                });
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initTabbyWidget);

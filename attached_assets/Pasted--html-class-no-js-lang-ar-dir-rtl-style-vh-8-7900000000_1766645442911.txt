@@ -1,0 +1,2031 @@
+<html class="no-js" lang="ar" dir="rtl" style="--vh: 8.790000000000001px;"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <!-- page title -->
+  <title>Gen M&amp;Z</title>
+      <link rel="canonical" href="https://genmz-sa.com">
+  
+
+
+
+   <meta name="description" content="سنقل كاب, دبل كاب">
+
+
+    <link rel="icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg">
+    <link rel="shortcut icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg">
+
+<!-- google data structure -->
+<script type="text/javascript" async="" src="https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D4M3DHRC77U1VUV8T8P0&amp;lib=ttq"></script><script async="" src="https://connect.facebook.net/en_US/fbevents.js"></script><script async="" src="https://www.googletagmanager.com/gtm.js?id=GTM-MVPZTTH5&amp;l=gtmDataLayer"></script><script type="text/javascript" async="" src="https://static.getbutton.io/widget-send-button/js/init.js"></script><script type="application/ld+json">
+        {
+          "@context": "https://schema.org"
+          ,"@type": "Organization"
+          ,"url": "https://genmz-sa.com/"
+          ,"name": "Gen M&amp;Z"
+          ,"description": "سنقل كاب, دبل كاب"
+          ,"logo": "https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg"
+         
+
+    
+    }
+</script>
+
+<!-- twitter card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="Gen M&amp;Z">
+    <meta name="twitter:title" content="Gen M&amp;Z">
+    <meta name="twitter:url" content="https://genmz-sa.com/">
+            <meta name="twitter:description" content="سنقل كاب, دبل كاب">
+        <meta name="twitter:image" content="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/e2d5d64b-9b8f-462b-ba63-cfcd0b05849b-200x.jpg">
+
+
+
+<!--  facebook open graph -->
+<meta property="og:locale" content="ar">
+<meta property="og:site_name" content="Gen M&amp;Z">
+    <meta property="og:title" content="Gen M&amp;Z">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://genmz-sa.com/">
+            <meta property="og:description" content="سنقل كاب, دبل كاب">
+        <meta property="og:image:alt" content="logo">
+    <meta property="og:image" content="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/e2d5d64b-9b8f-462b-ba63-cfcd0b05849b-200x.jpg">
+    <meta property="og:image:width" content="200">
+    <meta property="og:image:height" content="200">
+
+
+
+    <meta property="business:contact_data:website" content="https://genmz-sa.com/">
+
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+
+  <link rel="shortcut icon" type="image/jpg" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg/">
+        <!--jquery UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #000000;
+            --text-color-primary-bg: #ffffff;
+            --primary-color-op-5: #0000000c;
+            --sub-primary-color: #521B25;
+            --white-color: #fff;
+            --warning-color:  #FFCF57;
+            --danger-color:  #EC5550;
+            --sucess-color:  #5AA788;
+            --black-color:  #0000;
+            --secondary-color: #DEDEDE;
+            --secondary-color-alt0:  #6B6B6B;
+            --secondary-color-alt1:  #5A5A5A;
+            --secondary-color-alt2:  #EFEFEF;
+            --secondary-color-alt3:  #494949;
+            --secondary-color-alt4:  #D9D9D9;
+            --secondary-color-alt5:   #E8E8E8;
+            --secondary-color-alt6:   #8B8B8B;
+            --secondary-color-alt7: #ebebeb;
+            --secondary-color-alt8: #484848;
+            --secondary-color-alt9: #A8A8A8;
+            --secondary-color-alt10: #4A4A4A;
+            --secondary-color-alt11: #606060;
+            --secondary-color-alt12: #767676;
+            --secondary-color-alt13: #F8F8F8;
+            /* font-wieght */
+            --font-weight-sizeOne: 400;
+            --font-wieght-sizeTwo: 700;
+            --font-wieght-sizeThree: 600;
+            /* font-size */
+            --font-size-forteen: 1.167;
+            --font-size-sixteen: 1.333;
+            --font-size-eighteen: 1.5;
+
+            --main-slider-height: 471.43px;
+            --main-slider-sm-height: 115px;
+        }
+
+        @font-face {
+          font-family: 'icomoon';
+          src:  url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.eot?d668y32');
+          src:  url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.eot?d668y32#iefix') format('embedded-opentype'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.woff2?d668y32') format('woff2'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.ttf?d668y32') format('truetype'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.woff?d668y32') format('woff'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.svg?d668y32#icomoon') format('svg');
+          font-weight: normal;
+          font-style: normal;
+          font-display: block;
+        }
+    </style>
+
+  <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.css?v=1.0.2">
+
+            <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/bootstrap-rtl.css?v=1.05">
+    
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/bootstrap-fixes.css?v=1.11">
+
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.structure.min.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.theme.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slick.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slick-theme.css?v=1.08">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slide-menu.css">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slide-menu-style.css?v=1.16">
+
+    <link rel="stylesheet" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/main.css?v=1.228">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/custom.css?v=1.148">
+
+            <link rel="stylesheet" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/main.rtl.css?v=1.25">
+    
+    
+  
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+<style id="zid-store-customer-style">
+    zid-store-customer, [zid-visible-customer], [zid-visible-guest], [zid-visible-wishlist], [zid-hidden-wishlist] {
+        display: none !important;
+    }
+</style>
+
+<script>
+
+    window.ZidIdentifyMomentCustomer = {"id":13202751,"name":"Youssef Darwish","mobile":"966532441566","mobile_object":{"country_code":"966","mobile":"532441566"},"email":"youssefdarwish20009@gmail.com","birth_date":"2001-08-18","gender":"male","hashed_id":"c2ee05ca3069822720ec0a4bef020a84265d48295fb80086cf852243d2554597","hashed_mobile":"09fe86fae1618790121a5abd0c1e4f0438394cd2617bdd0164ee74adea19b0ec","hashed_email":"4d030412aca7d1c8beb32c738c903ac6ebeed3039fa7bfc7c89c6be3dd7d08a6","verified":1,"is_newsletter_subscriber":true,"created_at":"2024-06-13 14:24:35","updated_at":"2025-12-04 09:29:07"};
+
+
+    window.multipleInventoriesBasedOnCountry = false;
+</script><style id="hb-stylesheet"></style>
+
+<script>
+    window.RaqeebStoreId = "5637b013-48b9-4d0f-812a-86c4a15bedd3" || undefined;
+    (function () {
+        window.raqeeb = {
+            q: [["set", "trackerUrl", 'https://raqeeb.zid.sa/collect'],
+                ["set", "siteId", window.RaqeebStoreId], ["trackPageview"]],
+        };
+    })();
+</script>
+<script id="raqeeb-script" src="/js/raqeeb.min.js?v=1.0.3" defer=""></script>
+
+    <script>
+        window.customerLazyLoadingStores = true;
+        window.ScCid = null || undefined;
+        window.store_uuid = "5637b013-48b9-4d0f-812a-86c4a15bedd3" || undefined;
+        window.customerAsync = new Promise(function (resolve, reject) {
+            window._customerAsyncResolve = resolve;
+            window._customerAsyncReject = reject;
+        });
+
+        
+                            window.FB_PIXEL_ID = '707369185420333';
+        
+                            window.TIKTOK_PIXEL_ID = 'D4M3DHRC77U1VUV8T8P0';
+            </script>
+
+<script>
+// Initialize dmdSdk
+window.dmdSdk = {
+    config: {
+        publishableApiKey: "pk_de55cc48fbaeb6c6bb3dc51906728635a984d4e4b1cfad426bfd6be14bd07589",
+        apiEndpoint: "https://api.mazeedplus.com",
+        hostname: window.location.hostname,
+    },
+};
+</script>
+<script id="dmd-sdk-stub-script" src="https://sdk-cdn.mazeedplus.com/stub.js" type="text/javascript"></script><script type="text/javascript" async="" src="https://sdk-cdn.mazeedplus.com/sdk.js" crossorigin="anonymous" id="dmd-sdk-script"></script>
+
+<script>
+// User identification for dmdSdk
+(function() {
+    var retryCount = 0;
+    var maxRetries = 5;
+
+    function identifyUser(customer) {
+        try {
+            if (!customer) {
+                return;
+            }
+
+            if (window.dmdSdk) {
+                const userIdentities = {};
+
+                if (customer.id) {
+                    userIdentities.userId = customer.id;
+                }
+                if (customer.email) {
+                    userIdentities.email = customer.email;
+                }
+                if (customer.mobile) {
+                    userIdentities.mobile = customer.mobile;
+                }
+
+                window.dmdSdk.Identity.identify({
+                    userIdentities
+                });
+            } else {
+                retryCount++;
+                if (retryCount <= maxRetries) {
+                    setTimeout(function() {
+                        identifyUser(customer);
+                    }, 100);
+                } else {
+                    console.warn('dmdSdk not available after ' + maxRetries + ' retries. User identification skipped.');
+                }
+            }
+        } catch (error) {
+            console.error('User identification error:', error);
+        }
+    }
+
+    // Priority 1: Use session customer data (for lazy-load stores)
+    if (window.ZidIdentifyMomentCustomer) {
+        identifyUser(window.ZidIdentifyMomentCustomer);
+    }
+    // Priority 2: Use window.customer (already loaded)
+    else if (window.customer) {
+        identifyUser(window.customer);
+    }
+    // Priority 3: Wait for customerAsync (lazy loading)
+    else if (window.customerAsync) {
+        window.customerAsync.then(function(customer) {
+            identifyUser(customer);
+        }).catch(function(error) {
+            console.error('Error loading customer:', error);
+        });
+    }
+})();
+</script>
+
+<script async="" src="https://genmz-sa.com/js/head_scripts_setup.min.js?v=1.0.4"></script>
+
+                        <script type="text/javascript">
+(function () {
+var options = {
+whatsapp: "966 50 190 6069", // WhatsApp number
+call_to_action: "راسلنا", // Call to action
+position: "right", // Position may be 'right' or 'left'
+};
+var proto = document.location.protocol, host = "getbutton.io", url = proto + "//static." + host;
+var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = url + '/widget-send-button/js/init.js';
+s.onload = function () { WhWidgetSendButton.init(host, proto, options); };
+var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+})();
+</script>
+                                                                                                                                                                <script>
+                    window.purchaseEvent = function purchaseEvent(transactionItems) {
+                                                                                                                                                                        window.zidPurchaseEventTracking(window,transactionItems)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+                    window.productDetailsEvent = function productDetailsEvent(productViewd) {
+                                                                                                                                                                        window.onload = () => typeof window.zidViewContentEventTracking === 'function' && window.zidViewContentEventTracking(window, productViewd);
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+                    window.addToCartEvent = function addToCartEvent(productCart) {
+                                                                                                                                                                        window.zidAddCartEventTracking(window,productCart)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+
+        
+                    window.startCheckoutEvent = function startCheckoutEvent(cart) {
+                                                                                                                                                                        window.zidInitiateCheckoutEventTracking(window,cart)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+
+        
+    </script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','gtmDataLayer','GTM-MVPZTTH5');
+<!-- End Google Tag Manager -->
+var merchantGTM = true;
+</script>
+
+
+
+
+        <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-71NRNXX495"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-71NRNXX495');
+
+            window.gtag = gtag;
+            var merchantGA4 = true;
+        </script>
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    }, false);
+</script>
+
+
+    
+        <!-- Start external script OptimizeApp -->
+        <script defer="" type="text/javascript" src="https://optimizeapp-prod-media.s3.me-south-1.amazonaws.com/pixel-scripts/0232de68a0d364e4a82813a3f4f5ce6199dc155f-raw-zid-oa-script.js?v=1.000&amp;store=5637b013-48b9-4d0f-812a-86c4a15bedd3"></script>
+        <!-- End external script OptimizeApp -->
+
+    
+<script async="" src="https://genmz-sa.com/js/photo-swiper.min.js"></script>
+
+
+<script async="" src="https://genmz-sa.com/js/script_loader.js" data-permitter="/_t/permit" data-script="http://genmz-sa.com/js/umami_tracker.min.js"></script>
+<script type="text/javascript">
+    
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '707369185420333',
+        {"external_id":"c2ee05ca3069822720ec0a4bef020a84265d48295fb80086cf852243d2554597","em":"youssefdarwish20009@gmail.com","ph":"966532441566"});
+
+      window.merchantFBQ = true;
+     
+      fbq('track', 'PageView');
+      
+    </script><script type="text/javascript">
+    
+    !function (w, d, t) {
+        w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+        ttq.load('D4M3DHRC77U1VUV8T8P0');
+    }(window, document, 'ttq');
+
+    if(window.customer != null) {
+        window.ttq.identify({"email":"youssefdarwish20009@gmail.com","phone_number":"+966532441566"});
+    }
+
+      window.merchantTTQ = true;
+     
+      ttq.page();
+      
+    </script><style type="text/css">[data-vaul-drawer]{touch-action:none;will-change:transform;transition:transform .5s cubic-bezier(.32, .72, 0, 1);animation-duration:.5s;animation-timing-function:cubic-bezier(0.32,0.72,0,1)}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=bottom][data-state=open]{animation-name:slideFromBottom}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=bottom][data-state=closed]{animation-name:slideToBottom}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=top][data-state=open]{animation-name:slideFromTop}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=top][data-state=closed]{animation-name:slideToTop}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=left][data-state=open]{animation-name:slideFromLeft}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=left][data-state=closed]{animation-name:slideToLeft}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=right][data-state=open]{animation-name:slideFromRight}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=right][data-state=closed]{animation-name:slideToRight}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=bottom]{transform:translate3d(0,var(--initial-transform,100%),0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=top]{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=left]{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=right]{transform:translate3d(var(--initial-transform,100%),0,0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=top]{transform:translate3d(0,var(--snap-point-height,0),0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=bottom]{transform:translate3d(0,var(--snap-point-height,0),0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=left]{transform:translate3d(var(--snap-point-height,0),0,0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=right]{transform:translate3d(var(--snap-point-height,0),0,0)}[data-vaul-overlay][data-vaul-snap-points=false]{animation-duration:.5s;animation-timing-function:cubic-bezier(0.32,0.72,0,1)}[data-vaul-overlay][data-vaul-snap-points=false][data-state=open]{animation-name:fadeIn}[data-vaul-overlay][data-state=closed]{animation-name:fadeOut}[data-vaul-animate=false]{animation:none!important}[data-vaul-overlay][data-vaul-snap-points=true]{opacity:0;transition:opacity .5s cubic-bezier(.32, .72, 0, 1)}[data-vaul-overlay][data-vaul-snap-points=true]{opacity:1}[data-vaul-drawer]:not([data-vaul-custom-container=true])::after{content:'';position:absolute;background:inherit;background-color:inherit}[data-vaul-drawer][data-vaul-drawer-direction=top]::after{top:initial;bottom:100%;left:0;right:0;height:200%}[data-vaul-drawer][data-vaul-drawer-direction=bottom]::after{top:100%;bottom:initial;left:0;right:0;height:200%}[data-vaul-drawer][data-vaul-drawer-direction=left]::after{left:initial;right:100%;top:0;bottom:0;width:200%}[data-vaul-drawer][data-vaul-drawer-direction=right]::after{left:100%;right:initial;top:0;bottom:0;width:200%}[data-vaul-overlay][data-vaul-snap-points=true]:not([data-vaul-snap-points-overlay=true]):not(
+[data-state=closed]
+){opacity:0}[data-vaul-overlay][data-vaul-snap-points-overlay=true]{opacity:1}[data-vaul-handle]{display:block;position:relative;opacity:.7;background:#e2e2e4;margin-left:auto;margin-right:auto;height:5px;width:32px;border-radius:1rem;touch-action:pan-y}[data-vaul-handle]:active,[data-vaul-handle]:hover{opacity:1}[data-vaul-handle-hitarea]{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:max(100%,2.75rem);height:max(100%,2.75rem);touch-action:inherit}@media (hover:hover) and (pointer:fine){[data-vaul-drawer]{user-select:none}}@media (pointer:fine){[data-vaul-handle-hitarea]:{width:100%;height:100%}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeOut{to{opacity:0}}@keyframes slideFromBottom{from{transform:translate3d(0,var(--initial-transform,100%),0)}to{transform:translate3d(0,0,0)}}@keyframes slideToBottom{to{transform:translate3d(0,var(--initial-transform,100%),0)}}@keyframes slideFromTop{from{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}to{transform:translate3d(0,0,0)}}@keyframes slideToTop{to{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}}@keyframes slideFromLeft{from{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}to{transform:translate3d(0,0,0)}}@keyframes slideToLeft{to{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}}@keyframes slideFromRight{from{transform:translate3d(var(--initial-transform,100%),0,0)}to{transform:translate3d(0,0,0)}}@keyframes slideToRight{to{transform:translate3d(var(--initial-transform,100%),0,0)}}</style><style data-styled="active" data-styled-version="5.3.11"></style></head>
+
+<body class="rtl" data-template="home">
+
+
+<style>
+  body,html {
+    font-family: Cairo, sans-serif;
+  }
+  :root {
+        --header-primary-color: #ffffff;
+    
+        --menu-header-primary-color: #ffffff;
+    --header-primary-brightness: brightness(100%);
+    
+      --menu-header-text-color-primary-bg: #000000;
+  
+    --header-text-color-primary-bg: #000000;    --footer-primary-color: #ffffff;    --footer-text-color-primary-bg: #000000;  }
+</style>
+
+
+<div class="app d-flex flex-column visible">
+    <div class="header">
+          <header section-id="a2320cdf-08f5-4d52-8da2-3203c42b3ec6" class="d-flex flex-column">
+
+              <div class="account-lang-currency upper-bar header-theme-bg-primary header-theme-text-for-primary-bg">
+    <div class="container d-flex justify-content-between">
+        <div class="account-area">
+            <button type="button" onclick="window.location.href='/account-profile'" class="btn btn-dark account-btn">
+                <span class="icon-account_circle_black_24dp header-theme-icon-primary" style="position: relative; top: 1px"></span>
+                <span style="position: relative; bottom: 2px">اهلاً&nbsp; Youssef Darwish &nbsp;</span>
+            </button>
+           
+            <button zid-visible-guest="true" type="button" onclick="window.location.href='/auth/login'" class="btn btn-dark account-btn" style="display: none !important;">
+                <span class="icon-account_circle_black_24dp header-theme-icon-primary" style="position: relative; top: 1px"></span>
+                <span style="position: relative; bottom: 2px">&nbsp;تسجيل الدخول&nbsp;</span>
+            </button>
+        </div>
+
+                <div class="language-currency d-flex justify-content-between" data-toggle="modal" data-target="#langCurrecyModal">
+
+                                                        
+                        <div class="currency-button-area d-flex justify-content-center">
+                <button class="c-btn currency-btn">السعودية </button>
+            </div>
+                                    <div class="vertical-line"></div>
+                                    <div class="language-button-area d-flex justify-content-between">
+                <button type="submit" class="c-btn language-btn d-flex justify-content-between align-items-center">
+                    <span class="px-2">English</span>&nbsp;
+                    <span class="icon-language_white"></span>
+                </button>
+            </div>
+            
+        </div>
+            </div>
+</div>
+
+
+
+
+  <div id="fixed-header" style="z-index: 3" class="">
+    <!-- input search for mobile view -->
+    <div style="z-index: 3">
+         <div class="search-header header-theme-bg-primary">
+    <div class="container ">
+        <div class="d-flex align-items-center search-header-bar">
+            <div class="d-flex align-items-center bd-highlight header-logo">
+
+                
+                <a href="javascript:void(0);" onclick="window.slidingMenu.open()" class="ic menu icon-menu-top d-block d-lg-none" tabindex="1">
+                    <span class="icon-menu_open_black_24dp-1 header-theme-icon-primary"></span>
+                </a>
+
+                <a href="/" style="width: auto; height: 100%; display: block">
+                                                                
+                    <img class="image-logo " src="https://media.zid.store/cdn-cgi/image/h=175,q=100/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/e2d5d64b-9b8f-462b-ba63-cfcd0b05849b-200x.jpg" alt="Gen M&amp;Z" style="width: auto; max-height: 100%">
+
+                                    </a>
+            </div>
+            <div class="p-2 d-none d-lg-flex align-items-center bd-highlight search-input lg-search-div flex-grow-1">
+
+                                <div class="form-group" style="position: relative; margin: 0px">
+                    <span class="icon-search search-input-icon" style="z-index: 1"></span>
+                    <div class="autocomplete" style="position: relative">
+                        <input type="text" data-cat-id="" class="form-control search-input-input" placeholder="ابحث">
+                        <div class="autocomplete-items"></div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="bd-highlight d-flex align-items-center justify-content-end header-cart">
+                                <div class="d-block d-lg-none sm-search-icon">
+                    <span class="icon-search header-theme-icon-primary"></span>
+                </div>
+                                <div class="d-none d-lg-block">
+                    <a href="/cart/view" style="color: inherit">
+                        <h3 class="cart-header-total">219.00 <svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="17" height="19.2" style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>
+    </svg></h3>
+                    </a>
+                </div>
+                <div style="position: relative">
+                    <a class="a-shopping-cart" href="/cart/view" style="color: inherit">
+                        <span class="icon-shopping_cart_black_36dp-1-1 header-theme-icon-primary"><span class="path1"></span><span class="path2"></span></span>
+                        <span class="cart-badge">1</span>
+                    </a>
+                                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+    <div style="position: relative; z-index: -1">
+        <div class="sm-search-div">
+          <div class="autocomplete" style="position: relative">
+            <input type="text" data-cat-id="" class="form-control search-input-input" placeholder="ابحث">
+            <div class="autocomplete-items"></div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+     <div id="sidenav-overlay" onclick="closeSlidingMenu()"></div>
+<nav class="slide-menu menu-header-theme-bg-primary menu-header-theme-bg-primary-brightness-100" id="sliding-menu" style="left: auto; right: 0px; display: block;">
+    <div class="slide-menu__slider" style=""><ul class="theme-text-for-primary-bg menu-header-theme-bg-primary menu-header-theme-bg-primary-brightness-100 menu-header-theme-text-for-primary-bg">
+        <li>
+            <div style="height: 50px"></div>
+        </li>
+                                <li class="slide-menu-ul-li " onclick="scrollToSubMenu(this)">
+                <a href="/" title="الصفحة الرئيسية" class="menu-link">
+                    <span class="px-1 clickable-span">الصفحة الرئيسية</span>
+                </a>
+                            </li>
+                                            <li class="slide-menu-ul-li " onclick="scrollToSubMenu(this)">
+                <a href="/products" title="جميع المنتجات" class="menu-link">
+                    <span class="px-1 clickable-span">جميع المنتجات</span>
+                </a>
+                            </li>
+                                            <li class="slide-menu-ul-li " onclick="scrollToSubMenu(this)">
+                <a href="/categories/1447914/سنقل-كاب" title="سنقل كاب" class="menu-link">
+                    <span class="px-1 clickable-span">سنقل كاب</span>
+                </a>
+                            </li>
+                                            <li class="slide-menu-ul-li " onclick="scrollToSubMenu(this)">
+                <a href="/categories/1447913/دبل-كاب" title="دبل كاب" class="menu-link">
+                    <span class="px-1 clickable-span">دبل كاب</span>
+                </a>
+                            </li>
+                                            <li class="slide-menu-ul-li  all-categories " onclick="scrollToSubMenu(this)">
+                <a href="/categories" title="جميع التصنيفات" class="menu-link">
+                    <span class="px-1 clickable-span">جميع التصنيفات</span>
+                </a>
+                            </li>
+                            <li class="slide-menu-ul-li">
+            <a href="/shipping-and-payment"><span>خيارات الدفع والتوصيل</span></a>
+        </li>
+        <li>
+            <div class="slide-menu-static">
+                <div class="account-lang-currency upper-bar">
+                    <div class="container d-flex flex-wrap">
+                        <div class="account-area">
+                           
+                            <button type="button" onclick="window.location.href='/account-profile'" class="btn btn-dark account-btn">
+                                <span class="icon-account_circle_black_24dp" style="position: relative; top: 1px"></span>
+                                <span style="position: relative; bottom: 2px">اهلاً&nbsp; Youssef Darwish &nbsp;</span>
+                            </button>
+                            
+                            <button zid-visible-guest="true" type="button" onclick="window.location.href='/auth/login'" class="btn btn-dark account-btn" style="display: none !important;">
+                                <span class="icon-account_circle_black_24dp" style="position: relative; top: 1px"></span>
+                                <span style="position: relative; bottom: 2px">&nbsp;تسجيل الدخول&nbsp;</span>
+                            </button>
+                            
+                        </div>
+
+                                                    <div class="language-currency language-currency-menu d-flex justify-content-between" data-toggle="modal" data-target="#langCurrecyModal">
+
+                                                                                                                                        
+
+
+                                                                    <div class="currency-button-area d-flex justify-content-center">
+                                        <button class="c-btn currency-btn currency-btn-menu">السعودية </button>
+                                    </div>
+                                                                                                    <div class="vertical-line vertical-line-menu"></div>
+                                
+                                                                    <div class="language-button-area d-flex justify-content-between">
+                                        <button type="submit" class="c-btn language-btn language-btn-menu d-flex justify-content-between align-items-center">
+                                            <span class="px-2">English</span>&nbsp;
+                                            <span class="icon-language_white icon-language_white-menu"></span>
+                                        </button>
+                                    </div>
+                                                            </div>
+                                            </div>
+                </div>
+            </div>
+        </li>
+        <li>
+            <div style="height: 250px"></div>
+        </li>
+    </ul></div>
+</nav>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function cleanUrl(url) {
+        if (url.startsWith("//")) {
+            url = "/" + url.slice(2);
+        }
+        url = url.replace(/([^:]\/)\/+/g, "$1");
+        if (url !== '/' && url.endsWith('/')) {
+            url = url.slice(0, -1);
+        }
+        return url;
+    }
+    var menuLinks = document.querySelectorAll('.menu-link');
+    menuLinks.forEach(function(link) {
+        link.href = cleanUrl(link.getAttribute('href'));
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+        });
+    });
+    var clickableSpans = document.querySelectorAll('.clickable-span');
+    clickableSpans.forEach(function(span) {
+        span.addEventListener('click', function(event) {
+            event.stopPropagation();
+            var parentAnchor = span.closest('a');
+            if (parentAnchor) {
+                window.location.href = parentAnchor.href;
+            }
+        });
+    });
+});
+</script>
+     <div class="dark d-none d-lg-block" style="position: relative">
+    <div class="div-bg-absolute menu-header-theme-bg-primary"></div>
+    <div class="container">
+        <div class="top-main-menu-wrapper">
+            <nav role="navigation" class="d-flex flex-grow-1">
+
+                <ul class="main-nav d-flex flex-grow-1 flex-wrap menu-header-theme-text-for-primary-bg justify-content-between">
+                    
+                                                                        <li class="top-level-link ">
+                                <a href="/"><span>الصفحة الرئيسية</span></a>
+                                                            </li>
+                                                                                                <li class="top-level-link ">
+                                <a href="/products"><span>جميع المنتجات</span></a>
+                                                            </li>
+                                                                                                <li class="top-level-link ">
+                                <a href="/categories/1447914/سنقل-كاب"><span>سنقل كاب</span></a>
+                                                            </li>
+                                                                                                <li class="top-level-link ">
+                                <a href="/categories/1447913/دبل-كاب"><span>دبل كاب</span></a>
+                                                            </li>
+                                                                                                <li class="top-level-link  all-categories ">
+                                <a href="/categories"><span>جميع التصنيفات</span></a>
+                                                            </li>
+                                            
+
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+</div>
+
+      <div class="modal" id="langCurrecyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body" style="padding: 10px">
+
+          	<style>
+		/* The Modal (background) */
+		#modal-select-destination-city {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		#modal-select-destination-city .modal-select-destination-city-header-container {
+			padding: 0 10px;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+		}
+
+		/* Modal Content */
+		#modal-select-destination-city .modal-select-destination-city-content {
+			background-color: #fefefe;
+			margin: auto;
+			padding: 10px;
+			border: 1px solid #888;
+			width: 100%;
+
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+    #modal-select-destination-city .modal-select-destination-city-content form {
+      width: 100%;
+    }
+
+		#modal-select-destination-city .dropdwns-container {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			width: 100%;
+			max-width: 560px;
+		}
+
+		#modal-select-destination-city .dropbtn {
+			font-size: 1rem;
+			line-height: normal;
+			color: #818286;
+
+			background-color: #ebebeb;
+			border-radius: 5px;
+			width: 100%;
+			height: 44px;
+			font-weight: 400;
+			border: none;
+			padding: 0 18px;
+			appearance: none;
+
+			text-transform: none;
+			margin: 0;
+		}
+
+		.rtl #modal-select-destination-city .dropbtn::after {
+			left: 20px;
+			right: auto;
+		}
+
+		#modal-select-destination-city .dropbtn::after {
+			content: '';
+			background-image: url("/img/down-arrow-svgrepo-com.svg");
+			background-repeat: no-repeat;
+			background-position: left;
+			position: absolute;
+			top: 40px;
+			transform: translateY(-50%);
+			right: 20px;
+			width: 10px;
+			height: 10px;
+		}
+
+		#modal-select-destination-city .dropdwn-content > input {
+			box-sizing: border-box;
+			font-size: 14px;
+			padding: 10px;
+			border: none;
+			border-bottom: 1px solid #ddd;
+			width: 100%;
+		}
+
+		#modal-select-destination-city .dropdwn-content>input:focus {
+			outline: 3px solid #ddd;
+		}
+
+		#modal-select-destination-city .dropdwn {
+			position: relative;
+			display: inline-block;
+			margin: 10px 0;
+			width: 48%;
+		}
+
+		#modal-select-destination-city .dropdwn-content {
+			display: none;
+			position: absolute;
+			background-color: #f6f6f6;
+			overflow: auto;
+			border: 1px solid #ddd;
+			z-index: 1;
+			width: 100%;
+		}
+
+		#destinationCities > div,
+		#destinationCountry > div {
+			max-height: 200px;
+			overflow-y: scroll;
+		}
+
+		#modal-select-destination-city .dropdwn-content span {
+			color: black;
+			padding: 12px 16px;
+			text-decoration: none;
+			display: block;
+			border-bottom: 1px solid #ddd;
+		}
+
+		#modal-select-destination-city .dropdwn a:hover {
+			background-color: #ddd;
+		}
+
+		#modal-select-destination-city .show {
+			display: block;
+		}
+
+		.destination-shipping-title {
+			font-size: 14px;
+			font-weight: bold;
+		}
+
+		.destination-shipping-country,
+		.destination-shipping-city {
+			font-size: 12px;
+			font-weight: normal;
+		}
+
+		.modal-select-destination-city-footer-container {
+			padding: 0;
+			display: flex;
+			flex-direction: row;
+			justify-content: end;
+		}
+
+		.modal-select-destination-city-footer-container button {
+			font-size: 1rem;
+			line-height: normal;
+			border-radius: 5px;
+			height: 38px;
+			font-weight: 400;
+			border: none;
+			padding: 0 18px;
+			appearance: none;
+			text-transform: none;
+			margin: 0;
+			cursor: pointer;
+			-webkit-appearance: none;
+		}
+		#modal-select-destination-city-save {
+			display: block;
+			margin: 0;
+			color: black;
+		}
+	</style>
+
+
+	<div id="modal-select-destination-city" lang="ar">
+		<div class="modal-select-destination-city-content">
+			<form method="post" action="/customer/lang-shipping-country">
+
+				<input type="hidden" name="_token" value="2EWpOndknH1QLbbrMPxVDmgwypahhTL9A4ma0pYy">
+				<input type="hidden" name="redirect_to" value="/">
+				<input type="hidden" name="permalink" value="https://genmz-sa.com/">
+
+				<input id="inputCurrencySymbol" type="hidden" name="currency_symbol" value=" ر.س ">
+				<input id="inputCurrencyCode" type="hidden" name="currency" value="SAR">
+				<input id="inputCountryCode" type="hidden" name="country" value="SA">
+
+				<input id="inputLanguageCode" type="hidden" name="language" value="ar">
+
+				
+				<div class="modal-select-destination-city-header-container">
+					<span class="destination-shipping-title"></span>
+				</div>
+				<div class="dropdwns-container">
+
+					
+													<div class="dropdwn">
+								<span class="destination-shipping-language">الدولة</span>
+								<button id="destinationCountry" type="button" onclick="showDestinationCountries()" class="dropbtn">
+									السعودية
+								</button>
+								<div id="destinationCountries" class="dropdwn-content">
+									<div>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="SAR" onclick="document.getElementById('destinationCountry').innerHTML = 'السعودية'; document.getElementById('inputCurrencySymbol').value = ' ر.س ';document.getElementById('inputCurrencyCode').value = 'SAR'; document.getElementById('inputCountryCode').value = 'SA'; hideAllDestinationsDropDowns();">
+												السعودية
+											</span>
+																					<span id="AED" onclick="document.getElementById('destinationCountry').innerHTML = 'الإمارات العربية المتحدة'; document.getElementById('inputCurrencySymbol').value = 'دإ‏';document.getElementById('inputCurrencyCode').value = 'AED'; document.getElementById('inputCountryCode').value = 'AE'; hideAllDestinationsDropDowns();">
+												الإمارات العربية المتحدة
+											</span>
+																			</div>
+								</div>
+							</div>
+						
+													<div class="dropdwn">
+								<span class="destination-shipping-language">اللغة</span>
+								<button id="destinationLanguage" type="button" onclick="showDestinationLanguages()" class="dropbtn">
+									عربي
+								</button>
+								<div id="destinationLanguages" class="dropdwn-content">
+									<div>
+																					<span id="ar" onclick="document.getElementById('destinationLanguage').innerHTML = 'عربي';  document.getElementById('inputLanguageCode').value = 'ar'; hideAllDestinationsDropDowns();">
+												عربي
+											</span>
+																					<span id="en" onclick="document.getElementById('destinationLanguage').innerHTML = 'English';  document.getElementById('inputLanguageCode').value = 'en'; hideAllDestinationsDropDowns();">
+												English
+											</span>
+																			</div>
+								</div>
+							</div>
+						
+					
+
+				</div>
+				<div class="modal-select-destination-city-footer-container">
+					<button id="modal-select-destination-city-save" type="submit">
+						حفظ
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+        
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</header>
+
+
+     </div>
+    <div class="main flex-grow-1 app-content">
+        
+    <div class="home">
+         <section section-id="5630dd66-4f11-46b8-99c2-818512c517c0" data-lg-scroll-offset="130" data-md-scroll-offset="130" data-sm-scroll-offset="94" class="ss">
+  <div class="container container-slider">
+    <div class="main-slider slider s-slider slick-initialized slick-slider">
+                  <div class="slick-list draggable"><div class="slick-track" style="opacity: 1; width: 828px; transform: translate3d(276px, 0px, 0px);"><div class="slider-item slick-slide" data-slick-index="0" aria-hidden="true" style="width: 276px;" tabindex="-1">
+            <div class="box-1-1 ratio21_9">
+              <div class="content">
+                <a href="/" class="d-flex flex-column justify-content-start" style="position: relative; width: 100%; height: 100%; " tabindex="-1">
+                                          <img class="d-block w-100 slider-image-0" style="width: 100%; height: 100%; object-fit: cover" srcset="
+                                 https://media.zid.store/cdn-cgi/image/w=620,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png 320w,
+                                 https://media.zid.store/cdn-cgi/image/w=960,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png 480w,
+                                 https://media.zid.store/cdn-cgi/image/w=1280,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png 640w,
+                                 https://media.zid.store/cdn-cgi/image/w=1920,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png 960w,
+                                 https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png 1110w,
+                                " src="https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/c5f69fd4-e3a4-4227-8fe6-553ab035c274.png" sizes="(max-width: 1110px) 100vw, 1110px" alt="">
+                                      <div class="d-flex flex-column align-items-center justify-content-center" style="width: 100%; height: 100%; position: absolute; top:0; left: 0;  color: #f7f7f7; ">
+                    <h2 style="font-size: 3.5rem">
+                        
+                    </h2>
+                    <p style="font-size: 2rem">
+                        
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div><div class="slider-item slick-slide slick-current slick-active" data-slick-index="1" aria-hidden="false" style="width: 276px;" tabindex="0">
+            <div class="box-1-1 ratio21_9">
+              <div class="content">
+                <a href="/" class="d-flex flex-column justify-content-start" style="position: relative; width: 100%; height: 100%; " tabindex="0">
+                                          <img class="d-block w-100 slider-image-1" style="width: 100%; height: 100%; object-fit: cover" data-srcset="
+                                 https://media.zid.store/cdn-cgi/image/w=620,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 320w,
+                                 https://media.zid.store/cdn-cgi/image/w=960,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 480w,
+                                 https://media.zid.store/cdn-cgi/image/w=1280,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 640w,
+                                 https://media.zid.store/cdn-cgi/image/w=1920,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 960w,
+                                 https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 1110w,
+                                " data-src="https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png" sizes="(max-width: 1110px) 100vw, 1110px" alt="" srcset="
+                                 https://media.zid.store/cdn-cgi/image/w=620,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 320w,
+                                 https://media.zid.store/cdn-cgi/image/w=960,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 480w,
+                                 https://media.zid.store/cdn-cgi/image/w=1280,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 640w,
+                                 https://media.zid.store/cdn-cgi/image/w=1920,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 960w,
+                                 https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/b9113628-2550-462f-b3dc-891656455678.png 1110w,
+                                ">
+                                      <div class="d-flex flex-column align-items-center justify-content-center" style="width: 100%; height: 100%; position: absolute; top:0; left: 0;  color: #f7f7f7; ">
+                    <h2 style="font-size: 3.5rem">
+                        
+                    </h2>
+                    <p style="font-size: 2rem">
+                        
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div><div class="slider-item slick-slide" data-slick-index="2" aria-hidden="true" style="width: 276px;" tabindex="-1">
+            <div class="box-1-1 ratio21_9">
+              <div class="content">
+                <a href="/" class="d-flex flex-column justify-content-start" style="position: relative; width: 100%; height: 100%; " tabindex="-1">
+                                          <img class="d-block w-100 slider-image-2" style="width: 100%; height: 100%; object-fit: cover" data-srcset="
+                                 https://media.zid.store/cdn-cgi/image/w=620,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 320w,
+                                 https://media.zid.store/cdn-cgi/image/w=960,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 480w,
+                                 https://media.zid.store/cdn-cgi/image/w=1280,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 640w,
+                                 https://media.zid.store/cdn-cgi/image/w=1920,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 960w,
+                                 https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 1110w,
+                                " data-src="https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png" sizes="(max-width: 1110px) 100vw, 1110px" alt="" srcset="
+                                 https://media.zid.store/cdn-cgi/image/w=620,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 320w,
+                                 https://media.zid.store/cdn-cgi/image/w=960,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 480w,
+                                 https://media.zid.store/cdn-cgi/image/w=1280,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 640w,
+                                 https://media.zid.store/cdn-cgi/image/w=1920,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 960w,
+                                 https://media.zid.store/cdn-cgi/image/w=2220,q=100,f=auto/https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/32def0c9-85d0-46a0-bee8-812a46beb23c.png 1110w,
+                                ">
+                                      <div class="d-flex flex-column align-items-center justify-content-center" style="width: 100%; height: 100%; position: absolute; top:0; left: 0;  color: #f7f7f7; ">
+                    <h2 style="font-size: 3.5rem">
+                        
+                    </h2>
+                    <p style="font-size: 2rem">
+                        
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div></div></div>
+                  
+                  
+            </div>
+  </div>
+</section>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        $('[section-id=5630dd66-4f11-46b8-99c2-818512c517c0] .main-slider').slick({
+            infinite: false,
+            autoplay: true,
+            arrows: false,
+            dots: false,
+            rtl: !(window.appDirection === 'ltr')
+        });
+
+
+        $('[section-id=5630dd66-4f11-46b8-99c2-818512c517c0] .main-slider').on('beforeChange', function(event, { slideCount: count }, currentSlide, nextSlide){
+            var currentImage = $('[section-id=5630dd66-4f11-46b8-99c2-818512c517c0] .slider-image-'+nextSlide);
+            if(!currentImage.attr('src')){
+                currentImage.attr('srcset',currentImage.attr('data-srcset'))
+                currentImage.attr('src',currentImage.attr('src'))
+            }
+        });
+    });
+</script>
+
+
+ <div section-id="431c0031-a04f-4993-8aad-fba4aa83bc60" data-lg-scroll-offset="130" data-md-scroll-offset="130" data-sm-scroll-offset="94" class="home-products-section section-padding-space">
+    <div class="container slider-container">
+        <h2 class="section-title theme-title-primary">جيل زد | Generation Z</h2>
+        <div class="d-flex flex-column">
+
+            <div class="products-slider-wrapper" style="position: relative">
+
+
+                    <div class="products-slider s-slider">
+                                                    
+                                                    
+                                            <div class="prod-col" style="" aria-hidden="true" tabindex="0">
+                                 
+<div class="product-item position-relative ">
+          <span class="add-to-wishlist" data-wishlist-id="a85eb28c-ef9c-43dd-ae67-fcae7dda3af6">
+        <span>
+            <a zid-visible-wishlist="a85eb28c-ef9c-43dd-ae67-fcae7dda3af6" class="icon-heart-mask filled" onclick="addToWishlist(this, 'a85eb28c-ef9c-43dd-ae67-fcae7dda3af6')" tabindex="-1" style="display: none !important;"></a>
+            <a class="icon-heart-mask" onclick="addToWishlist(this, 'a85eb28c-ef9c-43dd-ae67-fcae7dda3af6')" tabindex="-1"></a>
+        </span>
+        <a zid-visible-guest="true" class="icon-heart-mask" href="/auth/login?redirect_to=/" tabindex="-1" style="display: none !important;"></a>
+        <img class="loader d-none" src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/spinner.gif" width="20" height="20">
+      </span>
+        
+    <a href="/products/منيره" class="d-flex flex-column justify-content-start" tabindex="-1">
+
+
+
+        <div class="box-1-1">
+            <div class="content">
+                <div class="d-flex justify-content-center" style="width: 100%; height: 100%;">
+                                       <img id="product-card-img-a85eb28c-ef9c-43dd-ae67-fcae7dda3af6" src="https://media.zid.store/thumbs/5637b013-48b9-4d0f-812a-86c4a15bedd3/7fc189f2-081b-4cfb-a27f-399735d8bfbd-thumbnail-1000x1000-70.jpg" alt="هودي  | سنقل كاب">
+                    <span class="product-card-bundle-offer" data-bundle-offer-product-id="a85eb28c-ef9c-43dd-ae67-fcae7dda3af6"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-title" style="margin-top: 15px"><span>هودي  | سنقل كاب</span></div>
+                <div class="product-crd-spec">
+                            <div class="product-price section-product-price theme-title-primary"><span>199.00  <svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="14" height="15.432" style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>
+    </svg> </span></div>
+            
+            
+                                    <small style="font-size: 1.1rem; white-space: break-spaces">متوفر بعدة خيارات</small>
+                
+                
+            
+            
+        </div>
+        </a><div style="text-align: center"><a href="/products/منيره" class="d-flex flex-column justify-content-start" tabindex="-1">
+                        </a><a class="btn btn-primary btn-product-card-select-variant" href="/products/منيره" tabindex="-1">اضف للسلة</a>
+                    </div>
+
+    
+</div>
+                            </div><div class="prod-col" style="" aria-hidden="true" tabindex="0">
+                                 
+<div class="product-item position-relative ">
+          <span class="add-to-wishlist" data-wishlist-id="51fd0c8f-b734-4564-8686-5c507acf6543">
+        <span>
+            <a zid-visible-wishlist="51fd0c8f-b734-4564-8686-5c507acf6543" class="icon-heart-mask filled" onclick="addToWishlist(this, '51fd0c8f-b734-4564-8686-5c507acf6543')" tabindex="-1" style="display: none !important;"></a>
+            <a class="icon-heart-mask" onclick="addToWishlist(this, '51fd0c8f-b734-4564-8686-5c507acf6543')" tabindex="-1"></a>
+        </span>
+        <a zid-visible-guest="true" class="icon-heart-mask" href="/auth/login?redirect_to=/" tabindex="-1" style="display: none !important;"></a>
+        <img class="loader d-none" src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/spinner.gif" width="20" height="20">
+      </span>
+        
+    <a href="/products/تجربة" class="d-flex flex-column justify-content-start" tabindex="-1">
+
+
+
+        <div class="box-1-1">
+            <div class="content">
+                <div class="d-flex justify-content-center" style="width: 100%; height: 100%;">
+                                       <img id="product-card-img-51fd0c8f-b734-4564-8686-5c507acf6543" src="https://media.zid.store/thumbs/5637b013-48b9-4d0f-812a-86c4a15bedd3/b0486aa9-565d-43db-af36-2b66ba4096ab-thumbnail-1000x1000-70.jpg" alt="هودي سما | سنقل كاب">
+                    <span class="product-card-bundle-offer" data-bundle-offer-product-id="51fd0c8f-b734-4564-8686-5c507acf6543"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-title" style="margin-top: 15px"><span>هودي سما | سنقل كاب</span></div>
+                <div class="product-crd-spec">
+                            <div class="product-price section-product-price theme-title-primary"><span>199.00  <svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="14" height="15.432" style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>
+    </svg> </span></div>
+            
+            
+                                    <small style="font-size: 1.1rem; white-space: break-spaces">متوفر بعدة خيارات</small>
+                
+                
+            
+            
+        </div>
+        </a><div style="text-align: center"><a href="/products/تجربة" class="d-flex flex-column justify-content-start" tabindex="-1">
+                        </a><a class="btn btn-primary btn-product-card-select-variant" href="/products/تجربة" tabindex="-1">اضف للسلة</a>
+                    </div>
+
+    
+</div>
+                            </div></div>
+
+
+                            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function(){
+            var arrowNextClass = (window.appDirection === 'ltr') ? 'icon-keyboard_arrow_right': 'icon-keyboard_arrow_left';
+            var arrowPrevClass = (window.appDirection === 'ltr') ? 'icon-keyboard_arrow_left' : 'icon-keyboard_arrow_right';
+
+            var screenWidth = window.screen.width;
+
+            var editingMode = false;
+
+            if(screenWidth >= 768 || editingMode){
+                $('[section-id=431c0031-a04f-4993-8aad-fba4aa83bc60] .products-slider').slick({
+                    slidesToShow: 5,
+                    slidesToScroll: 5,
+                    infinite: false,
+                    autoplay: false,
+                    arrows: true,
+                    dots: false,
+                    rtl: !(window.appDirection === 'ltr'),
+                    nextArrow:'<button class="slick-next slick-arrow" aria-label="Next" type="button" style=""><span class="'+arrowNextClass+'"></span></button>',
+                    prevArrow:'<button class="slick-prev slick-arrow" aria-label="Previous" type="button" style=""><span class="'+arrowPrevClass+'"></span></button>',
+                    responsive: [
+                        {
+                            breakpoint: 992,
+                            settings: {
+                                slidesToShow: 5,
+                                slidesToScroll: 5
+                            }
+                        },
+                        {
+                            breakpoint: 768,
+                            settings: "unslick"
+                        }
+                    ]
+                });
+            }
+        });
+    </script>
+
+
+ <div section-id="98e750c4-3756-4e17-bc6d-4353c13b3153" data-lg-scroll-offset="130" data-md-scroll-offset="130" data-sm-scroll-offset="94" class="home-products-section section-padding-space">
+    <div class="container slider-container">
+        <h2 class="section-title theme-title-primary">جيل الألفية | Generation Mllennials</h2>
+        <div class="d-flex flex-column">
+
+            <div class="products-slider-wrapper" style="position: relative">
+
+
+                    <div class="products-slider s-slider">
+                                                    
+                                                    
+                                            <div class="prod-col" style="" aria-hidden="true" tabindex="0">
+                                 
+<div class="product-item position-relative ">
+          <span class="add-to-wishlist" data-wishlist-id="0e94673c-b324-4a30-b66c-d38535728417">
+        <span>
+            <a zid-visible-wishlist="0e94673c-b324-4a30-b66c-d38535728417" class="icon-heart-mask filled" onclick="addToWishlist(this, '0e94673c-b324-4a30-b66c-d38535728417')" tabindex="-1" style="display: none !important;"></a>
+            <a class="icon-heart-mask" onclick="addToWishlist(this, '0e94673c-b324-4a30-b66c-d38535728417')" tabindex="-1"></a>
+        </span>
+        <a zid-visible-guest="true" class="icon-heart-mask" href="/auth/login?redirect_to=/" tabindex="-1" style="display: none !important;"></a>
+        <img class="loader d-none" src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/spinner.gif" width="20" height="20">
+      </span>
+        
+    <a href="/products/هودي-كاب-سنقل-1" class="d-flex flex-column justify-content-start" tabindex="-1">
+
+
+
+        <div class="box-1-1">
+            <div class="content">
+                <div class="d-flex justify-content-center" style="width: 100%; height: 100%;">
+                                       <img id="product-card-img-0e94673c-b324-4a30-b66c-d38535728417" src="https://media.zid.store/thumbs/5637b013-48b9-4d0f-812a-86c4a15bedd3/3fcd9037-71c8-4960-b8e0-57940eca6ca5-thumbnail-1000x1000-70.jpeg" alt="هودي  | دبل كاب">
+                    <span class="product-card-bundle-offer" data-bundle-offer-product-id="0e94673c-b324-4a30-b66c-d38535728417"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-title" style="margin-top: 15px"><span>هودي  | دبل كاب</span></div>
+                <div class="product-crd-spec">
+                            <div class="product-price section-product-price theme-title-primary"><span>199.00  <svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="14" height="15.432" style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>
+    </svg> </span></div>
+            
+            
+                                    <small style="font-size: 1.1rem; white-space: break-spaces">متوفر بعدة خيارات</small>
+                
+                
+            
+            
+        </div>
+        </a><div style="text-align: center"><a href="/products/هودي-كاب-سنقل-1" class="d-flex flex-column justify-content-start" tabindex="-1">
+                        </a><a class="btn btn-primary btn-product-card-select-variant" href="/products/هودي-كاب-سنقل-1" tabindex="-1">اضف للسلة</a>
+                    </div>
+
+    
+</div>
+                            </div><div class="prod-col" style="" aria-hidden="true" tabindex="0">
+                                 
+<div class="product-item position-relative ">
+          <span class="add-to-wishlist" data-wishlist-id="339887b2-525a-4deb-820f-9a21a66503d4">
+        <span>
+            <a zid-visible-wishlist="339887b2-525a-4deb-820f-9a21a66503d4" class="icon-heart-mask filled" onclick="addToWishlist(this, '339887b2-525a-4deb-820f-9a21a66503d4')" tabindex="-1" style="display: none !important;"></a>
+            <a class="icon-heart-mask" onclick="addToWishlist(this, '339887b2-525a-4deb-820f-9a21a66503d4')" tabindex="-1"></a>
+        </span>
+        <a zid-visible-guest="true" class="icon-heart-mask" href="/auth/login?redirect_to=/" tabindex="-1" style="display: none !important;"></a>
+        <img class="loader d-none" src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/spinner.gif" width="20" height="20">
+      </span>
+        
+    <a href="/products/هودي-كاب-سنقل" class="d-flex flex-column justify-content-start" tabindex="-1">
+
+
+
+        <div class="box-1-1">
+            <div class="content">
+                <div class="d-flex justify-content-center" style="width: 100%; height: 100%;">
+                                       <img id="product-card-img-339887b2-525a-4deb-820f-9a21a66503d4" src="https://media.zid.store/thumbs/5637b013-48b9-4d0f-812a-86c4a15bedd3/c9a93b57-f7c4-401f-8a55-5f100b9acc27-thumbnail-1000x1000-70.jpg" alt="هودي نجد | دبل كاب">
+                    <span class="product-card-bundle-offer" data-bundle-offer-product-id="339887b2-525a-4deb-820f-9a21a66503d4"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-title" style="margin-top: 15px"><span>هودي نجد | دبل كاب</span></div>
+                <div class="product-crd-spec">
+                            <div class="product-price section-product-price theme-title-primary"><span>199.00  <svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="14" height="15.432" style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>
+    </svg> </span></div>
+            
+            
+                                    <small style="font-size: 1.1rem; white-space: break-spaces">متوفر بعدة خيارات</small>
+                
+                
+            
+            
+        </div>
+        </a><div style="text-align: center"><a href="/products/هودي-كاب-سنقل" class="d-flex flex-column justify-content-start" tabindex="-1">
+                        </a><a class="btn btn-primary btn-product-card-select-variant" href="/products/هودي-كاب-سنقل" tabindex="-1">اضف للسلة</a>
+                    </div>
+
+    
+</div>
+                            </div></div>
+
+
+                            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function(){
+            var arrowNextClass = (window.appDirection === 'ltr') ? 'icon-keyboard_arrow_right': 'icon-keyboard_arrow_left';
+            var arrowPrevClass = (window.appDirection === 'ltr') ? 'icon-keyboard_arrow_left' : 'icon-keyboard_arrow_right';
+
+            var screenWidth = window.screen.width;
+
+            var editingMode = false;
+
+            if(screenWidth >= 768 || editingMode){
+                $('[section-id=98e750c4-3756-4e17-bc6d-4353c13b3153] .products-slider').slick({
+                    slidesToShow: 5,
+                    slidesToScroll: 5,
+                    infinite: false,
+                    autoplay: false,
+                    arrows: true,
+                    dots: false,
+                    rtl: !(window.appDirection === 'ltr'),
+                    nextArrow:'<button class="slick-next slick-arrow" aria-label="Next" type="button" style=""><span class="'+arrowNextClass+'"></span></button>',
+                    prevArrow:'<button class="slick-prev slick-arrow" aria-label="Previous" type="button" style=""><span class="'+arrowPrevClass+'"></span></button>',
+                    responsive: [
+                        {
+                            breakpoint: 992,
+                            settings: {
+                                slidesToShow: 5,
+                                slidesToScroll: 5
+                            }
+                        },
+                        {
+                            breakpoint: 768,
+                            settings: "unslick"
+                        }
+                    ]
+                });
+            }
+        });
+    </script>
+
+
+    </div>
+
+    </div>
+    <div class="footer">
+          <footer section-id="52b58543-1f70-4b96-b163-8c2a874cb485" class="d-flex flex-column">
+
+     <div class="footer-store-section store-section footer-theme-bg-primary footer-theme-text-for-primary-bg">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-lg-5">
+                <div class="footer-about-us-links-div footer-about-us-div">
+                    <h2 class="pb-2">Gen M&amp;Z</h2>
+                    <p>لا ينتمي لزمن واحد، بل يكتب قصة جيلين في هوية واحدة.</p>
+                </div>
+            </div>
+            <div class="col-12 col-lg-7">
+                <div class="row">
+                    <div class="col-12 col-lg-4">
+                                            </div>
+                    <div class="col-12 col-lg-4">
+                                                    <div class="footer-about-us-links-div">
+                                <h2 class="pb-2">روابط تهمك </h2>
+                                                                    <p><a href=""></a></p>
+                                                                    <p><a href="/pages/refund-exchange-policy">سياسة الاستبدال والاسترجاع</a></p>
+                                                                    <p><a href="/pages/privacy-policy">سياسة الخصوصية </a></p>
+                                                                    <p><a href="/pages/terms-and-conditions">الشروط والاحكام</a></p>
+                                                            </div>
+                                            </div>
+                    <div class="col-12 col-lg-4">
+                                                <div class="footer-about-us-links-div ">
+                            <h2 class="pb-2">وسائل التواصل</h2>
+                            <div class="social-icons d-flex flex-wrap">
+
+                                
+                                                                    <a href="https://www.instagram.com/genmz.sa" target="_blank">
+                                        <span class="icon-instagram d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                
+                                                                    <a href="https://twitter.com/GenMZsa" target="_blank">
+                                        <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="512.000000pt" height="512.000000pt" viewBox="0 0 512.000000 512.000000" class="x-icon-twitter d-flex align-items-center justify-content-center" preserveAspectRatio="xMidYMid meet">
+
+                                            <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)">
+                                                <path d="M75 5093 c10 -16 448 -653 973 -1418 525 -765 955 -1395 955 -1400 0
+                                                -6 -431 -512 -959 -1126 -527 -613 -965 -1123 -973 -1132 -13 -16 1 -17 206
+                                                -17 l220 0 849 987 c467 542 854 988 859 989 6 2 316 -442 689 -986 l679 -990
+                                                744 0 c705 0 743 1 734 18 -5 9 -460 672 -1010 1472 -550 800 -1001 1457
+                                                -1001 1460 0 4 418 492 929 1085 l928 1080 -215 3 c-177 2 -218 0 -231 -12 -9
+                                                -8 -374 -431 -811 -939 -437 -509 -798 -923 -802 -921 -4 3 -296 425 -649 939
+                                                l-642 935 -745 0 -744 0 17 -27z m2815 -2529 c855 -1224 1557 -2229 1558
+                                                -2235 3 -6 -118 -8 -334 -7 l-338 3 -1558 2228 c-857 1226 -1558 2231 -1558
+                                                2233 0 2 152 4 338 4 l337 -1 1555 -2225z"></path>
+                                            </g>
+                                        </svg>
+                                    </a>
+                                
+                                                                    <a href="https://www.snapchat.com/add/genmz.sa" target="_blank">
+                                        <span class="icon-snapchat-ghost d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                
+                                                                    <a href="https://www.tiktok.com/@genmz.sa" target="_blank">
+                                        <span class="icon-tiktok d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                
+                                                                    <a href="tel:+966552469643" target="_blank">
+                                        <span class="icon-call d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                
+                                                                    <a href="mailto:genmz.sa@gmail.com" target="_blank">
+                                        <span class="icon-envelope-secondary d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                
+                                                                    <a href="https://genmz-sa.com/" target="_blank">
+                                        <span class="icon-globe-secondary d-flex align-items-center justify-content-center"></span>
+                                    </a>
+                                                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-companies">
+    <div class="container">
+        <div class="footer-icons">
+            <div class="d-flex flex-row justify-content-center align-items-center flex-wrap icons-wrapper footer-store-section-bars">
+                                <div class="icons">
+                    <div class="logistics-pay-icons d-flex flex-wrap justify-content-center">
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/apps/296480bb-8f91-40d7-884d-496b563c1629.jpg" loading="lazy" alt="" height="21">
+                            </a>
+                        
+
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/apple_pay.svg" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/mada-circle.png" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/visa-circle.png" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/mastercard-circle.png" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/amex.png" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/stc_pay.png" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/tabby2.svg" loading="lazy" alt="" height="21">
+                            </a>
+                                                    <a href="/shipping-and-payment">
+                                <img src="https://media.zid.store/cdn-cgi/image/h=80,q=100/https://media.zid.store/static/tamara2.svg" loading="lazy" alt="" height="21">
+                            </a>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="footer-copyrights-vat-certificate">
+    <div class="container">
+        <div class="d-flex flex-column-reverse flex-lg-row flex-wrap align-items-center justify-content-between footer-store-section-bars" style="border-bottom: 0px;">
+            <div class="d-flex justify-content-center align-items-center">
+                <span class="text-center footer-copyrights"><span href="#" target="_blank" class="footer-marketing-link">جميع الحقوق محفوظة لدى جين إم زد |  © 2026</span></span>
+            </div>
+            <div class="vat-crn-sections py-4 d-flex flex-row flex-wrap justify-content-end align-items-center">
+                
+                                    <a href="https://eauthenticate.saudibusiness.gov.sa/certificate-details/0000203202" target="_blank" class="maroof-icon" style="text-align: center; color: inherit;">
+                        <img src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png" loading="lazy" alt="" width="auto" height="30">
+                        <div>0000203202</div>
+                    </a>
+                
+                
+                            </div>
+        </div>
+
+    </div>
+</div>
+
+</footer>
+
+
+
+     </div>
+    </div>
+
+
+            <script type="text/javascript" src="/js/zidapi/zidapi.min.js?v=1.0.10.52047d5"></script>
+            <script>
+                window.__INITIAL_STATE__ = {"csrfToken":"2EWpOndknH1QLbbrMPxVDmgwypahhTL9A4ma0pYy","apiAuthorization":"MkVXcE9uZGtuSDFRTGJick1QeFZEbWd3eXBhaGhUTDlBNG1hMHBZeS41MjA0N2Q1","session":{"lang":{"id":2,"name":"\u0639\u0631\u0628\u064a","code":"ar","direction":"rtl"},"currency":{"id":4,"name":"\u0631\u064a\u0627\u0644 \u0633\u0639\u0648\u062f\u064a","code":"SAR","symbol":" \u0631.\u0633 ","country":{"id":184,"name":"\u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629","code":"SA","country_code":"SAU","flag":"https:\/\/media.zid.store\/static\/sa.svg"}},"cartSessionId":null,"customerToken":null},"store":{"id":1192228,"permalink":"https:\/\/genmz-sa.com\/","zidpay_merchant_id":"7448f0cf-d442-41f0-b33a-5ea8c558da0f","is_apple_pay_enabled":true,"is_apple_pay_enabled_in_all_browsers":false,"is_apple_pay_quick_checkout_enabled":false,"is_buy_as_a_guest_enabled":false,"is_custom_theme":true,"category":"clothes-shoes-and-bags"}};
+                zid.store.initApp('ewogICAgICAgICAgICAgICAgImJhc2VVUkwiOiJodHRwczovL2dlbm16LXNhLmNvbS9hcGkvdjEiLAogICAgICAgICAgICAgICAgImhlYWRlcnMiOm51bGwsCiAgICAgICAgICAgICAgICAic3RvcmVJZCI6MTE5MjIyOCwKICAgICAgICAgICAgICAgICJwZXJtYWxpbmsiOiJodHRwczovL2dlbm16LXNhLmNvbS8iLAogICAgICAgICAgICAgICAgImlwIjoiIiwKICAgICAgICAgICAgICAgICJjYXJ0U2Vzc2lvbklkIjoibnVsbCIsCiAgICAgICAgICAgICAgICAiYXBpQXV0aG9yaXphdGlvbiI6Im51bGwiLAogICAgICAgICAgICAgICAgImN1c3RvbWVyVG9rZW4iOiJudWxsIn0=')</script>
+        
+
+<script>
+    window.appDirection = 'rtl';
+
+    window.loadToasterScriptIfNotLoaded = function (onCompleted) {
+        var list = document.getElementsByTagName('script');
+        var i = list.length, flag = false;
+        while (i--) {
+            if (list[i].src === "https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/toastr.min.js") {
+                flag = true;
+                break;
+            }
+        }
+
+        if (!flag) {
+            var script = document.createElement('script');
+            script.src = "https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/toastr.min.js";
+            document.getElementsByTagName('head')[0].appendChild(script);
+
+            var fileref = document.createElement("link");
+            fileref.rel = "stylesheet";
+            fileref.type = "text/css";
+            fileref.href = "https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/toastr.min.css";
+            document.getElementsByTagName("head")[0].appendChild(fileref)
+
+            script.onload = function () {
+                if(onCompleted)
+                    onCompleted();
+            }
+        }else{
+            if(onCompleted)
+                onCompleted();
+        }
+    }
+</script>
+
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-3.6.0.min.js?v=1.0.0"></script>
+
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.min.js"></script>
+
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/popper.min.js?v=1.0"></script>
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/bootstrap.min.js"></script>
+
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slide-menu.ie.js?v=1.06"></script>
+<script src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slick.min.js"></script>
+
+<script type="text/javascript" src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/main.js?v=1.120"></script>
+
+    <script>
+        $( window ).resize(function() {
+            $('.s-slider').slick('resize');
+        });
+    </script>
+
+<script>
+    /**
+     * Saudi Riyal Symbol Replacement Script - No-Flash Version
+     *
+     * Immediate inline execution to prevent flashing of original currency text
+     */
+    (function() {
+        // Function to generate SVG with dynamic size based on computed font size
+        function getRiyalSvgSymbol(fontSize) {
+            // Default size if we can't determine the font size
+            const size = fontSize || 16;
+
+            // Calculate dimensions - height matches the font size exactly
+            const height = size;
+            const width = Math.round(height * 0.895);
+
+            return `<svg class="riyal-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39"
+      width="${width}" height="${height}"
+      style="display:inline-block;vertical-align:-0.125em">
+      <path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/>
+      <path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/>
+    </svg>`;
+        }
+
+        // Precompile regex patterns
+        const riyalRegex = /ر\.س/g;
+        const sarRegex = /SAR/g;
+
+        // 1. INLINE STYLE INJECTION: Hide currency text during initial load
+        const style = document.createElement('style');
+        style.textContent = `
+    /* Hide currency symbols during page load to prevent flashing */
+    .currency-symbol-loading {
+      visibility: hidden !important;
+    }
+    body {
+      opacity: 0.99; /* Trigger repaint without visual effect */
+    }
+  `;
+        document.head.appendChild(style);
+
+        // 2. EARLY EXECUTION: Process text nodes as early as possible
+        function replaceRiyalText() {
+            // Get all text nodes in the document body
+            const textNodes = [];
+            const walker = document.createTreeWalker(
+                document.body,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            let node;
+            while (node = walker.nextNode()) {
+                // Skip script and style tags
+                const parentNodeName = node.parentNode.nodeName.toLowerCase();
+                if (parentNodeName !== 'script' && parentNodeName !== 'style') {
+                    textNodes.push(node);
+                }
+            }
+
+            // Process each text node
+            textNodes.forEach(textNode => {
+                const content = textNode.nodeValue;
+                // Check if the text contains either "ر.س" or "SAR"
+                if (/\bSAR\b/i.test(content) || /ر\.س/.test(content)) {
+                    // Get computed font size of the parent element
+                    const computedStyle = window.getComputedStyle(textNode.parentNode);
+                    const fontSize = parseFloat(computedStyle.fontSize);
+
+                    // Get custom SVG with appropriate size
+                    const customSvg = getRiyalSvgSymbol(fontSize);
+
+                    // Create a temporary container
+                    const tempContainer = document.createElement('div');
+
+                    // Preserve spaces in all replacements
+                    let newContent = content
+                        .replace(/(ر\.س)/g, customSvg)
+                        .replace(/(SAR)/g, customSvg);
+
+                    tempContainer.innerHTML = newContent;
+
+                    // Replace the original text node with the new nodes
+                    const fragment = document.createDocumentFragment();
+                    while (tempContainer.firstChild) {
+                        fragment.appendChild(tempContainer.firstChild);
+                    }
+                    textNode.parentNode.replaceChild(fragment, textNode);
+                }
+            });
+        }
+
+        // 3. IMMEDIATE EXECUTION: Run script as early as possible
+        function init() {
+            // Run immediately if possible
+            replaceRiyalText();
+
+            // Remove loading class
+            setTimeout(() => {
+                style.textContent = '';
+                document.head.removeChild(style);
+            }, 0);
+
+            // Set up a MutationObserver to handle dynamically added content
+            let isMutationPending = false;
+            const observer = new MutationObserver(() => {
+                if (!isMutationPending) {
+                    isMutationPending = true;
+                    requestAnimationFrame(() => {
+                        replaceRiyalText();
+                        isMutationPending = false;
+                    });
+                }
+            });
+
+            // Start observing with high priority
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+
+        // Execute immediately, don't wait for DOMContentLoaded
+        if (document.body) {
+            init();
+        } else {
+            // Use both methods for fastest possible execution
+            document.addEventListener('DOMContentLoaded', init, {once: true});
+            // Backup with a short timeout in case DOMContentLoaded is delayed
+            setTimeout(init, 10);
+        }
+    })();
+</script>
+
+<script>
+  var store_currency = 'SAR';
+  var store_lang = 'ar';
+</script>
+<script type="text/javascript" src="/js/zid-tracking/zid-tracking.min.js?v=1.0.16.52047d5"></script>
+
+<script>
+
+    var app_environment = 'production';
+
+    if(typeof window.ga === "function"){
+        window.ga('send', 'pageview');
+        window.ga('merchantTracker.send', 'pageview');
+    }
+
+
+    if(typeof window.snaptr === "function" && window.merchantSNAPTR && !window.customerLazyLoadingStores) {
+        window.snaptr('track', 'PAGE_VIEW')
+    }
+
+
+    if(typeof window.fbq === "function" && window.merchantFBQ && !window.customerLazyLoadingStores) {
+        window.fbq('track', 'PageView');
+    }
+
+    if(window.ttq && typeof window.ttq.page === "function" && window.merchantTTQ && !window.customerLazyLoadingStores) {
+        window.ttq.page();
+    }
+
+
+    if(window.PostAffTracker && typeof window.PostAffTracker.track === "function") {
+        window.PostAffTracker.track();
+    }
+
+    if(window.ZidAuthFromRoute){
+        if(window.ZidAuthFromRoute === '/auth/login'){
+            zidTracking.sendGaLoggedIn()
+        }else if(window.ZidAuthFromRoute === '/auth/register'){
+            zidTracking.sendGaCompleteRegistration();
+        }
+    }
+
+
+    window.sendProductAddToCartEvent =  zidTracking.sendGaProductAddToCartEvent;
+    window.sendProductRemoveFromCartEvent =  zidTracking.sendGaProductRemoveFromCartEvent;
+    window.sendGaCartViewCheckoutStepEvent = zidTracking.sendGaCartViewCheckoutStepEvent;
+    window.sendGaProductsViewItemsListEvent = zidTracking.sendGaProductsViewItemsList;
+
+    zidTracking.sendPageViewEvent();
+
+</script>
+
+
+
+<script type="text/javascript" src="/js/product_helper_scripts.min.js?v=1.0.0.52047d5"></script>
+<script type="text/javascript" src="/js/products_bundle_offer_tag.min.js?v=1.0.0.52047d5"></script>
+<script type="text/javascript" src="/js/products_donation_availability.min.js?v=1.0.1.52047d5"></script>
+
+    <script type="text/javascript" src="/js/store_select_shipping_country_lang.min.js?v=1.0.0.52047d5"></script>    
+
+
+
+<style>
+    .loyalty-rewards-popup__rewards_row {
+        font-size: 1.1rem;
+        border: 1px solid #cccccc;
+        margin-top: 10px;
+        border-radius: 3px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    .search-seo {
+        border: 0;
+        clip: rect(0,0,0,0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+</style>
+<div class="loyalty-rewards-popup loyalty-rewards-popup-init loyalty-rewards-popup-hidden">
+
+    <style>
+        .loyalty-rewards-popup-hidden {
+            display: none !important;
+        }
+        .loyalty-rewards-popup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loyalty-rewards-popup__wrap {
+            width: 90%;
+            position: absolute;
+            max-width: 440px;
+            max-height: 85vh;
+            overflow: scroll;
+            border-radius: 20px;
+            scrollbar-width: none;
+        }
+
+        .loyalty-rewards-popup__wrap::-webkit-scrollbar {
+            width: 0px;
+        }
+
+        .loyalty-rewards-popup {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 99999999;
+        }
+        .loyalty-rewards-popup ul {
+            margin: unset;
+            padding: unset;
+        }
+        .loyalty-rewards-popup__backdrop {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .loyalty-rewards-popup__close {
+            color: #666;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            right: 24px;
+            top: 20px;
+            background: #ffffff;
+            border-radius: 100%;
+            cursor: pointer;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loyalty-rewards-popup__close:hover {
+            color: #333;
+            transform: scale(1.1);
+            transition: transform 300ms linear;
+        }
+
+        .loyalty-rewards-popup__inner {
+            padding: 25px 40px 40px;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: #fff;
+            border-radius: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+        .loyalty-rewards-popup__logo svg {
+            height: 34px !important;
+            width: 118px !important;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .loyalty-rewards-popup__cta {
+            margin-top: 24px;
+            color: #666666;
+            font-size: 14px;
+            line-height: 22px;
+        }
+        .loyalty-rewards-popup .loyalty-rewards-popup__learn-button {
+            display: inline;
+            color: #000000;
+            text-decoration: underline;
+            font-weight: normal;
+            font-size: inherit;
+            line-height: inherit;
+        }
+        .loyalty-rewards-popup__footer a {
+            text-decoration: underline;
+            color: inherit;
+            font-weight: normal;
+        }
+        [dir='rtl'] .loyalty-rewards-popup__close {
+            right: unset;
+            left: 24px;
+        }
+        .loyalty-rewards-popup__why-title {
+            font-size: 16px;
+            color: #000;
+            font-weight: 700;
+        }
+        .loyalty-rewards-popup__why-points {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-right: auto;
+            margin-left: auto;
+            flex-direction: column;
+        }
+        .loyalty-rewards-popup__why-item > div {
+            margin-top: 10px;
+        }
+        [dir='rtl'] .loyalty-rewards-popup__why-item > div {
+            margin-top: 0;
+        }
+
+        .loyalty-rewards-popup .loyalty-points__info_d_none {
+            display: none;
+        }
+
+        .loyalty-rewards-popup .loyalty-points__points-text {
+            color: var(--primary-color);
+            margin: 0 3px;
+        }
+
+        .loyalty-points__info {
+            text-align: left;
+            position: relative;
+            top: 10px;
+            font-size: 1.1rem;
+        }
+
+        [dir='rtl'] .loyalty-points__info {
+            text-align: right;
+        }
+
+
+
+        @media (min-width: 768px) {
+            .loyalty-rewards-popup__cta {
+                margin-top: 28px;
+            }
+            .md\:space-y-16 > :not(template) ~ :not(template) {
+                margin-top: 16px !important;
+            }
+            .loyalty-rewards-popup__close {
+                top: 20px;
+                right: 24px;
+            }
+            .loyalty-rewards-popup__logo svg {
+                height: 28px !important;
+                width: 130px !important;
+            }
+            [dir='rtl'] .loyalty-rewards-popup__close {
+                right: unset;
+                left: 24px;
+            }
+            [dir='rtl'] .loyalty-rewards-popup__payment-type ul {
+                text-align: right;
+            }
+        }
+    </style>
+
+    <div class="loyalty-rewards-popup__backdrop"></div>
+    <div class="loyalty-rewards-popup__wrap">
+        <div class="loyalty-rewards-popup__close" onclick="closeLoyaltyRewardsWindow()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.05994 5.99994L11.5299 1.52994C11.8199 1.23994 11.8199 0.759941 11.5299 0.469941C11.2399 0.179941 10.7599 0.179941 10.4699 0.469941L5.99994 4.93994L1.52994 0.469941C1.23994 0.179941 0.759941 0.179941 0.469941 0.469941C0.179941 0.759941 0.179941 1.23994 0.469941 1.52994L4.93994 5.99994L0.469941 10.4699C0.179941 10.7599 0.179941 11.2399 0.469941 11.5299C0.619941 11.6799 0.809942 11.7499 0.999942 11.7499C1.18994 11.7499 1.37994 11.6799 1.52994 11.5299L5.99994 7.05994L10.4699 11.5299C10.6199 11.6799 10.8099 11.7499 10.9999 11.7499C11.1899 11.7499 11.3799 11.6799 11.5299 11.5299C11.8199 11.2399 11.8199 10.7599 11.5299 10.4699L7.05994 5.99994Z" fill="black"></path>
+            </svg>
+        </div>
+        <div class="loyalty-rewards-popup__content loyalty-rewards-animation-zoom-in loyalty-rewards-animation-zoom-in-enter">
+
+            <div class="loyalty-rewards-popup__inner">
+                <div class="loyalty-rewards-popup__why-title">إستبدل نقاطك بمكافات</div>
+                <div class="loyalty-points__info loyalty-points__info_d_none">
+                    <span>
+                        رصيدك
+                    </span>
+                    <span id="customerPointsValue" class="loyalty-points__points-text"></span>
+                    <span>
+                        نقطة
+                    </span>
+                </div>
+                <div class="loyalty-rewards-popup__why-points loyalty-rewards-popup__rewards">
+                </div>
+                <div class="loyalty-rewards-popup__cta">
+                    <a class="loyalty-rewards-popup__learn-button" href="/pages/loyalty-program-info" target="_black" rel="nofollow noopener">إعرف المزيد</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<h1 class="search-seo">Gen M&amp;Z</h1>
+<h2 class="search-seo">سنقل كاب, دبل كاب</h2>
+    <script>
+        var loyalty_customer_logged_in =  false ;
+        var text_loyalty_options = 'مقابل {points} نقطة احصل على خصم {percentage}';
+        var store_currency_code = 'SAR';
+        var text_loyalty_rewards = 'المكافآت';
+        var loyalty_button_direction =  'left'; ;
+    </script>
+    <script type="text/javascript" src="/js/layout_loyalty_points.min.js?v=1.0.0.52047d5"></script>
+
+
+    <script>
+        function FsetCookie(name,value,days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days*24*60*60*1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+        }
+
+        function FeraseCookie(name) {
+            document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
+        window.addEventListener('load', function() {
+            try{
+                const eBody = document.body;
+                const value = window.getComputedStyle(eBody)
+                    .getPropertyValue('font-family');
+                FsetCookie('StoreBodyFont', value , 100);
+
+            }catch (e) {
+                console.log(e.message)
+            }
+        })
+
+
+    </script>
+
+<script type="text/javascript" src="/js/scripts.min.js?v=1.0.18.52047d5"></script>
+
+
+
+
+
+<div id="gb-widget-5735" script-id="false" style="
+    bottom: 14px;
+    right: 16px;
+    // opacity: 0;
+    // transition: opacity 0.5s;
+    box-sizing: border-box;
+    position: fixed !important;
+    z-index: 16000160 !important;
+    direction: ltr;
+    text-align: right;
+    display: false;
+    align-items: false;
+    flex-direction: false;
+  "><div class="sc-q8c6tt-3 hKYcqG"><a href="https://wa.me/966501906069" target="_blank" class="sc-1s18q3d-2 sc-8eqc3y-1 MGHsp jfKmYd"><div class="sc-8eqc3y-0 cEaIkM">راسلنا</div></a><div color="#4dc247" size="50" class="sc-q8c6tt-1 deQKmp"><a size="50" href="https://wa.me/966501906069" target="_blank" aria-label="Go to whatsapp" color="#4dc247" id="" direction="column" order="whatsapp" class="sc-q8c6tt-0 hrNwue"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width: 100%; height: 100%; fill: rgb(255, 255, 255); stroke: none;"><path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.33.244-.73.244-1.088 0-.058 0-.144-.03-.215-.1-.172-2.434-1.39-2.678-1.39zm-2.908 7.593c-1.747 0-3.48-.53-4.942-1.49L7.793 24.41l1.132-3.337a8.955 8.955 0 0 1-1.72-5.272c0-4.955 4.04-8.995 8.997-8.995S25.2 10.845 25.2 15.8c0 4.958-4.04 8.998-8.998 8.998zm0-19.798c-5.96 0-10.8 4.842-10.8 10.8 0 1.964.53 3.898 1.546 5.574L5 27.176l5.974-1.92a10.807 10.807 0 0 0 16.03-9.455c0-5.958-4.842-10.8-10.802-10.8z"></path></svg></a></div></div><a size="50" type="link" href="https://getbutton.io/?utm_campaign=multy_widget&amp;utm_medium=widget&amp;utm_source=genmz-sa.com" target="_blank" aria-label="Go to GetButton.io website" class="sc-sbsi7l-0 cLcbjv"><div class="sc-1au8ryl-0 dkuywW"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 58.16 10.15"><path d="M2.49,6.42,1.65,9.75c-.09.27.18.54.4.21L3.68,7.89A5.49,5.49,0,0,0,4.76,8C7.4,8,9.53,6.21,9.53,4S7.4,0,4.76,0,0,1.79,0,4A3.47,3.47,0,0,0,.24,5.25a.45.45,0,0,0,.49.18,7.07,7.07,0,0,0,.7-.26s.24-.1.19-.48h0A2,2,0,0,1,1.49,4C1.49,2.62,3,1.5,4.76,1.5S8,2.62,8,4,6.57,6.5,4.76,6.5a4.06,4.06,0,0,1-1.68-.36A.49.49,0,0,0,2.49,6.42Z" fill="#afafaf"></path><path d="M11.12,10.15H11l-1.49-.9a5.45,5.45,0,0,1-2.4.6,4.16,4.16,0,0,1-2.27-.62L5,9.17c2.22,0,5.43-1.66,5.61-4.37h0a3,3,0,0,1,.57,1.86,2.33,2.33,0,0,1-.65,1.64l.52,1.29s.22.44.16.51-.06.05-.11.05Z" fill="#afafaf"></path><path d="M49.84,3.21h0a2.33,2.33,0,0,1,2.32,2.34v1.3a2.33,2.33,0,0,1-2.32,2.33h0a2.34,2.34,0,0,1-2.33-2.33V5.55A2.34,2.34,0,0,1,49.84,3.21Zm0,1.16h0a1,1,0,0,1,1,1V7a1,1,0,0,1-1,1h0a1,1,0,0,1-1-1V5.39A1,1,0,0,1,49.84,4.37Z" fill="#afafaf" fill-rule="evenodd"></path><path d="M55.83,3.21h0a2.34,2.34,0,0,1,2.33,2.34V9.06H56.84V5.39a1,1,0,0,0-1-1h0a1,1,0,0,0-1,1V9.06H53.5V5.55A2.34,2.34,0,0,1,55.83,3.21Z" fill="#afafaf"></path><path d="M36.93,9.06h0a2.33,2.33,0,0,0,2.33-2.32V3.21H37.94V6.9a1,1,0,0,1-1,1h0a1,1,0,0,1-1-1V3.21H34.6V6.74A2.33,2.33,0,0,0,36.93,9.06Z" fill="#afafaf"></path><polygon points="43.2 3.37 42.12 3.37 42.12 1.79 40.97 1.79 40.97 3.37 39.91 3.37 40.26 4.39 40.97 4.39 40.97 9.03 42.12 9.03 42.12 4.39 43.2 4.39 43.2 3.37" fill="#afafaf"></polygon><polygon points="46.76 3.37 45.67 3.37 45.67 1.79 44.52 1.79 44.52 3.37 43.47 3.37 43.81 4.39 44.52 4.39 44.52 9.03 45.67 9.03 45.67 4.39 46.76 4.39 46.76 3.37" fill="#afafaf"></polygon><path d="M28.56,1.73H30.9a3.48,3.48,0,0,1,1.34.18,1.53,1.53,0,0,1,.66.63,2.11,2.11,0,0,1,.27,1,2,2,0,0,1-.23.95,1.6,1.6,0,0,1-.59.64,1.49,1.49,0,0,1,.8.64,2.09,2.09,0,0,1,.3,1.11,2.31,2.31,0,0,1-.38,1.35,1.54,1.54,0,0,1-.88.68A9,9,0,0,1,30.54,9h-2ZM29.73,3V4.64h.78a7.06,7.06,0,0,0,.87,0,.71.71,0,0,0,.47-.26A.86.86,0,0,0,32,3.77a.91.91,0,0,0-.14-.52A.64.64,0,0,0,31.55,3a8.16,8.16,0,0,0-1.14,0Zm0,2.9V7.79h1.1a3.49,3.49,0,0,0,.92-.07.71.71,0,0,0,.35-.3,1.13,1.13,0,0,0,.13-.58,1.2,1.2,0,0,0-.14-.59.88.88,0,0,0-.4-.32,4.1,4.1,0,0,0-1-.08Z" fill="#afafaf"></path><polygon points="27.56 3.37 26.47 3.37 26.47 1.79 25.32 1.79 25.32 3.37 24.27 3.37 24.62 4.39 25.32 4.39 25.32 9.03 26.47 9.03 26.47 4.39 27.56 4.39 27.56 3.37" fill="#afafaf"></polygon><path d="M21.49,3.21h0a2.34,2.34,0,0,1,2.33,2.34v1H20.48V7c0,1.25,1.94,1.19,2.3.72l1,.72c-1.13,1.36-4.59.87-4.59-1.61V5.55A2.34,2.34,0,0,1,21.49,3.21Zm-1,2.38h2v-.2a1,1,0,0,0-1-1h0a1,1,0,0,0-1,1Z" fill="#afafaf"></path><path d="M17.27,3.05a3.82,3.82,0,0,0-2.68,0,1.14,1.14,0,0,0-.5.79h0V6.86a1.17,1.17,0,0,0,1.06,1,3.9,3.9,0,0,0,1.54-.09V6.12H15.9V4.77H18v3.4a.64.64,0,0,1-.31.64,4.55,4.55,0,0,1-2.73.4A2.52,2.52,0,0,1,12.75,7V3.79h0a2.67,2.67,0,0,1,1.14-1.92l0,0c1.56-.91,3.82,0,3.83,0Z" fill="#afafaf"></path></svg></div></a></div></body></html>

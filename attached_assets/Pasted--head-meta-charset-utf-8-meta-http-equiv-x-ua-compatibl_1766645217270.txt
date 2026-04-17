@@ -1,0 +1,386 @@
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <!-- page title -->
+  <title>Gen M&amp;Z</title>
+      <link rel="canonical" href="https://genmz-sa.com">
+  
+
+
+
+   <meta name="description" content="سنقل كاب, دبل كاب">
+
+
+    <link rel="icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg">
+    <link rel="shortcut icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg">
+
+<!-- google data structure -->
+<script type="text/javascript" async="" src="https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D4M3DHRC77U1VUV8T8P0&amp;lib=ttq"></script><script async="" src="https://connect.facebook.net/en_US/fbevents.js"></script><script async="" src="https://www.googletagmanager.com/gtm.js?id=GTM-MVPZTTH5&amp;l=gtmDataLayer"></script><script type="text/javascript" async="" src="https://static.getbutton.io/widget-send-button/js/init.js"></script><script type="application/ld+json">
+        {
+          "@context": "https://schema.org"
+          ,"@type": "Organization"
+          ,"url": "https://genmz-sa.com/"
+          ,"name": "Gen M&amp;Z"
+          ,"description": "سنقل كاب, دبل كاب"
+          ,"logo": "https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg"
+         
+
+    
+    }
+</script>
+
+<!-- twitter card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="Gen M&amp;Z">
+    <meta name="twitter:title" content="Gen M&amp;Z">
+    <meta name="twitter:url" content="https://genmz-sa.com/">
+            <meta name="twitter:description" content="سنقل كاب, دبل كاب">
+        <meta name="twitter:image" content="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/e2d5d64b-9b8f-462b-ba63-cfcd0b05849b-200x.jpg">
+
+
+
+<!--  facebook open graph -->
+<meta property="og:locale" content="ar">
+<meta property="og:site_name" content="Gen M&amp;Z">
+    <meta property="og:title" content="Gen M&amp;Z">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://genmz-sa.com/">
+            <meta property="og:description" content="سنقل كاب, دبل كاب">
+        <meta property="og:image:alt" content="logo">
+    <meta property="og:image" content="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/e2d5d64b-9b8f-462b-ba63-cfcd0b05849b-200x.jpg">
+    <meta property="og:image:width" content="200">
+    <meta property="og:image:height" content="200">
+
+
+
+    <meta property="business:contact_data:website" content="https://genmz-sa.com/">
+
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+
+  <link rel="shortcut icon" type="image/jpg" href="https://media.zid.store/5637b013-48b9-4d0f-812a-86c4a15bedd3/11a57be7-cf19-4170-8439-ea23885d03b2-32x32.jpg/">
+        <!--jquery UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #000000;
+            --text-color-primary-bg: #ffffff;
+            --primary-color-op-5: #0000000c;
+            --sub-primary-color: #521B25;
+            --white-color: #fff;
+            --warning-color:  #FFCF57;
+            --danger-color:  #EC5550;
+            --sucess-color:  #5AA788;
+            --black-color:  #0000;
+            --secondary-color: #DEDEDE;
+            --secondary-color-alt0:  #6B6B6B;
+            --secondary-color-alt1:  #5A5A5A;
+            --secondary-color-alt2:  #EFEFEF;
+            --secondary-color-alt3:  #494949;
+            --secondary-color-alt4:  #D9D9D9;
+            --secondary-color-alt5:   #E8E8E8;
+            --secondary-color-alt6:   #8B8B8B;
+            --secondary-color-alt7: #ebebeb;
+            --secondary-color-alt8: #484848;
+            --secondary-color-alt9: #A8A8A8;
+            --secondary-color-alt10: #4A4A4A;
+            --secondary-color-alt11: #606060;
+            --secondary-color-alt12: #767676;
+            --secondary-color-alt13: #F8F8F8;
+            /* font-wieght */
+            --font-weight-sizeOne: 400;
+            --font-wieght-sizeTwo: 700;
+            --font-wieght-sizeThree: 600;
+            /* font-size */
+            --font-size-forteen: 1.167;
+            --font-size-sixteen: 1.333;
+            --font-size-eighteen: 1.5;
+
+            --main-slider-height: 471.43px;
+            --main-slider-sm-height: 115px;
+        }
+
+        @font-face {
+          font-family: 'icomoon';
+          src:  url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.eot?d668y32');
+          src:  url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.eot?d668y32#iefix') format('embedded-opentype'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.woff2?d668y32') format('woff2'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.ttf?d668y32') format('truetype'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.woff?d668y32') format('woff'),
+          url('https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.svg?d668y32#icomoon') format('svg');
+          font-weight: normal;
+          font-style: normal;
+          font-display: block;
+        }
+    </style>
+
+  <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/icomoon.css?v=1.0.2">
+
+            <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/bootstrap-rtl.css?v=1.05">
+    
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/bootstrap-fixes.css?v=1.11">
+
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.structure.min.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/jquery-ui.theme.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slick.css">
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slick-theme.css?v=1.08">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slide-menu.css">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/slide-menu-style.css?v=1.16">
+
+    <link rel="stylesheet" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/main.css?v=1.228">
+
+    <link rel="stylesheet" type="text/css" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/custom.css?v=1.148">
+
+            <link rel="stylesheet" href="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/main.rtl.css?v=1.25">
+    
+    
+  
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+<style id="zid-store-customer-style">
+    zid-store-customer, [zid-visible-customer], [zid-visible-guest], [zid-visible-wishlist], [zid-hidden-wishlist] {
+        display: none !important;
+    }
+</style>
+
+<script>
+
+    window.ZidIdentifyMomentCustomer = {"id":13202751,"name":"Youssef Darwish","mobile":"966532441566","mobile_object":{"country_code":"966","mobile":"532441566"},"email":"youssefdarwish20009@gmail.com","birth_date":"2001-08-18","gender":"male","hashed_id":"c2ee05ca3069822720ec0a4bef020a84265d48295fb80086cf852243d2554597","hashed_mobile":"09fe86fae1618790121a5abd0c1e4f0438394cd2617bdd0164ee74adea19b0ec","hashed_email":"4d030412aca7d1c8beb32c738c903ac6ebeed3039fa7bfc7c89c6be3dd7d08a6","verified":1,"is_newsletter_subscriber":true,"created_at":"2024-06-13 14:24:35","updated_at":"2025-12-04 09:29:07"};
+
+
+    window.multipleInventoriesBasedOnCountry = false;
+</script><style id="hb-stylesheet"></style>
+
+<script>
+    window.RaqeebStoreId = "5637b013-48b9-4d0f-812a-86c4a15bedd3" || undefined;
+    (function () {
+        window.raqeeb = {
+            q: [["set", "trackerUrl", 'https://raqeeb.zid.sa/collect'],
+                ["set", "siteId", window.RaqeebStoreId], ["trackPageview"]],
+        };
+    })();
+</script>
+<script id="raqeeb-script" src="/js/raqeeb.min.js?v=1.0.3" defer=""></script>
+
+    <script>
+        window.customerLazyLoadingStores = true;
+        window.ScCid = null || undefined;
+        window.store_uuid = "5637b013-48b9-4d0f-812a-86c4a15bedd3" || undefined;
+        window.customerAsync = new Promise(function (resolve, reject) {
+            window._customerAsyncResolve = resolve;
+            window._customerAsyncReject = reject;
+        });
+
+        
+                            window.FB_PIXEL_ID = '707369185420333';
+        
+                            window.TIKTOK_PIXEL_ID = 'D4M3DHRC77U1VUV8T8P0';
+            </script>
+
+<script>
+// Initialize dmdSdk
+window.dmdSdk = {
+    config: {
+        publishableApiKey: "pk_de55cc48fbaeb6c6bb3dc51906728635a984d4e4b1cfad426bfd6be14bd07589",
+        apiEndpoint: "https://api.mazeedplus.com",
+        hostname: window.location.hostname,
+    },
+};
+</script>
+<script id="dmd-sdk-stub-script" src="https://sdk-cdn.mazeedplus.com/stub.js" type="text/javascript"></script><script type="text/javascript" async="" src="https://sdk-cdn.mazeedplus.com/sdk.js" crossorigin="anonymous" id="dmd-sdk-script"></script>
+
+<script>
+// User identification for dmdSdk
+(function() {
+    var retryCount = 0;
+    var maxRetries = 5;
+
+    function identifyUser(customer) {
+        try {
+            if (!customer) {
+                return;
+            }
+
+            if (window.dmdSdk) {
+                const userIdentities = {};
+
+                if (customer.id) {
+                    userIdentities.userId = customer.id;
+                }
+                if (customer.email) {
+                    userIdentities.email = customer.email;
+                }
+                if (customer.mobile) {
+                    userIdentities.mobile = customer.mobile;
+                }
+
+                window.dmdSdk.Identity.identify({
+                    userIdentities
+                });
+            } else {
+                retryCount++;
+                if (retryCount <= maxRetries) {
+                    setTimeout(function() {
+                        identifyUser(customer);
+                    }, 100);
+                } else {
+                    console.warn('dmdSdk not available after ' + maxRetries + ' retries. User identification skipped.');
+                }
+            }
+        } catch (error) {
+            console.error('User identification error:', error);
+        }
+    }
+
+    // Priority 1: Use session customer data (for lazy-load stores)
+    if (window.ZidIdentifyMomentCustomer) {
+        identifyUser(window.ZidIdentifyMomentCustomer);
+    }
+    // Priority 2: Use window.customer (already loaded)
+    else if (window.customer) {
+        identifyUser(window.customer);
+    }
+    // Priority 3: Wait for customerAsync (lazy loading)
+    else if (window.customerAsync) {
+        window.customerAsync.then(function(customer) {
+            identifyUser(customer);
+        }).catch(function(error) {
+            console.error('Error loading customer:', error);
+        });
+    }
+})();
+</script>
+
+<script async="" src="https://genmz-sa.com/js/head_scripts_setup.min.js?v=1.0.4"></script>
+
+                        <script type="text/javascript">
+(function () {
+var options = {
+whatsapp: "966 50 190 6069", // WhatsApp number
+call_to_action: "راسلنا", // Call to action
+position: "right", // Position may be 'right' or 'left'
+};
+var proto = document.location.protocol, host = "getbutton.io", url = proto + "//static." + host;
+var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = url + '/widget-send-button/js/init.js';
+s.onload = function () { WhWidgetSendButton.init(host, proto, options); };
+var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+})();
+</script>
+                                                                                                                                                                <script>
+                    window.purchaseEvent = function purchaseEvent(transactionItems) {
+                                                                                                                                                                        window.zidPurchaseEventTracking(window,transactionItems)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+                    window.productDetailsEvent = function productDetailsEvent(productViewd) {
+                                                                                                                                                                        window.onload = () => typeof window.zidViewContentEventTracking === 'function' && window.zidViewContentEventTracking(window, productViewd);
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+                    window.addToCartEvent = function addToCartEvent(productCart) {
+                                                                                                                                                                        window.zidAddCartEventTracking(window,productCart)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+
+        
+                    window.startCheckoutEvent = function startCheckoutEvent(cart) {
+                                                                                                                                                                        window.zidInitiateCheckoutEventTracking(window,cart)
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+        
+
+        
+    </script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','gtmDataLayer','GTM-MVPZTTH5');
+<!-- End Google Tag Manager -->
+var merchantGTM = true;
+</script>
+
+
+
+
+        <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-71NRNXX495"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-71NRNXX495');
+
+            window.gtag = gtag;
+            var merchantGA4 = true;
+        </script>
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    }, false);
+</script>
+
+
+    
+        <!-- Start external script OptimizeApp -->
+        <script defer="" type="text/javascript" src="https://optimizeapp-prod-media.s3.me-south-1.amazonaws.com/pixel-scripts/0232de68a0d364e4a82813a3f4f5ce6199dc155f-raw-zid-oa-script.js?v=1.000&amp;store=5637b013-48b9-4d0f-812a-86c4a15bedd3"></script>
+        <!-- End external script OptimizeApp -->
+
+    
+<script async="" src="https://genmz-sa.com/js/photo-swiper.min.js"></script>
+
+
+<script async="" src="https://genmz-sa.com/js/script_loader.js" data-permitter="/_t/permit" data-script="http://genmz-sa.com/js/umami_tracker.min.js"></script>
+<script type="text/javascript">
+    
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '707369185420333',
+        {"external_id":"c2ee05ca3069822720ec0a4bef020a84265d48295fb80086cf852243d2554597","em":"youssefdarwish20009@gmail.com","ph":"966532441566"});
+
+      window.merchantFBQ = true;
+     
+      fbq('track', 'PageView');
+      
+    </script><script type="text/javascript">
+    
+    !function (w, d, t) {
+        w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+        ttq.load('D4M3DHRC77U1VUV8T8P0');
+    }(window, document, 'ttq');
+
+    if(window.customer != null) {
+        window.ttq.identify({"email":"youssefdarwish20009@gmail.com","phone_number":"+966532441566"});
+    }
+
+      window.merchantTTQ = true;
+     
+      ttq.page();
+      
+    </script><style type="text/css">[data-vaul-drawer]{touch-action:none;will-change:transform;transition:transform .5s cubic-bezier(.32, .72, 0, 1);animation-duration:.5s;animation-timing-function:cubic-bezier(0.32,0.72,0,1)}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=bottom][data-state=open]{animation-name:slideFromBottom}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=bottom][data-state=closed]{animation-name:slideToBottom}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=top][data-state=open]{animation-name:slideFromTop}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=top][data-state=closed]{animation-name:slideToTop}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=left][data-state=open]{animation-name:slideFromLeft}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=left][data-state=closed]{animation-name:slideToLeft}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=right][data-state=open]{animation-name:slideFromRight}[data-vaul-drawer][data-vaul-snap-points=false][data-vaul-drawer-direction=right][data-state=closed]{animation-name:slideToRight}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=bottom]{transform:translate3d(0,var(--initial-transform,100%),0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=top]{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=left]{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}[data-vaul-drawer][data-vaul-snap-points=true][data-vaul-drawer-direction=right]{transform:translate3d(var(--initial-transform,100%),0,0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=top]{transform:translate3d(0,var(--snap-point-height,0),0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=bottom]{transform:translate3d(0,var(--snap-point-height,0),0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=left]{transform:translate3d(var(--snap-point-height,0),0,0)}[data-vaul-drawer][data-vaul-delayed-snap-points=true][data-vaul-drawer-direction=right]{transform:translate3d(var(--snap-point-height,0),0,0)}[data-vaul-overlay][data-vaul-snap-points=false]{animation-duration:.5s;animation-timing-function:cubic-bezier(0.32,0.72,0,1)}[data-vaul-overlay][data-vaul-snap-points=false][data-state=open]{animation-name:fadeIn}[data-vaul-overlay][data-state=closed]{animation-name:fadeOut}[data-vaul-animate=false]{animation:none!important}[data-vaul-overlay][data-vaul-snap-points=true]{opacity:0;transition:opacity .5s cubic-bezier(.32, .72, 0, 1)}[data-vaul-overlay][data-vaul-snap-points=true]{opacity:1}[data-vaul-drawer]:not([data-vaul-custom-container=true])::after{content:'';position:absolute;background:inherit;background-color:inherit}[data-vaul-drawer][data-vaul-drawer-direction=top]::after{top:initial;bottom:100%;left:0;right:0;height:200%}[data-vaul-drawer][data-vaul-drawer-direction=bottom]::after{top:100%;bottom:initial;left:0;right:0;height:200%}[data-vaul-drawer][data-vaul-drawer-direction=left]::after{left:initial;right:100%;top:0;bottom:0;width:200%}[data-vaul-drawer][data-vaul-drawer-direction=right]::after{left:100%;right:initial;top:0;bottom:0;width:200%}[data-vaul-overlay][data-vaul-snap-points=true]:not([data-vaul-snap-points-overlay=true]):not(
+[data-state=closed]
+){opacity:0}[data-vaul-overlay][data-vaul-snap-points-overlay=true]{opacity:1}[data-vaul-handle]{display:block;position:relative;opacity:.7;background:#e2e2e4;margin-left:auto;margin-right:auto;height:5px;width:32px;border-radius:1rem;touch-action:pan-y}[data-vaul-handle]:active,[data-vaul-handle]:hover{opacity:1}[data-vaul-handle-hitarea]{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:max(100%,2.75rem);height:max(100%,2.75rem);touch-action:inherit}@media (hover:hover) and (pointer:fine){[data-vaul-drawer]{user-select:none}}@media (pointer:fine){[data-vaul-handle-hitarea]:{width:100%;height:100%}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeOut{to{opacity:0}}@keyframes slideFromBottom{from{transform:translate3d(0,var(--initial-transform,100%),0)}to{transform:translate3d(0,0,0)}}@keyframes slideToBottom{to{transform:translate3d(0,var(--initial-transform,100%),0)}}@keyframes slideFromTop{from{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}to{transform:translate3d(0,0,0)}}@keyframes slideToTop{to{transform:translate3d(0,calc(var(--initial-transform,100%) * -1),0)}}@keyframes slideFromLeft{from{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}to{transform:translate3d(0,0,0)}}@keyframes slideToLeft{to{transform:translate3d(calc(var(--initial-transform,100%) * -1),0,0)}}@keyframes slideFromRight{from{transform:translate3d(var(--initial-transform,100%),0,0)}to{transform:translate3d(0,0,0)}}@keyframes slideToRight{to{transform:translate3d(var(--initial-transform,100%),0,0)}}</style><style data-styled="active" data-styled-version="5.3.11"></style></head>

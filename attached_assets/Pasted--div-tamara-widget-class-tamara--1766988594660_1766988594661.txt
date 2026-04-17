@@ -1,0 +1,64 @@
+<div>
+                                                
+    
+        <tamara-widget class="tamara-product-widget" type="tamara-summary" inline-type="2" uuid="c0c04174-481f-40d4-938a-4dd99f3da824" amount="199"></tamara-widget>
+
+    <script defer="" src="https://cdn.tamara.co/widget-v2/tamara-widget.js"></script>
+    <script>
+        window.tamaraWidgetConfig = {
+            lang: 'ar',
+            country: 'SA',
+            publicKey: 'e56d8ae9-bb47-408b-8451-959ba5ef25c7',
+                css: `
+                    .tamara-product-widget {
+                        @all: unset !important;
+                    }
+                    .tamara-summary-widget__amount {
+                        font-weight: 600 !important;
+                    }
+                    .tamara-summary-widget__container {
+                        font-family: inherit !important;
+                        justify-content: space-between !important;
+                    }
+                `
+        };
+
+        function initTamaraWidget() {
+            window.loadTamaraProductWidget({
+                price: 199,
+                sale_price:  null ,
+                lang: 'ar',
+                country: 'SA'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initTamaraWidget);
+    </script>
+
+    <script defer="" src="/js/product_tamara_attribute_listener.js"></script>
+    
+
+        
+
+            <div class="tabby-product-widget" style="margin-top: 15px" data-currency="SAR" data-lang="ar"><div><span class="styles__containerPortal--c9f84"></span></div><div></div></div>
+
+        <script type="text/javascript" src="https://checkout.tabby.ai/tabby-promo.js"></script>
+        <script type="text/javascript" src="/js/product_tabby_attribute_listener.js?v=1.0.04"></script>
+        <script>
+            function initTabbyWidget() {
+                if (window.TabbyPromo) {
+                    window.TabbyPromo = new TabbyPromo({
+                        selector: '.tabby-product-widget',
+                        currency: 'SAR',
+                        lang: 'ar',
+                        price:  199 ,
+                        installmentsCount: 4 ,
+                        source: 'product'
+                    });
+                }
+            }
+            document.addEventListener('DOMContentLoaded', initTabbyWidget);
+        </script>
+    
+
+                                </div>

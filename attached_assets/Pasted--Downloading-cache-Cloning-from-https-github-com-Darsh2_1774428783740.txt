@@ -1,0 +1,71 @@
+==> Downloading cache...
+==> Cloning from https://github.com/Darsh20009/q-Commerce
+==> Checking out commit f76015ccadea0215bbff0e175b0b839648537305 in branch main
+==> Downloaded 203MB in 3s. Extraction took 5s.
+==> Using Erlang version 28.0.2 (default)
+==> Using Elixir version 1.18.4 (default)
+==> Docs on specifying Elixir and Erlang versions: https://render.com/docs/elixir-erlang-versions
+* creating /opt/render/project/.mix/archives/hex-2.4.1-otp-27
+* creating /opt/render/project/.mix/elixir/1-18-otp-28/rebar3
+==> Running build command 'npm install; npm run build'...
+==> Using Node.js version 22.22.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+up to date, audited 519 packages in 1s
+70 packages are looking for funding
+  run `npm fund` for details
+7 vulnerabilities (2 low, 2 moderate, 3 high)
+To address all issues, run:
+  npm audit fix
+Run `npm audit` for details.
+> rest-express@1.0.0 build
+> tsx script/build.ts
+building client...
+vite v7.3.0 building client environment for production...
+transforming...
+✓ 3653 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                        5.06 kB │ gzip:   1.74 kB
+../dist/public/assets/image_1774356279079-DHS3FmSX.png          12.87 kB
+../dist/public/assets/image_1774356329374-Du4uhsGa.png          15.68 kB
+../dist/public/assets/image_1774356262659-DBzx8YUl.png          26.64 kB
+../dist/public/assets/image_1774356309971-CmxTN4g0.png          96.75 kB
+../dist/public/assets/image_1774356250671-t9zuCdry.png         137.28 kB
+../dist/public/assets/QIROX_LOGO_1774316442270-BemkE2ZT.png    224.04 kB
+../dist/public/assets/index-G0h30OcT.css                       218.66 kB │ gzip:  54.11 kB
+../dist/public/assets/index-CQyuEN-W.js                      1,744.10 kB │ gzip: 478.88 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.96s
+building server...
+  dist/index.js  4.9mb ⚠️
+⚡ Done in 573ms
+==> Uploading build...
+==> Uploaded in 8.7s. Compression took 4.0s
+==> Build successful 🎉
+==> Deploying...
+==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+==> Using Erlang version 28.0.2 (default)
+==> Using Elixir version 1.18.4 (default)
+==> Docs on specifying Elixir and Erlang versions: https://render.com/docs/elixir-erlang-versions
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+Connected to MongoDB successfully
+[unhandledRejection] caught: SESSION_SECRET env var must be set and at least 32 characters
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> Port scan timeout reached, no open ports detected. Bind your service to at least one port. If you don't need to receive traffic on any port, create a background worker instead.
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> Timed Out
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
