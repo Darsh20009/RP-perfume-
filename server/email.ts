@@ -70,10 +70,10 @@ function baseTemplate(title: string, content: string): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #f5f5f0; font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; }
     .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; }
-    .header { background: #000000; padding: 32px 40px; display: flex; align-items: center; justify-content: space-between; }
-    .logo-text { color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 0.05em; }
-    .logo-sub { color: rgba(255,255,255,0.4); font-size: 9px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; margin-top: 2px; }
-    .badge { background: #ffffff; color: #000000; font-size: 9px; font-weight: 900; padding: 4px 10px; letter-spacing: 0.3em; text-transform: uppercase; }
+    .header { background: linear-gradient(135deg, #1a2744 0%, #243154 50%, #1a2744 100%); padding: 28px 40px; text-align: center; border-bottom: 3px solid #c9a96e; }
+    .logo-img { height: 56px; width: auto; display: block; margin: 0 auto 8px; }
+    .logo-text { color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 0.15em; margin-top: 8px; }
+    .logo-sub { color: #c9a96e; font-size: 10px; font-weight: 700; letter-spacing: 0.4em; text-transform: uppercase; margin-top: 4px; }
     .body { padding: 48px 40px; }
     .title { font-size: 28px; font-weight: 900; color: #000000; margin-bottom: 8px; letter-spacing: -0.02em; }
     .subtitle { font-size: 13px; color: rgba(0,0,0,0.4); font-weight: 600; margin-bottom: 32px; }
@@ -117,11 +117,9 @@ function baseTemplate(title: string, content: string): string {
 <body>
 <div class="wrapper">
   <div class="header">
-    <div>
-      <div class="logo-text">RF PERFUME</div>
-      <div class="logo-sub">Build Systems. Stay Human.</div>
-    </div>
-    <div class="badge">قيروكس</div>
+    <img class="logo-img" src="https://rfperfume.sa/images/logos/logo-light-nobg.png" alt="رفيف العود" />
+    <div class="logo-text">رفيف العود</div>
+    <div class="logo-sub">RF PERFUME · LUXURY FRAGRANCES</div>
   </div>
   <div class="body">
     ${content}
@@ -135,7 +133,7 @@ function baseTemplate(title: string, content: string): string {
     <div class="social-row">
       <a class="social-link" href="https://e-commerce.rfperfume.sa">المتجر</a>
       <a class="social-link" href="https://e-commerce.rfperfume.sa/orders">طلباتي</a>
-      <a class="social-link" href="mailto:rf-purfume@outlook.com">الدعم</a>
+      <a class="social-link" href="mailto:support@rfperfume.sa">الدعم</a>
     </div>
   </div>
 </div>

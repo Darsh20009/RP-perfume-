@@ -250,8 +250,8 @@ const OrderCard = ({ order }: { order: any }) => {
 .footer{text-align:center;margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
 </style></head>
 <body>
-<div class="header"><div><h1 style="margin:0;font-size:28px;font-weight:900">RF PERFUME</h1>
-<p style="margin:5px 0;color:#666">Build Systems. Stay Human.</p></div>
+<div class="header"><div><img src="https://rfperfume.sa/images/logos/logo-dark-nobg.png" alt="رفيف العود" style="height:48px;margin-bottom:6px"/><h1 style="margin:0;font-size:24px;font-weight:900">رفيف العود</h1>
+<p style="margin:5px 0;color:#666;font-size:11px;letter-spacing:0.2em">RF PERFUME · LUXURY FRAGRANCES</p></div>
 <div style="text-align:left"><h2 style="margin:0">فاتورة ضريبية</h2>
 <p>#${order.id.slice(-6).toUpperCase()}</p>
 <p>${new Date(order.createdAt).toLocaleDateString("ar-SA")}</p></div></div>

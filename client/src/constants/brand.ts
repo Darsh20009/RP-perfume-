@@ -175,7 +175,7 @@ export const SHADOWS = {
 
 export const BRAND_VOICE = {
   taglines: {
-    primary: 'Build Systems. Stay Human.',
+    primary: 'عطور تروي حكاية',
     secondary: 'Elegance That Speaks For You',
     tertiary: 'Premium Quality. Zero Compromise.',
   },

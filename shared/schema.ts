@@ -257,8 +257,10 @@ export type Branch = InsertBranch & { _id: string; id: string };
 export const insertBannerSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
   image: z.string().min(1, "الصورة مطلوبة"),
+  video: z.string().optional(),
+  mediaType: z.enum(["image", "video"]).default("image"),
   link: z.string().optional(),
-  type: z.enum(["banner", "popup"]).default("banner"),
+  type: z.enum(["banner", "popup", "hero"]).default("banner"),
   isActive: z.boolean().default(true),
 });
 

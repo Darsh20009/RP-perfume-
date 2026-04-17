@@ -69,11 +69,24 @@ export function MarketingBanners() {
               </Button>
               
               <div className="aspect-square relative overflow-hidden">
-                <img 
-                  src={activePopup.image} 
-                  alt={activePopup.title} 
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                />
+                {activePopup.mediaType === 'video' && activePopup.video ? (
+                  <video
+                    src={activePopup.video}
+                    poster={activePopup.image}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                    data-testid="video-popup"
+                  />
+                ) : (
+                  <img 
+                    src={activePopup.image} 
+                    alt={activePopup.title} 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8 text-white text-right">
                   <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">{activePopup.title}</h2>
                   {activePopup.link && (
