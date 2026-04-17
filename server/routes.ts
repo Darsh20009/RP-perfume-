@@ -399,6 +399,7 @@ export async function registerRoutes(
   app.get(api.products.list.path, async (_req, res) => {
     try {
       const products = await storage.getProducts();
+      res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
       res.json(products);
     } catch (err: any) {
       console.error("[API] products.list error:", err?.message);
@@ -410,6 +411,7 @@ export async function registerRoutes(
     try {
       const product = await storage.getProduct(req.params.id);
       if (!product) return res.status(404).json({ message: "Product not found" });
+      res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
       res.json(product);
     } catch (err: any) {
       console.error("[API] products.get error:", err?.message);

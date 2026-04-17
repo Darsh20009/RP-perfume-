@@ -279,8 +279,8 @@ export const UnifiedChat = memo(function UnifiedChat() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -30, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="ml-3 w-[400px] max-w-[calc(100vw-1.5rem)] bg-white rounded-3xl shadow-[0_20px_60px_rgba(26,39,68,0.18)] border border-[#c9a96e]/15 overflow-hidden flex flex-col"
-            style={{ height: "min(560px, calc(100vh - 8rem))" }}
+            className="sm:ml-3 w-screen sm:w-[400px] sm:max-w-[calc(100vw-1.5rem)] bg-white sm:rounded-3xl shadow-[0_20px_60px_rgba(26,39,68,0.18)] sm:border sm:border-[#c9a96e]/15 overflow-hidden flex flex-col fixed sm:relative inset-0 sm:inset-auto"
+            style={{ height: "100dvh" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100" style={{ background: `linear-gradient(135deg, ${accentColor}12, transparent)` }}>
@@ -413,6 +413,40 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   </div>
                 </div>
               )}
+
+              {/* Suggestion chips for advisor */}
+              {isAdvisor && !isLoading && messages.length <= 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex flex-wrap gap-2 justify-end pt-2"
+                >
+                  {[
+                    "🌹 عطر يناسب العمل",
+                    "👑 عطر للمناسبات",
+                    "🪵 الفرق بين العود الكمبودي والهندي",
+                    "✨ عطر صيفي خفيف",
+                    "💫 أفضل عطر هدية",
+                  ].map((chip, idx) => (
+                    <motion.button
+                      key={chip}
+                      type="button"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 + idx * 0.07 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => { setInput(chip.replace(/^[^\s]+\s/, "")); setTimeout(() => inputRef.current?.focus(), 50); }}
+                      className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-white border border-[#c9a96e]/30 text-[#1a2744] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
+                      data-testid={`chip-suggestion-${idx}`}
+                    >
+                      {chip}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 

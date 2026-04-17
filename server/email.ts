@@ -11,8 +11,8 @@ function getCredentials() {
   if (!apiKey) throw new Error("[Email] SMTP2GO_API_KEY env var is not set");
   return {
     apiKey,
-    sender: "rf-purfume@outlook.com",
-    senderName: "رفيف العود",
+    sender: process.env.EMAIL_SENDER || "rf-purfume@outlook.com",
+    senderName: process.env.EMAIL_SENDER_NAME || "رفيف العود",
   };
 }
 
