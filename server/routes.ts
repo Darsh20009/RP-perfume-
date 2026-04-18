@@ -1761,10 +1761,10 @@ export async function registerRoutes(
         try {
           const order = await storage.getOrder(merchantOrderId);
           if (order) {
-            await storage.updateOrder(merchantOrderId, {
-              paymentStatus: "paid",
-              status: order.status === "pending_payment" ? "new" : order.status,
-            });
+            await storage.updateOrderPaymentStatus(merchantOrderId, "paid");
+            if (order.status === "pending_payment") {
+              await storage.updateOrderStatus(merchantOrderId, "new" as any);
+            }
             console.log(`[Paymob] Order ${merchantOrderId} marked as paid`);
           }
         } catch (e: any) {
@@ -2789,11 +2789,11 @@ export async function registerRoutes(
       await storage.updateUserWallet(userId, newBalance);
       await storage.createWalletTransaction({
         userId,
-        amount: numAmount.toString(),
+        amount: numAmount,
         type: "deposit",
         description: description || "إيداع من الإدارة",
         balanceAfter: newBalance,
-      });
+      } as any);
       res.json({ message: "تم إضافة الرصيد بنجاح", newBalance });
     } catch (err: any) {
       res.status(500).json({ message: err.message });

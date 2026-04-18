@@ -92,7 +92,7 @@ export default function Login() {
     }
   }, [phoneValue]);
 
-  const isDark = theme === 'dark';
+  const isDark = false;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] p-4 relative overflow-hidden" dir="rtl">
