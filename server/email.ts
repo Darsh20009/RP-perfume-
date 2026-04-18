@@ -116,18 +116,18 @@ function baseTemplate(title: string, content: string): string {
           <!-- Header -->
           <tr>
             <td align="center" style="background:#1a2744;background-image:linear-gradient(135deg,#1a2744 0%,#243154 50%,#1a2744 100%);padding:28px 40px 24px;border-bottom:3px solid #c9a96e;">
-              <!-- Logo with bullet-proof bgcolor fallback — Gmail-blocked image still shows
-                   a styled gold "RF" monogram inside a white circle. -->
+              <!-- Brand logo (RF PERFUME — white on black). Sits naturally on the
+                   dark navy header; no white circle so the black logo background
+                   blends. Gold border keeps it framed if the image is blocked. -->
               <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 10px;">
                 <tr>
-                  <td align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:50%;width:56px;height:56px;text-align:center;vertical-align:middle;">
-                    <img src="${LOGO_URL}" alt="RF" width="40" height="40" style="display:inline-block;width:40px;height:40px;border:0;outline:none;vertical-align:middle;" />
-                    <!--[if !mso]><!--><span style="display:none;max-height:0;overflow:hidden;color:#1a2744;font-size:18px;font-weight:900;letter-spacing:0.05em;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">RF</span><!--<![endif]-->
+                  <td align="center" valign="middle" bgcolor="#000000" style="background-color:#000000;border:1px solid #c9a96e;border-radius:10px;padding:6px 14px;">
+                    <img src="${LOGO_URL}" alt="RF Perfume" width="120" height="90" style="display:block;width:120px;height:90px;border:0;outline:none;" />
                   </td>
                 </tr>
               </table>
-              <div style="color:#ffffff;font-size:22px;font-weight:900;letter-spacing:0.15em;line-height:1.2;margin-top:10px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">رفيف العود</div>
-              <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">RF Perfume &middot; ${SITE.DOMAIN}</div>
+              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.18em;line-height:1.2;margin-top:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">رفيف العود</div>
+              <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">${SITE.DOMAIN}</div>
             </td>
           </tr>
           <!-- Body -->
