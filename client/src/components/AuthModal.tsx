@@ -37,6 +37,111 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
   const lastCheckedPhone = useRef<string | null>(null);
   const [googleEnabled, setGoogleEnabled] = useState(false);
 
+  // ─── Forgot Password flow ──────────────────────────────────────────────────
+  type ForgotStep = null | "init" | "otp" | "verify" | "reset" | "done";
+  const [forgotStep, setForgotStep] = useState<ForgotStep>(null);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMaskedEmail, setForgotMaskedEmail] = useState("");
+  const [forgotAllowVerifyToo, setForgotAllowVerifyToo] = useState(false);
+  const [forgotCode, setForgotCode] = useState("");
+  const [forgotName, setForgotName] = useState("");
+  const [forgotOrder, setForgotOrder] = useState("");
+  const [forgotResetToken, setForgotResetToken] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+
+  const resetForgotState = () => {
+    setForgotStep(null);
+    setForgotLoading(false);
+    setForgotMaskedEmail("");
+    setForgotAllowVerifyToo(false);
+    setForgotCode("");
+    setForgotName("");
+    setForgotOrder("");
+    setForgotResetToken("");
+    setForgotNewPassword("");
+  };
+
+  const startForgot = async () => {
+    if (phone.length < 9) {
+      toast({ title: "أدخل رقم الجوال أولاً", variant: "destructive" });
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const r = await fetch("/api/auth/forgot/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        toast({ title: "تعذّر بدء الاستعادة", description: d.message || "حاول مجدداً", variant: "destructive" });
+        return;
+      }
+      if (d.method === "otp") {
+        setForgotMaskedEmail(d.masked || "");
+        setForgotAllowVerifyToo(!!d.allowVerify);
+        setForgotStep("otp");
+        toast({ title: "أُرسل الكود", description: `راجع بريدك ${d.masked || ""}` });
+      } else {
+        setForgotStep("verify");
+      }
+    } catch (e: any) {
+      toast({ title: "خطأ في الشبكة", variant: "destructive" });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const submitForgotVerify = async (payload: any) => {
+    setForgotLoading(true);
+    try {
+      const r = await fetch("/api/auth/forgot/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, ...payload }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        toast({ title: "فشل التحقق", description: d.message || "بيانات غير صحيحة", variant: "destructive" });
+        return;
+      }
+      setForgotResetToken(d.resetToken);
+      setForgotStep("reset");
+    } catch {
+      toast({ title: "خطأ في الشبكة", variant: "destructive" });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const submitForgotReset = async () => {
+    if (forgotNewPassword.length < 6) {
+      toast({ title: "كلمة المرور قصيرة", description: "٦ أحرف على الأقل", variant: "destructive" });
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const r = await fetch("/api/auth/forgot/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetToken: forgotResetToken, password: forgotNewPassword }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        toast({ title: "فشل التحديث", description: d.message || "حاول مجدداً", variant: "destructive" });
+        return;
+      }
+      toast({ title: "تم تحديث كلمة المرور", description: "سجّل دخولك الآن" });
+      resetForgotState();
+      setPassword(forgotNewPassword);
+    } catch {
+      toast({ title: "خطأ في الشبكة", variant: "destructive" });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   useEffect(() => {
     setTab(defaultTab);
   }, [defaultTab]);
@@ -50,6 +155,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
       setShowPassword(false);
       setIsStaff(false);
       setSocialLoading(null);
+      resetForgotState();
       return;
     }
     fetch("/api/auth/google/init")
@@ -204,6 +310,141 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto" />
         </div>
 
+        {/* ─── Forgot Password panels ────────────────────────────────────── */}
+        {forgotStep && (
+          <div className="px-6 pb-6 space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={resetForgotState}
+                className="text-[11px] font-bold text-gray-500 hover:text-[#1a2744]"
+                data-testid="button-forgot-back"
+              >
+                ← رجوع
+              </button>
+              <h3 className="text-sm font-black text-[#1a2744]">استعادة كلمة المرور</h3>
+            </div>
+
+            {forgotStep === "otp" && (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  أرسلنا كوداً مكوّناً من ٦ أرقام إلى بريدك <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. أدخله أدناه:
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={forgotCode}
+                  onChange={e => setForgotCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="------"
+                  className="w-full h-14 text-center bg-[#faf8f5] border border-gray-200 rounded-xl text-xl tracking-[0.5em] font-black text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                  data-testid="input-forgot-otp"
+                />
+                <button
+                  onClick={() => submitForgotVerify({ code: forgotCode })}
+                  disabled={forgotLoading || forgotCode.length !== 6}
+                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  data-testid="button-forgot-verify-otp"
+                >
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "تحقق من الكود"}
+                </button>
+                <div className="flex items-center justify-between text-[11px]">
+                  <button onClick={startForgot} disabled={forgotLoading} className="text-[#c9a96e] font-bold hover:underline">
+                    إعادة إرسال الكود
+                  </button>
+                  {forgotAllowVerifyToo && (
+                    <button onClick={() => setForgotStep("verify")} className="text-gray-600 font-bold hover:underline">
+                      التحقق بطريقة أخرى
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {forgotStep === "verify" && (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  لاستعادة حسابك، أكّد هويتك بإحدى الطريقتين:
+                </p>
+                <div>
+                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">الاسم الكامل (كما في الحساب)</label>
+                  <input
+                    type="text"
+                    value={forgotName}
+                    onChange={e => setForgotName(e.target.value)}
+                    placeholder="فلان الفلاني"
+                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    data-testid="input-forgot-name"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-[10px] font-bold text-gray-500">أو</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">رقم طلب سابق</label>
+                  <input
+                    type="text"
+                    value={forgotOrder}
+                    onChange={e => setForgotOrder(e.target.value)}
+                    placeholder="مثال: 123456"
+                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    data-testid="input-forgot-order"
+                  />
+                </div>
+                <button
+                  onClick={() => submitForgotVerify({
+                    ...(forgotName.trim() ? { name: forgotName.trim() } : {}),
+                    ...(forgotOrder.trim() ? { orderNumber: forgotOrder.trim() } : {}),
+                  })}
+                  disabled={forgotLoading || (!forgotName.trim() && !forgotOrder.trim())}
+                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  data-testid="button-forgot-verify-identity"
+                >
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "تحقق وتابع"}
+                </button>
+              </div>
+            )}
+
+            {forgotStep === "reset" && (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  تم التحقق بنجاح. اختر كلمة مرور جديدة (٦ أحرف على الأقل):
+                </p>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={forgotNewPassword}
+                    onChange={e => setForgotNewPassword(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") submitForgotReset(); }}
+                    placeholder="••••••••"
+                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 pr-12 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    data-testid="input-forgot-new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#1a2744]"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <button
+                  onClick={submitForgotReset}
+                  disabled={forgotLoading || forgotNewPassword.length < 6}
+                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  data-testid="button-forgot-save"
+                >
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "حفظ كلمة المرور الجديدة"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── Normal Login / Register UI (hidden during forgot flow) ──── */}
+        {!forgotStep && (
+        <>
         <div className="flex mx-6 bg-[#faf8f5] rounded-xl p-1 mb-4">
           <button
             onClick={() => setTab("login")}
@@ -346,6 +587,17 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             ) : tab === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}
           </button>
 
+          {tab === "login" && (
+            <button
+              onClick={startForgot}
+              disabled={forgotLoading}
+              className="w-full text-center text-[11px] font-bold text-[#c9a96e] hover:underline pt-1 disabled:opacity-50"
+              data-testid="button-forgot-password"
+            >
+              نسيت كلمة المرور؟
+            </button>
+          )}
+
           <p className="text-center text-[10px] text-gray-700 pt-1">
             {tab === "login" ? (
               <>ليس لديك حساب؟ <button onClick={() => setTab("register")} className="text-[#c9a96e] font-bold hover:underline">أنشئ حساب جديد</button></>
@@ -354,6 +606,8 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             )}
           </p>
         </div>
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );
