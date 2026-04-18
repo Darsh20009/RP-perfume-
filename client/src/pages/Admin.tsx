@@ -3950,7 +3950,7 @@ const StoreSettingsPanel = () => {
   );
 };
 
-const AdminSidebar = ({ activeTab, onTabChange, pendingOrders }: { activeTab: string, onTabChange: (tab: string) => void, pendingOrders?: number }) => {
+const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = false, onMobileClose }: { activeTab: string, onTabChange: (tab: string) => void, pendingOrders?: number, mobileOpen?: boolean, onMobileClose?: () => void }) => {
   const { user, logout: handleLogout } = useAuth();
   const [, setLocation] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -4023,32 +4023,61 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders }: { activeTab: st
     { label: "المتجر", icon: Globe, url: "/" },
   ];
 
+  // On mobile, every nav click should also close the drawer
+  const handleTabChange = (tab: string) => {
+    onTabChange(tab);
+    if (onMobileClose) onMobileClose();
+  };
+
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 72 : 260 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="relative z-30 flex flex-col h-full bg-white border-l border-slate-200 shadow-sm overflow-hidden shrink-0"
-      dir="rtl"
-    >
-      {/* Header / Logo */}
-      <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-slate-200">
-        <img src={logoDarkImg} alt="رفيف العود" className="w-9 h-9 rounded-xl object-cover shrink-0" />
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <p className="font-black text-sm text-[#1a2744] tracking-tight whitespace-nowrap">رفيف العود</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <PulseRing color="bg-[#c9a96e]" />
-              <span className="text-[9px] text-[#c9a96e] font-bold uppercase tracking-widest">لوحة التحكم</span>
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          onClick={onMobileClose}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          aria-label="إغلاق القائمة"
+        />
+      )}
+      <motion.aside
+        animate={{ width: collapsed ? 72 : 260 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className={`fixed inset-y-0 right-0 z-50 flex flex-col h-full bg-white border-l border-slate-200 shadow-2xl lg:shadow-sm overflow-hidden shrink-0 transform transition-transform duration-300
+          ${mobileOpen ? "translate-x-0" : "translate-x-full"}
+          lg:relative lg:translate-x-0 lg:z-30`}
+        style={{ width: collapsed ? 72 : 260 }}
+        dir="rtl"
+      >
+        {/* Header / Logo */}
+        <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-slate-200">
+          <img src={logoDarkImg} alt="رفيف العود" className="w-9 h-9 rounded-xl object-cover shrink-0" />
+          {!collapsed && (
+            <div className="overflow-hidden">
+              <p className="font-black text-sm text-[#1a2744] tracking-tight whitespace-nowrap">رفيف العود</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <PulseRing color="bg-[#c9a96e]" />
+                <span className="text-[9px] text-[#c9a96e] font-bold uppercase tracking-widest">لوحة التحكم</span>
+              </div>
             </div>
-          </div>
-        )}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          className={`${collapsed ? "mx-auto" : "mr-auto"} p-1.5 rounded-lg text-slate-400 hover:text-[#c9a96e] hover:bg-slate-50 transition-all`}
-        >
-          <Menu className="w-4 h-4" />
-        </button>
-      </div>
+          )}
+          {/* Mobile close */}
+          {onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="mr-auto p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all lg:hidden"
+              aria-label="إغلاق"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          {/* Desktop collapse toggle */}
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className={`${collapsed ? "mx-auto" : "mr-auto"} p-1.5 rounded-lg text-slate-400 hover:text-[#c9a96e] hover:bg-slate-50 transition-all hidden lg:block`}
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        </div>
 
       {/* User Info */}
       {!collapsed && (
@@ -4077,7 +4106,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders }: { activeTab: st
               return (
                 <button
                   key={item.id}
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => handleTabChange(item.id)}
                   title={collapsed ? item.label : undefined}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group
                     ${isActive
@@ -4131,6 +4160,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders }: { activeTab: st
         </button>
       </div>
     </motion.aside>
+    </>
   );
 };
 
@@ -4161,6 +4191,15 @@ export default function Admin() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [time, setTime] = useState(new Date());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Lock body scroll while drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [mobileMenuOpen]);
 
   const { data: allOrders } = useQuery({
     queryKey: ["/api/orders"],
@@ -4202,27 +4241,43 @@ export default function Admin() {
   return (
     <div className="flex h-screen w-full bg-[#faf8f5] text-[#1a2744] overflow-hidden" dir="rtl">
       {/* Sidebar */}
-      <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} pendingOrders={pendingCount} />
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        pendingOrders={pendingCount}
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
 
       {/* Main */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* Header */}
-        <header className="h-14 bg-white/90 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-sm font-black text-[#1a2744] tracking-tight">{pageTitles[activeTab] || "لوحة التحكم"}</h1>
-              <p className="text-[9px] text-slate-400 tabular-nums">{time.toLocaleDateString("ar-SA", { weekday: "long", month: "long", day: "numeric" })}</p>
+        <header className="h-14 bg-white/90 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-3 lg:px-6 shrink-0 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 -mr-1 rounded-xl text-[#1a2744] hover:bg-slate-50 transition-all lg:hidden shrink-0"
+              aria-label="فتح القائمة"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-[#1a2744] tracking-tight truncate">{pageTitles[activeTab] || "لوحة التحكم"}</h1>
+              <p className="text-[9px] text-slate-400 tabular-nums truncate hidden sm:block">{time.toLocaleDateString("ar-SA", { weekday: "long", month: "long", day: "numeric" })}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
             {pendingCount > 0 && (
               <button
                 onClick={() => setActiveTab("orders")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black animate-pulse"
+                className="flex items-center gap-1 px-2 lg:px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black animate-pulse"
+                title={`${pendingCount} طلب بانتظار مراجعة الدفع`}
               >
                 <Bell className="w-3 h-3" />
-                {pendingCount} طلب بانتظار مراجعة الدفع
+                <span className="hidden sm:inline">{pendingCount} طلب بانتظار مراجعة الدفع</span>
+                <span className="sm:hidden">{pendingCount}</span>
               </button>
             )}
             <button
@@ -4233,9 +4288,9 @@ export default function Admin() {
               <RefreshCw className="w-4 h-4" />
             </button>
             <Link href="/">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all cursor-pointer text-xs font-bold">
+              <div className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all cursor-pointer text-xs font-bold">
                 <Globe className="w-3.5 h-3.5" />
-                المتجر
+                <span className="hidden sm:inline">المتجر</span>
               </div>
             </Link>
           </div>
@@ -4243,7 +4298,7 @@ export default function Admin() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          <div className="p-6 space-y-6">
+          <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
