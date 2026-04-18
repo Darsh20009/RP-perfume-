@@ -463,3 +463,51 @@ const marketingCampaignSchema = new Schema(
 );
 
 export const MarketingCampaignModel = mongoose.model("MarketingCampaign", marketingCampaignSchema);
+
+// ─── Cart Session (abandoned cart tracking) ───────────────────────────────
+const cartSessionSchema = new Schema(
+  {
+    userId: { type: String, index: true },
+    sessionId: { type: String, index: true },
+    items: [{
+      productId: String,
+      variantSku: String,
+      title: String,
+      image: String,
+      price: Number,
+      quantity: Number,
+    }],
+    total: { type: Number, default: 0 },
+    reminderSent: { type: Boolean, default: false },
+    reminderSentAt: Date,
+    manualReminderCount: { type: Number, default: 0 },
+    convertedToOrderId: String,
+    customerName: String,
+    customerPhone: String,
+    customerEmail: String,
+  },
+  { timestamps: true }
+);
+cartSessionSchema.index({ updatedAt: 1, reminderSent: 1, convertedToOrderId: 1 });
+export const CartSessionModel = mongoose.model("CartSession", cartSessionSchema);
+
+// ─── Cancellation & Refund Policy ─────────────────────────────────────────
+const cancellationPolicySchema = new Schema(
+  {
+    key: { type: String, default: "main", unique: true },
+    customerCancelStatuses: {
+      type: [String],
+      default: ["new", "pending_payment", "processing"],
+    },
+    allowCancelUntilShipping: { type: Boolean, default: true },
+    refundTarget: { type: String, enum: ["wallet", "original"], default: "wallet" },
+    autoRestoreStock: { type: Boolean, default: true },
+    notifyCustomer: { type: Boolean, default: true },
+    notifyAdmin: { type: Boolean, default: true },
+    returnWindowDays: { type: Number, default: 7 },
+    allowReturns: { type: Boolean, default: true },
+    cancellationFeePercent: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+export const CancellationPolicyModel = mongoose.model("CancellationPolicy", cancellationPolicySchema);

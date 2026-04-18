@@ -57,6 +57,11 @@ npm run start     # Production server
 - `APPLE_CLIENT_ID` — Apple Services ID (for Sign in with Apple)
 - `APPLE_REDIRECT_URI` — Apple OAuth redirect URI
 
+## Recent Major Features (April 2026)
+- **Abandoned-cart system**: Client debounces cart changes (1500ms) → POSTs `/api/cart/sync` → Mongo `CartSession`. Background worker every 60s atomically claims carts idle ≥5min and emails+pushes the customer. Employee panel `/admin/abandoned-carts` lists carts and lets staff manually re-notify with optional one-time-coupon discount. Auto-marks converted on order creation.
+- **Order cancellation + auto-refund**: Customer-initiated cancel from `/orders` (rules in admin-configurable `CancellationPolicy`). On cancel: atomic `$inc` stock restore, wallet refund + WalletTransaction, push+email customer. Admin policy at `/admin/cancellation-policy`.
+- **ZATCA QR (Phase 1)**: TLV (tag-length-value) base64 encoder in `server/zatca.ts`. Endpoint `/api/orders/:id/zatca-qr` returns PNG data URL using the `qrcode` package. Print-invoice in Orders.tsx renders the real QR.
+
 ## Key Directories
 - `client/src/` — React frontend source
 - `client/public/` — Static assets (images, logos, banners, videos)

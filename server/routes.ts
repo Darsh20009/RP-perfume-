@@ -60,6 +60,10 @@ const upload = multer({
 });
 
 import { registerEmployeeAssistant } from "./employee-assistant";
+import { CartSessionModel, CancellationPolicyModel, OrderModel } from "./models";
+import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } from "./cancellation";
+import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
+import { buildZatcaQrDataUrl } from "./zatca";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -692,6 +696,9 @@ export async function registerRoutes(
       } catch (invErr) {
         console.error("[INVOICE] Failed to auto-generate invoice:", invErr);
       }
+
+      // Mark this user's pending cart as converted (stops abandoned-cart reminders)
+      try { await markCartConverted(order.userId, order.id); } catch {}
 
       res.status(201).json(order);
     } catch (err: any) {
@@ -2802,6 +2809,272 @@ export async function registerRoutes(
     }
   });
 
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Cart Sync (anonymous + logged-in) — for abandoned-cart tracking
+  // ════════════════════════════════════════════════════════════════════════
+  app.post("/api/cart/sync", async (req, res) => {
+    try {
+      const { sessionId, items, total } = req.body || {};
+      const user: any = req.isAuthenticated() ? req.user : null;
+      if (!user && !sessionId) {
+        return res.status(400).json({ message: "sessionId مطلوب للزوار" });
+      }
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: "items يجب أن يكون مصفوفة" });
+      }
+
+      const query: any = user
+        ? { userId: String(user.id), $or: [{ convertedToOrderId: { $exists: false } }, { convertedToOrderId: null }, { convertedToOrderId: "" }] }
+        : { sessionId, $or: [{ userId: { $exists: false } }, { userId: null }] };
+
+      // Empty cart → delete tracker
+      if (items.length === 0) {
+        await CartSessionModel.deleteMany(query).catch(() => {});
+        return res.json({ ok: true, cleared: true });
+      }
+
+      const sanitized = items.slice(0, 50).map((i: any) => ({
+        productId: String(i.productId || ""),
+        variantSku: i.variantSku ? String(i.variantSku) : undefined,
+        title: String(i.title || ""),
+        image: i.image ? String(i.image) : undefined,
+        price: Number(i.price) || 0,
+        quantity: Math.max(1, Number(i.quantity) || 1),
+      }));
+      const computedTotal = Number(total) || sanitized.reduce((s, i) => s + i.price * i.quantity, 0);
+
+      // Compute a stable signature of cart contents to decide reset
+      const sig = sanitized
+        .map(i => `${i.productId}:${i.variantSku || ""}:${i.quantity}`)
+        .sort().join("|");
+
+      const setFields: any = {
+        items: sanitized,
+        total: computedTotal,
+      };
+      if (user) {
+        setFields.userId = String(user.id);
+        setFields.customerName = user.name;
+        setFields.customerPhone = user.phone;
+        setFields.customerEmail = user.email;
+      } else {
+        setFields.sessionId = sessionId;
+      }
+
+      // First fetch existing to determine signature change
+      const existing: any = await CartSessionModel.findOne(query).lean();
+      const existingSig = (existing?.items || [])
+        .map((i: any) => `${i.productId}:${i.variantSku || ""}:${i.quantity}`)
+        .sort().join("|");
+
+      const update: any = { $set: setFields };
+      // Only reset reminder when contents materially changed (not on every keystroke debounce)
+      if (existingSig !== sig) {
+        update.$set.reminderSent = false;
+        update.$set.reminderSentAt = null;
+      }
+
+      const cart = await CartSessionModel.findOneAndUpdate(
+        query,
+        update,
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      // If user just logged in, adopt any anonymous session cart for this sessionId
+      if (user && sessionId) {
+        await CartSessionModel.deleteMany({
+          sessionId,
+          $or: [{ userId: { $exists: false } }, { userId: null }, { userId: "" }],
+          _id: { $ne: cart!._id },
+        } as any).catch(() => {});
+      }
+      res.json({ ok: true, cartId: cart._id });
+    } catch (err: any) {
+      console.error("[Cart] sync error:", err?.message);
+      res.status(500).json({ message: "تعذر مزامنة السلة" });
+    }
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Customer Order Cancellation
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/orders/:id/can-cancel", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const user: any = req.user;
+      const order = await OrderModel.findById(req.params.id).lean();
+      if (!order) return res.status(404).json({ allowed: false, reason: "الطلب غير موجود" });
+      if (String((order as any).userId) !== String(user.id) && user.role !== "admin") {
+        return res.status(403).json({ allowed: false });
+      }
+      const result = await canCustomerCancel(order);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ allowed: false, reason: err?.message });
+    }
+  });
+
+  app.post("/api/orders/:id/cancel", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const user: any = req.user;
+      const order: any = await OrderModel.findById(req.params.id);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const isOwner = String(order.userId) === String(user.id);
+      const isStaff = ["admin", "assistant_manager", "employee", "support"].includes(user.role);
+      if (!isOwner && !isStaff) return res.sendStatus(403);
+
+      const result = await cancelOrder({
+        orderId: req.params.id,
+        reason: req.body?.reason || (isOwner ? "إلغاء بناءً على طلب العميل" : "إلغاء إداري"),
+        initiatedBy: isOwner ? "customer" : "admin",
+        actorName: user.name,
+        bypassPolicy: isStaff,
+      });
+      res.json(result);
+    } catch (err: any) {
+      console.error("[Cancel] error:", err?.message);
+      res.status(400).json({ message: err?.message || "تعذر إلغاء الطلب" });
+    }
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Cancellation Policy (admin)
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/admin/cancellation-policy", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user: any = req.user;
+    if (!["admin", "assistant_manager"].includes(user.role)) return res.sendStatus(403);
+    const policy = await getCancellationPolicy();
+    res.json(policy);
+  });
+
+  app.put("/api/admin/cancellation-policy", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user: any = req.user;
+    if (user.role !== "admin") return res.sendStatus(403);
+    try {
+      const updated = await CancellationPolicyModel.findOneAndUpdate(
+        { key: "main" },
+        { $set: req.body },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ message: err?.message });
+    }
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Abandoned Carts (admin / employee)
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/admin/abandoned-carts", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user: any = req.user;
+    if (!["admin", "assistant_manager", "employee", "support"].includes(user.role)) {
+      return res.sendStatus(403);
+    }
+    try {
+      const carts = await CartSessionModel.find({
+        $or: [{ convertedToOrderId: { $exists: false } }, { convertedToOrderId: null }, { convertedToOrderId: "" }],
+        "items.0": { $exists: true },
+      } as any)
+        .sort({ updatedAt: -1 })
+        .limit(200)
+        .lean();
+
+      // Enrich with user info if available
+      const enriched = await Promise.all(carts.map(async (c: any) => {
+        let userInfo: any = null;
+        if (c.userId) {
+          try {
+            const u: any = await UserModel.findById(c.userId).lean();
+            if (u) userInfo = { name: u.name, phone: u.phone, email: u.email };
+          } catch {}
+        }
+        const idleMinutes = Math.round((Date.now() - new Date(c.updatedAt).getTime()) / 60000);
+        return {
+          id: String(c._id),
+          userId: c.userId || null,
+          sessionId: c.sessionId || null,
+          user: userInfo,
+          items: c.items,
+          total: c.total,
+          itemCount: (c.items || []).reduce((s: number, i: any) => s + (i.quantity || 0), 0),
+          reminderSent: !!c.reminderSent,
+          reminderSentAt: c.reminderSentAt,
+          manualReminderCount: c.manualReminderCount || 0,
+          idleMinutes,
+          updatedAt: c.updatedAt,
+          createdAt: c.createdAt,
+        };
+      }));
+      res.json(enriched);
+    } catch (err: any) {
+      console.error("[AdminCarts] list error:", err?.message);
+      res.status(500).json({ message: "تعذر جلب السلال" });
+    }
+  });
+
+  app.post("/api/admin/abandoned-carts/:id/notify", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user: any = req.user;
+    if (!["admin", "assistant_manager", "employee", "support"].includes(user.role)) {
+      return res.sendStatus(403);
+    }
+    try {
+      const result = await notifyCart(req.params.id, {
+        customDiscountPercent: Number(req.body?.discountPercent) || 0,
+        customMessage: req.body?.message,
+      });
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ message: err?.message || "تعذر إرسال التنبيه" });
+    }
+  });
+
+  app.delete("/api/admin/abandoned-carts/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user: any = req.user;
+    if (!["admin", "assistant_manager"].includes(user.role)) return res.sendStatus(403);
+    await CartSessionModel.deleteOne({ _id: req.params.id });
+    res.json({ ok: true });
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // ZATCA QR for invoice / order
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/orders/:id/zatca-qr", async (req, res) => {
+    try {
+      const order: any = await OrderModel.findById(req.params.id).lean();
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+      const settings: any = await StoreSettingsModel.findOne({ key: "main" }).lean();
+      const result = await buildZatcaQrDataUrl({
+        sellerName: settings?.storeNameAr || settings?.storeName || "رفيف العود",
+        vatNumber: settings?.vatNumber || "",
+        timestamp: new Date(order.createdAt || Date.now()),
+        total: Number(order.total) || 0,
+        vatAmount: Number(order.vatAmount) || 0,
+      });
+      res.json({
+        qr: result.dataUrl,
+        base64: result.base64,
+        sellerName: settings?.storeNameAr || "رفيف العود",
+        vatNumber: settings?.vatNumber || "",
+        total: Number(order.total) || 0,
+        vatAmount: Number(order.vatAmount) || 0,
+        issuedAt: order.createdAt,
+      });
+    } catch (err: any) {
+      console.error("[ZATCA] error:", err?.message);
+      res.status(500).json({ message: "تعذر إنشاء رمز ZATCA" });
+    }
+  });
+
+  // Boot the abandoned-cart background worker
+  startAbandonedCartWorker();
 
   return httpServer;
 }

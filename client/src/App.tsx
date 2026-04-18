@@ -50,6 +50,8 @@ const VendorStore = lazy(() => import("@/pages/VendorStore"));
 const VendorsList = lazy(() => import("@/pages/VendorsList"));
 const CashDrawer = lazy(() => import("@/pages/CashDrawer"));
 const CashDrawerReport = lazy(() => import("@/pages/CashDrawerReport"));
+const AdminAbandonedCarts = lazy(() => import("@/pages/AdminAbandonedCarts"));
+const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPolicy"));
 
 function LazyFallback() {
   return (
@@ -175,6 +177,12 @@ function Router() {
       </Route>
       <Route path="/admin/shipping">
         <ProtectedRoute component={AdminShippingCompanies} permission="settings.manage" />
+      </Route>
+      <Route path="/admin/abandoned-carts">
+        <ProtectedRoute component={AdminAbandonedCarts} permission="customers.view" />
+      </Route>
+      <Route path="/admin/cancellation-policy">
+        <ProtectedRoute component={AdminCancellationPolicy} permission="settings.manage" />
       </Route>
 
       <Route path="/pos">

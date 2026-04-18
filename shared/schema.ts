@@ -424,6 +424,59 @@ export const insertProductReviewSchema = z.object({
 export type InsertProductReview = z.infer<typeof insertProductReviewSchema>;
 export type ProductReview = InsertProductReview & { _id: string; id: string; createdAt: Date };
 
+// ─── Cart Session (for abandoned-cart tracking) ────────────────────────────
+export const insertCartSessionSchema = z.object({
+  userId: z.string().optional(),       // Logged-in user (preferred)
+  sessionId: z.string().optional(),    // Anonymous session (fallback)
+  items: z.array(z.object({
+    productId: z.string(),
+    variantSku: z.string().optional(),
+    title: z.string(),
+    image: z.string().optional(),
+    price: z.number(),
+    quantity: z.number(),
+  })),
+  total: z.number(),
+  // Lifecycle
+  reminderSent: z.boolean().default(false),
+  reminderSentAt: z.date().optional(),
+  manualReminderCount: z.number().default(0),
+  convertedToOrderId: z.string().optional(),
+  // Customer snapshot (for offline notifications by employees)
+  customerName: z.string().optional(),
+  customerPhone: z.string().optional(),
+  customerEmail: z.string().optional(),
+});
+export type InsertCartSession = z.infer<typeof insertCartSessionSchema>;
+export type CartSession = InsertCartSession & {
+  _id: string; id: string;
+  createdAt: Date; updatedAt: Date;
+};
+
+// ─── Cancellation & Refund Policy (admin configurable) ─────────────────────
+export const insertCancellationPolicySchema = z.object({
+  // Which order statuses allow customer-initiated cancellation
+  customerCancelStatuses: z.array(z.enum(orderStatuses))
+    .default(["new", "pending_payment", "processing"]),
+  // Whether to allow cancellation up until shipping (out_for_delivery still cancelable)
+  allowCancelUntilShipping: z.boolean().default(true),
+  // Auto-refund target when paid online
+  refundTarget: z.enum(["wallet", "original"]).default("wallet"),
+  // Auto-restore stock when cancelled
+  autoRestoreStock: z.boolean().default(true),
+  // Notify customer + admin on cancellation
+  notifyCustomer: z.boolean().default(true),
+  notifyAdmin: z.boolean().default(true),
+  // Returns / refund window after delivery (days)
+  returnWindowDays: z.number().min(0).default(7),
+  // Allow returns at all
+  allowReturns: z.boolean().default(true),
+  // Optional restocking fee on customer cancellations (percent)
+  cancellationFeePercent: z.number().min(0).max(100).default(0),
+});
+export type InsertCancellationPolicy = z.infer<typeof insertCancellationPolicySchema>;
+export type CancellationPolicy = InsertCancellationPolicy & { _id: string; id: string };
+
 // API Types
 export type LoginRequest = { username: string; password: string };
 export type AuthResponse = User;

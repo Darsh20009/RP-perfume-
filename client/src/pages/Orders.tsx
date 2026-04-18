@@ -223,6 +223,31 @@ const OrderCard = ({ order }: { order: any }) => {
   };
 
   const canRequestReturn = ["completed", "shipped", "delivered"].includes(order.status);
+  const canCancel = ["new", "pending", "pending_payment", "processing", "out_for_delivery"].includes(order.status);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const cancelMutation = useMutation({
+    mutationFn: async (reason: string) =>
+      apiRequest("POST", `/api/orders/${order.id}/cancel`, { reason }),
+    onSuccess: async (res: any) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({
+        title: "تم إلغاء الطلب ✅",
+        description: data?.refundAmount > 0
+          ? `تم استرداد ${Number(data.refundAmount).toFixed(2)} ر.س لمحفظتك`
+          : "تم إلغاء طلبك بنجاح",
+      });
+      setShowCancelDialog(false);
+      setCancelReason("");
+    },
+    onError: async (e: any) => {
+      let msg = "تعذر إلغاء الطلب";
+      try { const d = await e?.response?.json(); msg = d?.message || msg; } catch {}
+      toast({ title: "تعذر الإلغاء", description: msg, variant: "destructive" });
+    },
+  });
   const returnReasons = [
     "المنتج وصل تالفاً",
     "المنتج لا يطابق الوصف",
@@ -232,14 +257,24 @@ const OrderCard = ({ order }: { order: any }) => {
     "سبب آخر",
   ];
 
-  const handlePrintInvoice = () => {
+  const handlePrintInvoice = async () => {
+    // Fetch real ZATCA-compliant TLV QR from server
+    let qrUrl = "";
+    let vatNumber = "312037024200003";
+    try {
+      const r = await fetch(`/api/orders/${order.id}/zatca-qr`, { credentials: "include" });
+      if (r.ok) {
+        const d = await r.json();
+        qrUrl = d.qr;
+        if (d.vatNumber) vatNumber = d.vatNumber;
+      }
+    } catch {}
+
     const printWindow = window.open("", "", "height=800,width=600");
     if (!printWindow) return;
     const itemsHtml = (order.items || []).map((item: any) =>
       `<div class="item"><span>${item.quantity}x ${item.title}</span><span>${(item.price * item.quantity).toFixed(2)} ر.س</span></div>`
     ).join("");
-    const qrData = `Seller: رفيف العود\nOrder: ${order.id}\nTotal: ${Number(order.total).toFixed(2)}\nVAT: ${Number(order.vatAmount).toFixed(2)}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
     printWindow.document.write(`<!DOCTYPE html><html dir="rtl">
 <head><meta charset="utf-8"><title>فاتورة #${order.id.slice(-6).toUpperCase()}</title>
 <style>body{font-family:Arial,sans-serif;text-align:right;padding:40px;color:#000;line-height:1.6}
@@ -263,8 +298,8 @@ const OrderCard = ({ order }: { order: any }) => {
 <div class="total-row"><span>ضريبة القيمة المضافة (15%)</span><span>${Number(order.vatAmount).toFixed(2)} ر.س</span></div>
 <div class="total-row" style="font-size:20px"><span>الإجمالي</span><span>${Number(order.total).toFixed(2)} ر.س</span></div>
 </div>
-<div style="text-align:center;margin-top:40px"><img src="${qrUrl}" width="130"/></div>
-<div class="footer">رفيف العود • الرقم الضريبي: 312037024200003</div>
+<div style="text-align:center;margin-top:40px">${qrUrl ? `<img src="${qrUrl}" width="150"/><p style="font-size:9px;color:#999;margin-top:6px;letter-spacing:0.1em">ZATCA · رمز الفاتورة الإلكترونية</p>` : ""}</div>
+<div class="footer">رفيف العود • الرقم الضريبي: ${vatNumber}</div>
 </body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
@@ -346,7 +381,69 @@ const OrderCard = ({ order }: { order: any }) => {
                     طلب إرجاع
                   </Button>
                 )}
+                {canCancel && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCancelDialog(true)}
+                    data-testid={`button-cancel-order-${order.id}`}
+                    className="rounded-full px-6 h-11 font-black uppercase tracking-widest text-[10px] border-red-200 text-red-700 hover:bg-red-50 transition-all flex items-center gap-2"
+                  >
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    إلغاء الطلب
+                  </Button>
+                )}
               </div>
+
+              {/* Cancel Dialog */}
+              {showCancelDialog && (
+                <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                  <DialogContent dir="rtl" className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-black text-right flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        إلغاء الطلب — #{order.id.slice(-6).toUpperCase()}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-100">
+                        <p className="text-xs font-bold text-red-700">سيتم إلغاء طلبك فوراً</p>
+                        {order.paymentStatus === "paid" && (
+                          <p className="text-[11px] text-red-600 mt-1">
+                            ✓ سيتم استرداد <b>{Number(order.total).toLocaleString()} ر.س</b> لمحفظتك تلقائياً
+                          </p>
+                        )}
+                        <p className="text-[11px] text-red-600 mt-0.5">
+                          ✓ ستُعاد الكمية للمخزون تلقائياً
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold">سبب الإلغاء (اختياري)</Label>
+                        <Textarea
+                          value={cancelReason}
+                          onChange={e => setCancelReason(e.target.value)}
+                          data-testid={`input-cancel-reason-${order.id}`}
+                          placeholder="مثلاً: غيّرت رأيي، خطأ في الطلب..."
+                          className="text-right text-sm resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm"
+                          onClick={() => cancelMutation.mutate(cancelReason)}
+                          disabled={cancelMutation.isPending}
+                          data-testid={`button-confirm-cancel-${order.id}`}
+                        >
+                          {cancelMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "تأكيد الإلغاء"}
+                        </Button>
+                        <Button variant="outline" className="rounded-xl text-sm" onClick={() => setShowCancelDialog(false)}>
+                          تراجع
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
 
               {/* Return Dialog */}
               {showReturnDialog && (

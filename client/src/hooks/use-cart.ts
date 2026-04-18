@@ -2,6 +2,41 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Product } from '@shared/schema';
 
+// ─── Server sync (debounced) for abandoned-cart tracking ────────────────────
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let sid = localStorage.getItem('rf_session_id');
+  if (!sid) {
+    sid = 'sid_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('rf_session_id', sid);
+  }
+  return sid;
+}
+let syncTimer: any = null;
+function scheduleCartSync(items: CartItem[], total: number) {
+  if (typeof window === 'undefined') return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    fetch('/api/cart/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        sessionId: getOrCreateSessionId(),
+        items: items.map(i => ({
+          productId: i.productId,
+          variantSku: i.variantSku,
+          title: i.title,
+          image: i.image,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        total,
+      }),
+    }).catch(() => {}); // Silent failure — UX shouldn't break on sync errors
+  }, 1500);
+}
+
 // Cart specific types
 export interface CartItem {
   productId: string;
@@ -58,6 +93,8 @@ export const useCart = create<CartStore>()(
             ],
           });
         }
+        const s = get();
+        scheduleCartSync(s.items, s.total());
       },
       removeItem: (productId, variantSku) => {
         set({
@@ -65,6 +102,8 @@ export const useCart = create<CartStore>()(
             item => !(item.productId === productId && item.variantSku === variantSku)
           ),
         });
+        const s = get();
+        scheduleCartSync(s.items, s.total());
       },
       updateQuantity: (productId, variantSku, quantity) => {
         set({
@@ -74,10 +113,16 @@ export const useCart = create<CartStore>()(
               : item
           ),
         });
+        const s = get();
+        scheduleCartSync(s.items, s.total());
       },
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        set({ items: [] });
+        scheduleCartSync([], 0);
+      },
       total: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
     }),
+
     {
       name: 'cart-storage',
     }
