@@ -21,17 +21,17 @@ export default function Cart() {
     mutationFn: async (code: string) => {
       setLoading(true);
       const res = await fetch(`/api/coupons/${code}`);
-      if (!res.ok) throw new Error("كود الخصم غير صحيح أو منتهي");
+      if (!res.ok) throw new Error(t('invalidCode'));
       return res.json();
     },
     onSuccess: (coupon) => {
       setCoupon(coupon);
       setCouponCode("");
-      toast({ title: "تمت إضافة كود الخصم بنجاح" });
+      toast({ title: t('couponAdded') });
       setLoading(false);
     },
     onError: (err: any) => {
-      toast({ title: "خطأ", description: err.message || "فشل تطبيق الكود", variant: "destructive" });
+      toast({ title: t('error'), description: err.message || t('couponFailed'), variant: "destructive" });
       setLoading(false);
     }
   });
@@ -195,7 +195,7 @@ export default function Cart() {
                       <div className={`flex justify-between text-blue-600 ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
                         <span>+{cashbackAmount.toLocaleString()} {t('currency')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="opacity-60">كاش باك</span>
+                          <span className="opacity-60">{t('cashback')}</span>
                           <button
                             onClick={() => clearCoupon()}
                             className="opacity-40 hover:opacity-100 transition-opacity text-[9px]"

@@ -28,7 +28,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const cartItems = useCart((state) => state.items);
   const [location] = useLocation();
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, tx } = useLanguage();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -117,15 +117,15 @@ export function Layout({ children }: { children: ReactNode }) {
                         <p className="text-[11px] opacity-50 truncate">{user.phone || user.email || ""}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-[9px] uppercase tracking-widest opacity-50 font-bold">{language === 'ar' ? 'المحفظة' : 'Wallet'}</p>
+                        <p className="text-[9px] uppercase tracking-widest opacity-50 font-bold">{t('wallet')}</p>
                         <p className="font-black text-sm text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} <span className="text-[10px] opacity-70">{t('currency')}</span></p>
                       </div>
                     </div>
                   ) : (
                     <div className="mx-4 mb-4 rounded-2xl border-2 border-dashed border-border p-4 flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-black text-sm">{language === 'ar' ? 'مرحباً بك' : 'Welcome'}</p>
-                        <p className="text-[11px] text-muted-foreground">{language === 'ar' ? 'سجّل دخولك لتجربة أفضل' : 'Sign in for a better experience'}</p>
+                        <p className="font-black text-sm">{t('welcome')}</p>
+                        <p className="text-[11px] text-muted-foreground">{tx('سجّل دخولك لتجربة أفضل', 'Sign in for a better experience')}</p>
                       </div>
                       <button
                         onClick={() => { closeSidebar(); setTimeout(() => { setAuthModalTab("login"); setAuthModalOpen(true); }, 200); }}
@@ -145,8 +145,8 @@ export function Layout({ children }: { children: ReactNode }) {
                             <ShoppingBag className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-[11px] font-black text-foreground">{language === 'ar' ? 'السلة' : 'Cart'}</p>
-                            <p className="text-[10px] text-muted-foreground">{cartItems.reduce((a, i) => a + i.quantity, 0)} {language === 'ar' ? 'منتجات' : 'items'}</p>
+                            <p className="text-[11px] font-black text-foreground">{t('cart')}</p>
+                            <p className="text-[10px] text-muted-foreground">{cartItems.reduce((a, i) => a + i.quantity, 0)} {t('items')}</p>
                           </div>
                         </div>
                         <ChevronRight className={`h-4 w-4 text-muted-foreground ${language === 'ar' ? 'rotate-180' : ''}`} />
@@ -156,7 +156,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
                   {/* ── Main Navigation ─────────────────────────── */}
                   <div className="px-4 mb-2">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{language === 'ar' ? 'القائمة الرئيسية' : 'Navigation'}</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{t('navigation')}</p>
                     <div className="space-y-1">
                       {[
                         { href: "/", icon: Home, label: t('home') },
@@ -198,7 +198,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
                   {/* ── Settings ───────────────────────────────── */}
                   <div className="px-4 mb-2">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{language === 'ar' ? 'الإعدادات' : 'Settings'}</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{t('settings')}</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
@@ -215,7 +215,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
                   {/* ── More Links ─────────────────────────────── */}
                   <div className="px-4 mb-2">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{language === 'ar' ? 'المزيد' : 'More'}</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{t('more')}</p>
                     <div className="space-y-1">
                       <Link href="/terms" onClick={closeSidebar}>
                         <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
@@ -227,7 +227,7 @@ export function Layout({ children }: { children: ReactNode }) {
                       <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" onClick={closeSidebar}>
                         <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
                           <div className="w-8 h-8 rounded-lg bg-[#25D366]/10 flex items-center justify-center shrink-0"><SiWhatsapp className="h-4 w-4 text-[#25D366]" /></div>
-                          <span className="font-bold text-sm text-foreground flex-1">{language === 'ar' ? 'تواصل معنا' : 'Contact Us'}</span>
+                          <span className="font-bold text-sm text-foreground flex-1">{t('contactUs')}</span>
                           <ChevronRight className={`h-4 w-4 text-muted-foreground ${language === 'ar' ? 'rotate-180' : ''}`} />
                         </div>
                       </a>
@@ -235,7 +235,7 @@ export function Layout({ children }: { children: ReactNode }) {
                         <button onClick={() => { handleInstall(); closeSidebar(); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Download className="h-4 w-4 text-primary" /></div>
                           <span className="font-bold text-sm text-foreground flex-1 text-right">{t('installApp')}</span>
-                          <span className="text-[9px] font-black px-2 py-1 rounded-full bg-primary text-primary-foreground">{language === 'ar' ? 'جديد' : 'NEW'}</span>
+                          <span className="text-[9px] font-black px-2 py-1 rounded-full bg-primary text-primary-foreground">{t('new')}</span>
                         </button>
                       )}
                       {user && (
@@ -271,14 +271,14 @@ export function Layout({ children }: { children: ReactNode }) {
                       <a href="tel:+966551329821" className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors active:scale-95">
                         <Phone className="h-4 w-4 text-primary shrink-0" />
                         <div>
-                          <p className="text-[9px] text-muted-foreground font-bold">{language === 'ar' ? 'اتصل' : 'Call'}</p>
+                          <p className="text-[9px] text-muted-foreground font-bold">{t('call')}</p>
                           <p className="text-[10px] font-black" dir="ltr">966 55 132 9821</p>
                         </div>
                       </a>
                       <a href="mailto:rf-purfume@outlook.com" className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors active:scale-95">
                         <Mail className="h-4 w-4 text-primary shrink-0" />
                         <div>
-                          <p className="text-[9px] text-muted-foreground font-bold">{language === 'ar' ? 'إيميل' : 'Email'}</p>
+                          <p className="text-[9px] text-muted-foreground font-bold">{t('email')}</p>
                           <p className="text-[10px] font-black truncate">rf-purfume</p>
                         </div>
                       </a>
@@ -358,7 +358,7 @@ export function Layout({ children }: { children: ReactNode }) {
                       {(user?.name || user?.username || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t('welcome') || 'مرحباً بك'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t('welcome')}</span>
                       <span className="text-sm font-bold text-foreground truncate max-w-[140px]">{user?.name || user?.username}</span>
                     </div>
                   </div>
@@ -367,14 +367,14 @@ export function Layout({ children }: { children: ReactNode }) {
                     <Link href="/profile">
                       <DropdownMenuItem className={`cursor-pointer gap-3 p-3 text-[10px] font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all rounded-none ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                         <User className="h-4 w-4 opacity-40" />
-                        {t('myAccount') || 'حسابي'}
+                        {t('myAccount')}
                       </DropdownMenuItem>
                     </Link>
                     
                     <div className={`flex items-center justify-between p-3 mb-2 bg-primary/5 border border-primary/10 rounded-none ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-2 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                         <Wallet className="h-4 w-4 text-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t('wallet') || 'المحفظة'}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t('wallet')}</span>
                       </div>
                       <span dir="ltr" className="text-sm font-black text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} {t('currency')}</span>
                     </div>
@@ -382,14 +382,14 @@ export function Layout({ children }: { children: ReactNode }) {
                     <Link href="/orders">
                       <DropdownMenuItem className={`cursor-pointer gap-3 p-3 text-[10px] font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all rounded-none ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                         <ShoppingBag className="h-4 w-4 opacity-40" />
-                        {t('myOrders') || 'طلباتي'}
+                        {t('myOrders')}
                       </DropdownMenuItem>
                     </Link>
 
                     <Link href="/profile/wishlist">
                       <DropdownMenuItem className={`cursor-pointer gap-3 p-3 text-[10px] font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all rounded-none ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                         <Heart className="h-4 w-4 opacity-40" />
-                        {language === 'ar' ? 'قائمة الأمنيات' : 'Wishlist'}
+                        {t('wishlist')}
                       </DropdownMenuItem>
                     </Link>
                     
@@ -397,7 +397,7 @@ export function Layout({ children }: { children: ReactNode }) {
                       <Link href="/vendor/dashboard">
                         <DropdownMenuItem className={`cursor-pointer gap-3 p-3 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-foreground hover:text-background transition-all rounded-none ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                           <Store className="h-4 w-4 opacity-40" />
-                          {language === 'ar' ? 'لوحة البائع' : 'Vendor Dashboard'}
+                          {t('vendorDashboard')}
                         </DropdownMenuItem>
                       </Link>
                     )}
@@ -455,9 +455,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <img src={logoImg} alt="رفيف العود" className="h-14 w-auto object-contain" />
             </Link>
             <p className="text-sm text-gray-700 leading-relaxed">
-              {language === 'ar' 
-                ? "عطور فاخرة تُلهم الحواس. اكتشف أرقى العطور الشرقية والغربية مع رفيف العود."
-                : "Luxury fragrances that inspire the senses. Discover the finest oriental and western perfumes with RF Perfume."}
+              {t('footerTagline')}
             </p>
           </div>
           <div>
@@ -531,7 +529,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Payment Methods */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-700 mb-5">{language === 'ar' ? 'طرق الدفع المتاحة' : 'Available Payment Methods'}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-700 mb-5">{t('availablePayments')}</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
               <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="Mada / Visa / Mastercard / Amex">
                 <img src="/uploads/card-brands-logo.png" alt="Card Brands" className="h-7 w-auto object-contain" />
@@ -570,7 +568,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   className="h-12 w-auto object-contain" 
                 />
                 <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
-                  {language === 'ar' ? 'سجل تجاري' : 'Commercial Registration'}
+                  {t('commercialReg')}
                 </div>
                 <div className="text-xs text-[#c9a96e] font-black group-hover:underline">1010978041</div>
               </a>
@@ -579,7 +577,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   <Shield className="h-6 w-6 text-[#c9a96e]" />
                 </div>
                 <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
-                  {language === 'ar' ? 'الرقم الضريبي' : 'Tax Number'}
+                  {t('taxNumber')}
                 </div>
                 <div className="text-xs text-[#c9a96e] font-black">312037024200003</div>
               </div>

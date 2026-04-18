@@ -6,7 +6,9 @@ type Language = 'ar' | 'en';
 interface LanguageState {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string | { ar: string; en: string }) => string;
+  tx: (ar: string, en: string) => string;
+  isAr: boolean;
 }
 
 const translationsFull = {
@@ -34,7 +36,7 @@ const translationsFull = {
     cart: "السلة",
     newCollection: "مجموعة جديدة ٢٠٢٦",
     heroTitle: "أناقة تتجاوز الحدود",
-    heroDesc: "نقدم لكم تشكيلة الهوديز الجديدة المصممة بعناية فائقة لتناسب أسلوب حياتكم العصري. جودة استثنائية وتفاصيل تروي قصة إبداع سعودي.",
+    heroDesc: "نقدم لكم تشكيلة العطور الجديدة المصممة بعناية فائقة لتناسب أسلوب حياتكم العصري. جودة استثنائية وتفاصيل تروي قصة إبداع سعودي.",
     discoverCollection: "اكتشف المجموعة",
     featuredItem: "قطعة مميزة",
     exclusivePicks: "المختارات الحصرية",
@@ -66,7 +68,7 @@ const translationsFull = {
     colorLabel: "اختر اللون",
     sizeLabel: "اختر المقاس",
     quantityLabel: "الكمية",
-    addToCart: "إضافة إلى حقيبة التسوق",
+    addToCart: "إضافة إلى السلة",
     originalProduct: "قطعة أصلية وحصرية",
     luxuryPackaging: "تغليف فاخر",
     secureShipping: "شحن سريع وآمن",
@@ -101,7 +103,177 @@ const translationsFull = {
     noAccount: "ليس لديك حساب؟",
     hasAccount: "لديك حساب بالفعل؟",
     technicalSupport: "هل تواجه مشكلة؟ تواصل مع الدعم الفني",
-    browseProducts: "تصفح المنتجات"
+    browseProducts: "تصفح المنتجات",
+
+    // Common UI
+    loading: "جارٍ التحميل...",
+    save: "حفظ",
+    cancel: "إلغاء",
+    confirm: "تأكيد",
+    delete: "حذف",
+    edit: "تعديل",
+    update: "تحديث",
+    add: "إضافة",
+    close: "إغلاق",
+    back: "رجوع",
+    next: "التالي",
+    previous: "السابق",
+    search: "بحث",
+    filter: "تصفية",
+    sortBy: "ترتيب حسب",
+    yes: "نعم",
+    no: "لا",
+    ok: "حسناً",
+    error: "خطأ",
+    success: "تم بنجاح",
+    warning: "تنبيه",
+    info: "معلومة",
+    required: "مطلوب",
+    optional: "اختياري",
+    submit: "إرسال",
+    sending: "جارٍ الإرسال...",
+    saving: "جارٍ الحفظ...",
+    processing: "جارٍ المعالجة...",
+    tryAgain: "حاول مرة أخرى",
+    retry: "إعادة المحاولة",
+    viewMore: "عرض المزيد",
+    viewLess: "عرض أقل",
+    seeAll: "عرض الكل",
+    showMore: "المزيد",
+    showLess: "أقل",
+
+    // Account / Profile
+    profile: "الملف الشخصي",
+    accountSettings: "إعدادات الحساب",
+    personalInfo: "المعلومات الشخصية",
+    addresses: "العناوين",
+    paymentMethods: "طرق الدفع",
+    wishlist: "المفضلة",
+    orders: "الطلبات",
+    invoices: "الفواتير",
+    wallet: "المحفظة",
+    walletBalance: "رصيد المحفظة",
+    cashback: "كاش باك",
+    points: "النقاط",
+    loyaltyPoints: "نقاط الولاء",
+    welcomeBack: "مرحباً بعودتك",
+
+    // Orders
+    orderNumber: "رقم الطلب",
+    orderDate: "تاريخ الطلب",
+    orderStatus: "حالة الطلب",
+    orderTotal: "إجمالي الطلب",
+    pending: "قيد الانتظار",
+    confirmed: "مؤكد",
+    preparing: "قيد التجهيز",
+    shipped: "تم الشحن",
+    outForDelivery: "في الطريق إليك",
+    delivered: "تم التسليم",
+    cancelled: "ملغي",
+    refunded: "مسترد",
+    noOrders: "لا توجد طلبات حالياً",
+    trackOrder: "تتبع الطلب",
+    reorder: "إعادة الطلب",
+
+    // Cart / Checkout
+    quantity: "الكمية",
+    unitPrice: "سعر الوحدة",
+    discount: "خصم",
+    discountCode: "كود الخصم",
+    applyCode: "تطبيق",
+    invalidCode: "كود الخصم غير صحيح أو منتهي",
+    codeApplied: "تم تطبيق الكود",
+    shipping: "الشحن",
+    free: "مجاني",
+    continueShopping: "متابعة التسوق",
+    proceedToCheckout: "إتمام الشراء",
+    deliveryAddress: "عنوان التوصيل",
+    addNewAddress: "إضافة عنوان جديد",
+    chooseAddress: "اختر العنوان",
+    notes: "ملاحظات",
+    notesPlaceholder: "أي ملاحظات إضافية للطلب...",
+
+    // Product
+    inStock: "متوفر",
+    outOfStock: "غير متوفر",
+    onlyXLeft: "تبقى {n} فقط",
+    productCode: "كود المنتج",
+    description: "الوصف",
+    specifications: "المواصفات",
+    reviews: "التقييمات",
+    relatedProducts: "منتجات مشابهة",
+    addToWishlist: "أضف للمفضلة",
+    removedFromWishlist: "تمت إزالته من المفضلة",
+    addedToWishlist: "تمت إضافته للمفضلة ❤️",
+    share: "مشاركة",
+    rating: "التقييم",
+    writeReview: "اكتب تقييماً",
+    reviewSubmitted: "تم إرسال التقييم بنجاح",
+
+    // Home / Marketing
+    limitedTime: "وقت محدود",
+    todaysDeals: "عروض اليوم",
+    endsIn: "ينتهي خلال",
+    days: "أيام",
+    hours: "ساعات",
+    minutes: "دقائق",
+    seconds: "ثوانٍ",
+    bestSellers: "الأكثر مبيعاً",
+    newArrivals: "وصل حديثاً",
+    sale: "تخفيضات",
+    shopNow: "تسوق الآن",
+    discoverMore: "اكتشف المزيد",
+    seller: "بائع مستقل",
+    added: "تمت الإضافة",
+
+    // Notifications
+    notifications: "الإشعارات",
+    markAllRead: "قراءة الكل",
+    noNotifications: "لا توجد إشعارات",
+    justNow: "الآن",
+    minutesAgo: "منذ {n} دقيقة",
+    hoursAgo: "منذ {n} ساعة",
+    daysAgo: "منذ {n} يوم",
+
+    // Layout / nav extras
+    payment: "الدفع",
+    welcome: "مرحباً بك",
+    items: "منتجات",
+    navigation: "القائمة الرئيسية",
+    settings: "الإعدادات",
+    more: "المزيد",
+    new: "جديد",
+    call: "اتصل",
+    availablePayments: "طرق الدفع المتاحة",
+    commercialReg: "سجل تجاري",
+    taxNumber: "الرقم الضريبي",
+    footerTagline: "عطور فاخرة تُلهم الحواس. اكتشف أرقى العطور الشرقية والغربية مع رفيف العود.",
+    enterCoupon: "أدخل الكود",
+    apply: "تطبيق",
+    couponAdded: "تمت إضافة كود الخصم بنجاح",
+    couponFailed: "فشل تطبيق الكود",
+    vendorDashboard: "لوحة البائع",
+
+    // Home extras
+    freeShippingTitle: "شحن مجاني",
+    freeShippingSub: "فوق ١٠٠ ر.س",
+    original100: "عطور أصلية ١٠٠٪",
+    qualityGuaranteed: "ضمان الجودة",
+    freeReturns: "إرجاع مجاني",
+    within14Days: "خلال ١٤ يوم",
+    support247: "دعم ٢٤/٧",
+    dedicatedTeam: "فريق متخصص",
+    customerFavorites: "اختيارات العملاء",
+    viewAll: "عرض الكل",
+    flexiblePayment: "طرق الدفع المرنة",
+    buyNowPayLater: "اشتري الآن وادفع لاحقاً",
+    buyNow: "اشتري الآن",
+    payLater: "وادفع لاحقاً",
+    luxuryFragrances: "عطر فاخر",
+    customerSatisfaction: "رضا العملاء",
+    deliveryDays: "أيام توصيل",
+    discoverFullCollection: "اكتشف المجموعة الكاملة",
+    endsInShort: "تنتهي خلال",
   },
   en: {
     home: "Home",
@@ -127,7 +299,7 @@ const translationsFull = {
     cart: "Cart",
     newCollection: "New Collection 2026",
     heroTitle: "Elegance Beyond Borders",
-    heroDesc: "Introducing our new hoodie collection, meticulously designed to fit your modern lifestyle. Exceptional quality and details telling a story of Saudi creativity.",
+    heroDesc: "Introducing our new fragrance collection, meticulously crafted to fit your modern lifestyle. Exceptional quality and details telling a story of Saudi creativity.",
     discoverCollection: "Discover Collection",
     featuredItem: "Featured Item",
     exclusivePicks: "Exclusive Picks",
@@ -159,7 +331,7 @@ const translationsFull = {
     colorLabel: "Select Color",
     sizeLabel: "Select Size",
     quantityLabel: "Quantity",
-    addToCart: "Add to Shopping Bag",
+    addToCart: "Add to Cart",
     originalProduct: "Original & Exclusive Piece",
     luxuryPackaging: "Luxury Packaging",
     secureShipping: "Fast & Secure Shipping",
@@ -194,7 +366,177 @@ const translationsFull = {
     noAccount: "Don't have an account?",
     hasAccount: "Already have an account?",
     technicalSupport: "Facing an issue? Contact technical support",
-    browseProducts: "Browse Products"
+    browseProducts: "Browse Products",
+
+    // Common UI
+    loading: "Loading...",
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    delete: "Delete",
+    edit: "Edit",
+    update: "Update",
+    add: "Add",
+    close: "Close",
+    back: "Back",
+    next: "Next",
+    previous: "Previous",
+    search: "Search",
+    filter: "Filter",
+    sortBy: "Sort by",
+    yes: "Yes",
+    no: "No",
+    ok: "OK",
+    error: "Error",
+    success: "Success",
+    warning: "Warning",
+    info: "Info",
+    required: "Required",
+    optional: "Optional",
+    submit: "Submit",
+    sending: "Sending...",
+    saving: "Saving...",
+    processing: "Processing...",
+    tryAgain: "Try again",
+    retry: "Retry",
+    viewMore: "View more",
+    viewLess: "View less",
+    seeAll: "See all",
+    showMore: "Show more",
+    showLess: "Show less",
+
+    // Account / Profile
+    profile: "Profile",
+    accountSettings: "Account Settings",
+    personalInfo: "Personal Information",
+    addresses: "Addresses",
+    paymentMethods: "Payment Methods",
+    wishlist: "Wishlist",
+    orders: "Orders",
+    invoices: "Invoices",
+    wallet: "Wallet",
+    walletBalance: "Wallet Balance",
+    cashback: "Cashback",
+    points: "Points",
+    loyaltyPoints: "Loyalty Points",
+    welcomeBack: "Welcome back",
+
+    // Orders
+    orderNumber: "Order #",
+    orderDate: "Order Date",
+    orderStatus: "Order Status",
+    orderTotal: "Order Total",
+    pending: "Pending",
+    confirmed: "Confirmed",
+    preparing: "Preparing",
+    shipped: "Shipped",
+    outForDelivery: "Out for Delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    refunded: "Refunded",
+    noOrders: "No orders yet",
+    trackOrder: "Track Order",
+    reorder: "Reorder",
+
+    // Cart / Checkout
+    quantity: "Quantity",
+    unitPrice: "Unit Price",
+    discount: "Discount",
+    discountCode: "Discount Code",
+    applyCode: "Apply",
+    invalidCode: "Invalid or expired discount code",
+    codeApplied: "Code applied",
+    shipping: "Shipping",
+    free: "Free",
+    continueShopping: "Continue Shopping",
+    proceedToCheckout: "Proceed to Checkout",
+    deliveryAddress: "Delivery Address",
+    addNewAddress: "Add new address",
+    chooseAddress: "Choose address",
+    notes: "Notes",
+    notesPlaceholder: "Any extra notes for the order...",
+
+    // Product
+    inStock: "In stock",
+    outOfStock: "Out of stock",
+    onlyXLeft: "Only {n} left",
+    productCode: "Product Code",
+    description: "Description",
+    specifications: "Specifications",
+    reviews: "Reviews",
+    relatedProducts: "Related Products",
+    addToWishlist: "Add to Wishlist",
+    removedFromWishlist: "Removed from wishlist",
+    addedToWishlist: "Added to wishlist ❤️",
+    share: "Share",
+    rating: "Rating",
+    writeReview: "Write a review",
+    reviewSubmitted: "Review submitted successfully",
+
+    // Home / Marketing
+    limitedTime: "Limited Time",
+    todaysDeals: "Today's Deals",
+    endsIn: "Ends in",
+    days: "days",
+    hours: "hours",
+    minutes: "minutes",
+    seconds: "seconds",
+    bestSellers: "Best Sellers",
+    newArrivals: "New Arrivals",
+    sale: "Sale",
+    shopNow: "Shop Now",
+    discoverMore: "Discover More",
+    seller: "Independent Seller",
+    added: "Added!",
+
+    // Notifications
+    notifications: "Notifications",
+    markAllRead: "Mark all read",
+    noNotifications: "No notifications",
+    justNow: "Just now",
+    minutesAgo: "{n} min ago",
+    hoursAgo: "{n} h ago",
+    daysAgo: "{n} d ago",
+
+    // Layout / nav extras
+    payment: "Payment",
+    welcome: "Welcome",
+    items: "items",
+    navigation: "Navigation",
+    settings: "Settings",
+    more: "More",
+    new: "NEW",
+    call: "Call",
+    availablePayments: "Available Payment Methods",
+    commercialReg: "Commercial Registration",
+    taxNumber: "Tax Number",
+    footerTagline: "Luxury fragrances that inspire the senses. Discover the finest oriental and western perfumes with RF Perfume.",
+    enterCoupon: "Enter code",
+    apply: "Apply",
+    couponAdded: "Discount code applied",
+    couponFailed: "Failed to apply code",
+    vendorDashboard: "Vendor Dashboard",
+
+    // Home extras
+    freeShippingTitle: "Free Shipping",
+    freeShippingSub: "Above 100 SAR",
+    original100: "100% Original",
+    qualityGuaranteed: "Quality guaranteed",
+    freeReturns: "Free Returns",
+    within14Days: "Within 14 days",
+    support247: "24/7 Support",
+    dedicatedTeam: "Dedicated team",
+    customerFavorites: "Customer Favorites",
+    viewAll: "View All",
+    flexiblePayment: "Flexible Payment",
+    buyNowPayLater: "Buy Now Pay Later",
+    buyNow: "Buy Now",
+    payLater: "Pay Later",
+    luxuryFragrances: "Luxury Fragrances",
+    customerSatisfaction: "Customer Satisfaction",
+    deliveryDays: "Days Delivery",
+    discoverFullCollection: "Discover the full collection",
+    endsInShort: "Ends in",
   }
 };
 
@@ -202,23 +544,39 @@ const useLanguageStore = create<LanguageState>()(
   persist(
     (set, get) => ({
       language: 'ar',
+      isAr: true,
       setLanguage: (lang) => {
-        set({ language: lang });
-        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-        document.documentElement.lang = lang;
+        set({ language: lang, isAr: lang === 'ar' });
+        if (typeof document !== 'undefined') {
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+          document.documentElement.lang = lang;
+        }
       },
+      // Accepts either a dictionary key or an inline {ar,en} object — so any
+      // hardcoded string can be retrofitted without adding a key first.
       t: (key) => {
         const { language } = get();
+        if (typeof key === 'object' && key !== null) {
+          return language === 'ar' ? key.ar : key.en;
+        }
         const dict = translationsFull[language] as any;
         return dict[key] || key;
       },
+      // Inline shortcut: tx('عربي', 'English')
+      tx: (ar, en) => (get().language === 'ar' ? ar : en),
     }),
     {
       name: 'language-storage',
+      onRehydrateStorage: () => (state) => {
+        // Keep `isAr` and document attrs in sync after rehydration
+        if (state && typeof document !== 'undefined') {
+          state.isAr = state.language === 'ar';
+          document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
+          document.documentElement.lang = state.language;
+        }
+      },
     }
   )
 );
 
-export const useLanguage = () => {
-  return useLanguageStore();
-};
+export const useLanguage = () => useLanguageStore();

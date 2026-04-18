@@ -59,7 +59,7 @@ export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { data: products, isLoading } = useProducts();
-  const { t, language } = useLanguage();
+  const { t, tx, language } = useLanguage();
   const isRtl = language === "ar";
   const { data: dbCategories } = useQuery<any[]>({ queryKey: ["/api/categories"] });
   const [heroIdx, setHeroIdx] = useState(0);
@@ -208,10 +208,10 @@ export default function Home() {
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: Truck, ar: "شحن مجاني", sub_ar: "فوق ١٠٠ ر.س", en: "Free Shipping", sub_en: "Above 100 SAR" },
-              { icon: ShieldCheck, ar: "عطور أصلية ١٠٠٪", sub_ar: "ضمان الجودة", en: "100% Original", sub_en: "Quality guaranteed" },
-              { icon: RotateCcw, ar: "إرجاع مجاني", sub_ar: "خلال ١٤ يوم", en: "Free Returns", sub_en: "Within 14 days" },
-              { icon: Headphones, ar: "دعم ٢٤/٧", sub_ar: "فريق متخصص", en: "24/7 Support", sub_en: "Dedicated team" },
+              { icon: Truck, label: t('freeShippingTitle'), sub: t('freeShippingSub') },
+              { icon: ShieldCheck, label: t('original100'), sub: t('qualityGuaranteed') },
+              { icon: RotateCcw, label: t('freeReturns'), sub: t('within14Days') },
+              { icon: Headphones, label: t('support247'), sub: t('dedicatedTeam') },
             ].map((badge, i) => {
               const Icon = badge.icon;
               return (
@@ -220,8 +220,8 @@ export default function Home() {
                     <Icon className="w-5 h-5 text-[#c9a96e]" />
                   </div>
                   <div>
-                    <p className="text-[#1a2744] text-xs font-bold">{isRtl ? badge.ar : badge.en}</p>
-                    <p className="text-gray-700 text-[10px]">{isRtl ? badge.sub_ar : badge.sub_en}</p>
+                    <p className="text-[#1a2744] text-xs font-bold">{badge.label}</p>
+                    <p className="text-gray-700 text-[10px]">{badge.sub}</p>
                   </div>
                 </div>
               );
@@ -241,16 +241,16 @@ export default function Home() {
                 </div>
                 <div>
                   <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">
-                    {isRtl ? "وقت محدود" : "LIMITED TIME"}
+                    {t('limitedTime')}
                   </span>
                   <h2 className="text-2xl md:text-3xl font-bold text-[#1a2744] mt-1">
-                    {isRtl ? "عروض اليوم" : "Today's Deals"}
+                    {t('todaysDeals')}
                   </h2>
                 </div>
               </div>
               <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
                 <span className="text-gray-700 text-xs font-bold uppercase tracking-widest">
-                  {isRtl ? "تنتهي خلال" : "Ends in"}
+                  {t('endsInShort')}
                 </span>
                 <FlashCountdown endTime={flashEndTime} />
               </div>
@@ -306,7 +306,7 @@ export default function Home() {
                           {isRtl ? (cat.nameAr || cat.name) : cat.name}
                         </h2>
                         <p className="text-white/70 text-sm mt-1">
-                          {isRtl ? "اكتشف المجموعة الكاملة" : "Discover the full collection"}
+                          {t('discoverFullCollection')}
                         </p>
                       </div>
                     </div>
@@ -323,7 +323,7 @@ export default function Home() {
                 {cat.image && <div />}
                 <Link href={`/products?category=${cat.slug}`}>
                   <span className={`text-sm font-bold text-[#c9a96e] hover:text-[#b8944f] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
-                    {isRtl ? "عرض الكل" : "View All"}
+                    {t('viewAll')}
                     {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </span>
                 </Link>
@@ -353,15 +353,15 @@ export default function Home() {
           <div className={`flex items-center justify-between mb-8 ${isRtl ? "flex-row-reverse" : ""}`}>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] block mb-1">
-                {isRtl ? "الأكثر مبيعاً" : "BEST SELLERS"}
+                {t('bestSellers')}
               </span>
               <h2 className="text-2xl md:text-4xl font-bold text-[#1a2744]">
-                {isRtl ? "اختيارات العملاء" : "Customer Favorites"}
+                {t('customerFavorites')}
               </h2>
             </div>
             <Link href="/products">
               <Button className="rounded-lg bg-[#1a2744] text-white hover:bg-[#243454] font-bold text-xs tracking-wider h-10 px-6">
-                {isRtl ? "عرض الكل" : "View All"}
+                {t('viewAll')}
                 {isRtl ? <ChevronLeft className="mr-2 h-4 w-4" /> : <ChevronRight className="ml-2 h-4 w-4" />}
               </Button>
             </Link>
@@ -405,7 +405,7 @@ export default function Home() {
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                    {isRtl ? "اكتشف المزيد" : "Discover More"} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
+                    {t('discoverMore')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                   </span>
                 </Link>
               </div>
@@ -422,7 +422,7 @@ export default function Home() {
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                    {isRtl ? "تسوق الآن" : "Shop Now"} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
+                    {t('shopNow')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                   </span>
                 </Link>
               </div>
@@ -436,11 +436,11 @@ export default function Home() {
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { num: "+٥٠٠", num_en: "500+", label_ar: "عميل سعيد", label_en: "Happy Customers" },
-              { num: "+١٥٠", num_en: "150+", label_ar: "عطر فاخر", label_en: "Luxury Fragrances" },
-              { num: "٩٩٪", num_en: "99%", label_ar: "رضا العملاء", label_en: "Customer Satisfaction" },
-              { num: "٢-٤", num_en: "2-4", label_ar: "أيام توصيل", label_en: "Days Delivery" },
-            ].map((stat, i) => (
+              { num: "+٥٠٠", num_en: "500+", label: t('happyCustomers') },
+              { num: "+١٥٠", num_en: "150+", label: t('luxuryFragrances') },
+              { num: "٩٩٪", num_en: "99%", label: t('customerSatisfaction') },
+              { num: "٢-٤", num_en: "2-4", label: t('deliveryDays') },
+            ].map((stat: any, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -453,7 +453,7 @@ export default function Home() {
                   {isRtl ? stat.num : stat.num_en}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-700 mt-2">
-                  {isRtl ? stat.label_ar : stat.label_en}
+                  {stat.label}
                 </span>
               </motion.div>
             ))}
@@ -466,10 +466,10 @@ export default function Home() {
         <div className="container px-4">
           <div className="text-center mb-10">
             <span className="inline-block px-4 py-1.5 rounded-full bg-[#c9a96e]/10 border border-[#c9a96e]/20 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] mb-3">
-              {isRtl ? "طرق الدفع المرنة" : "Flexible Payment"}
+              {t('flexiblePayment')}
             </span>
             <h2 className="text-2xl md:text-4xl font-bold text-[#1a2744] leading-tight">
-              {isRtl ? (<>اشتري الآن <span className="text-gray-700">وادفع لاحقاً</span></>) : (<>Buy Now <span className="text-gray-700">Pay Later</span></>)}
+              {t('buyNow')} <span className="text-gray-700">{t('payLater')}</span>
             </h2>
           </div>
 
@@ -484,14 +484,14 @@ export default function Home() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    {isRtl ? "متاح الآن" : "Available"}
+                    {tx("متاح الآن", "Available")}
                   </span>
                 </div>
                 <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
-                  {isRtl ? "٤ أقساط بدون فوائد" : "4 Payments, Zero Interest"}
+                  {tx("٤ أقساط بدون فوائد", "4 Payments, Zero Interest")}
                 </h3>
                 <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
-                  {isRtl ? "قسّم فاتورتك على ٤ دفعات" : "Split your bill into 4 payments"}
+                  {tx("قسّم فاتورتك على ٤ دفعات", "Split your bill into 4 payments")}
                 </p>
                 <div className="flex gap-2 mb-4" dir="ltr">
                   {[1, 2, 3, 4].map((n) => (
@@ -516,14 +516,14 @@ export default function Home() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-600 text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-                    {isRtl ? "متاح الآن" : "Available"}
+                    {tx("متاح الآن", "Available")}
                   </span>
                 </div>
                 <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
-                  {isRtl ? "٣ أقساط بدون فوائد" : "3 Payments, Zero Interest"}
+                  {tx("٣ أقساط بدون فوائد", "3 Payments, Zero Interest")}
                 </h3>
                 <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
-                  {isRtl ? "قسّم طلبك على ٣ دفعات" : "Split your order into 3 payments"}
+                  {tx("قسّم طلبك على ٣ دفعات", "Split your order into 3 payments")}
                 </p>
                 <div className="flex gap-2 mb-4" dir="ltr">
                   {[1, 2, 3].map((n) => (
@@ -587,13 +587,13 @@ export default function Home() {
                 className="h-14 md:h-16 px-10 md:px-16 text-xs md:text-sm font-bold uppercase tracking-[0.3em] rounded-lg bg-white text-[#1a2744] hover:bg-[#c9a96e] hover:text-white border-none transition-all duration-500"
               >
                 <ShoppingBag className={`${isRtl ? "ml-3" : "mr-3"} h-5 w-5`} />
-                {isRtl ? "ابدأ التسوق الآن" : "Start Shopping Now"}
+                {tx("ابدأ التسوق الآن", "Start Shopping Now")}
               </Button>
             </Link>
 
             <div className="mt-12 pt-8 border-t border-white/10">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-4">
-                {isRtl ? "نقبل جميع وسائل الدفع" : "We Accept All Payment Methods"}
+                {tx("نقبل جميع وسائل الدفع", "We Accept All Payment Methods")}
               </p>
               <div className="flex justify-center flex-wrap gap-3">
                 {[

@@ -16,7 +16,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { t, language } = useLanguage();
+  const { t, tx, language } = useLanguage();
   const { user } = useAuth();
   const qc = useQueryClient();
   const { addItem } = useCart();
@@ -189,7 +189,7 @@ export function ProductCard({ product }: ProductCardProps) {
             })()}
             {(product as any).vendorId && (
               <p className="text-[9px] font-bold text-primary/70 uppercase tracking-widest mt-1 flex items-center justify-center gap-0.5">
-                🏪 {language === 'ar' ? 'بائع مستقل' : 'Seller'}
+                🏪 {t('seller')}
               </p>
             )}
             <button
@@ -213,12 +213,12 @@ export function ProductCard({ product }: ProductCardProps) {
               {addedToCart ? (
                 <>
                   <Check className="w-4 h-4" />
-                  {language === 'ar' ? 'تمت الإضافة' : 'Added!'}
+                  {t('added')}
                 </>
               ) : (
                 <>
                   <ShoppingCart className="w-4 h-4" />
-                  {language === 'ar' ? 'أضف للسلة' : 'Add to Cart'}
+                  {t('addToCart')}
                 </>
               )}
             </button>
@@ -232,7 +232,7 @@ export function ProductCard({ product }: ProductCardProps) {
           className={`absolute top-3 ${language === 'ar' ? 'left-3' : 'right-3'} z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
             isWishlisted ? "bg-red-500 text-white" : "bg-white/90 text-slate-600 hover:bg-white"
           }`}
-          title={isWishlisted ? (language === 'ar' ? "إزالة من المفضلة" : "Remove from wishlist") : (language === 'ar' ? "أضف للمفضلة" : "Add to wishlist")}
+          title={isWishlisted ? tx("إزالة من المفضلة", "Remove from wishlist") : t('addToWishlist')}
           data-testid={`button-wishlist-${product.id}`}
         >
           <Heart className={`w-4 h-4 ${isWishlisted ? "fill-white" : ""}`} />
