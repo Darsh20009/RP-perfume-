@@ -23,8 +23,12 @@ async function tryConnect(uri: string): Promise<boolean> {
       connectTimeoutMS: 10000,
       socketTimeoutMS: 30000,
       bufferCommands: true,
-      maxPoolSize: 10,
-    });
+      // ── Connection pool tuned for high concurrency ──
+      maxPoolSize: parseInt(process.env.MONGO_POOL_MAX || "50", 10),
+      minPoolSize: parseInt(process.env.MONGO_POOL_MIN || "5", 10),
+      maxIdleTimeMS: 60_000,
+      compressors: ["zstd", "zlib"],
+    } as any);
     isConnected = true;
     console.log("Connected to MongoDB successfully");
     return true;

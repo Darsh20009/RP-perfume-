@@ -64,6 +64,33 @@ import { CartSessionModel, CancellationPolicyModel, OrderModel } from "./models"
 import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } from "./cancellation";
 import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
 import { buildZatcaQrDataUrl } from "./zatca";
+import rateLimit from "express-rate-limit";
+import {
+  cacheMiddleware, invalidateTags, getStats as getCacheStats, resetStats as resetCacheStats,
+  setCacheEnabled, isCacheEnabled, setDefaultTtlMs, getDefaultTtlMs, cacheClear,
+} from "./cache";
+
+// ─── Tiered rate limiters (in addition to global 500/15min) ─────────────────
+const cartLimiter = rateLimit({
+  windowMs: 60_000, max: 60, // 60 cart syncs / minute / IP
+  message: { message: "تحديثات السلة كثيرة جداً، أبطئ قليلاً" },
+  standardHeaders: true, legacyHeaders: false,
+});
+const orderCreateLimiter = rateLimit({
+  windowMs: 60_000, max: 10, // 10 order attempts / minute / IP
+  message: { message: "محاولات طلب كثيرة، انتظر دقيقة" },
+  standardHeaders: true, legacyHeaders: false,
+});
+const aiLimiter = rateLimit({
+  windowMs: 60_000, max: 20, // AI is expensive — 20/min/IP
+  message: { message: "طلبات الذكاء الاصطناعي تجاوزت الحد، انتظر قليلاً" },
+  standardHeaders: true, legacyHeaders: false,
+});
+const couponLimiter = rateLimit({
+  windowMs: 60_000, max: 30,
+  message: { message: "محاولات تحقق من الكوبون كثيرة" },
+  standardHeaders: true, legacyHeaders: false,
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -412,7 +439,7 @@ export async function registerRoutes(
   });
 
   // Products
-  app.get(api.products.list.path, async (_req, res) => {
+  app.get(api.products.list.path, cacheMiddleware({ ttlMs: 60_000, tags: ["products"] }), async (_req, res) => {
     try {
       const products = await storage.getProducts();
       res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
@@ -451,6 +478,7 @@ export async function registerRoutes(
   app.patch("/api/products/:id", checkPermission("products.edit"), async (req, res) => {
     try {
       const product = await storage.updateProduct(req.params.id, req.body);
+      invalidateTags("products");
       res.json(product);
     } catch (err: any) {
       console.error("[API] products.update error:", err?.message);
@@ -461,6 +489,7 @@ export async function registerRoutes(
   app.delete("/api/products/:id", checkPermission("products.edit"), async (req, res) => {
     try {
       await storage.deleteProduct(req.params.id);
+      invalidateTags("products");
       res.sendStatus(200);
     } catch (err: any) {
       console.error("[API] products.delete error:", err?.message);
@@ -469,7 +498,7 @@ export async function registerRoutes(
   });
 
   // Categories
-  app.get("/api/categories", async (_req, res) => {
+  app.get("/api/categories", cacheMiddleware({ ttlMs: 5 * 60_000, tags: ["categories"] }), async (_req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
@@ -484,6 +513,7 @@ export async function registerRoutes(
       const parsed = insertCategorySchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "بيانات غير صحيحة", details: parsed.error.issues });
       const category = await storage.createCategory(parsed.data);
+      invalidateTags("categories");
       res.status(201).json(category);
     } catch (err: any) {
       console.error("[API] categories.create error:", err?.message);
@@ -494,6 +524,7 @@ export async function registerRoutes(
   app.patch("/api/categories/:id", checkPermission("products.edit"), async (req, res) => {
     try {
       const category = await storage.updateCategory(req.params.id, req.body);
+      invalidateTags("categories");
       res.json(category);
     } catch (err: any) {
       console.error("[API] categories.update error:", err?.message);
@@ -504,6 +535,7 @@ export async function registerRoutes(
   app.delete("/api/categories/:id", checkPermission("products.edit"), async (req, res) => {
     try {
       await storage.deleteCategory(req.params.id);
+      invalidateTags("categories");
       res.sendStatus(200);
     } catch (err: any) {
       console.error("[API] categories.delete error:", err?.message);
@@ -593,7 +625,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post(api.orders.create.path, async (req, res) => {
+  app.post(api.orders.create.path, orderCreateLimiter, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const parsed = insertOrderSchema.safeParse(req.body);
@@ -1466,6 +1498,7 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const banner = await storage.createBanner(req.body);
+      invalidateTags("banners");
       res.status(201).json(banner);
     } catch (err: any) {
       console.error("[API] banners.create error:", err?.message);
@@ -1477,6 +1510,7 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const banner = await storage.updateBanner(req.params.id, req.body);
+      invalidateTags("banners");
       res.json(banner);
     } catch (err: any) {
       console.error("[API] banners.update error:", err?.message);
@@ -1488,6 +1522,7 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       await storage.deleteBanner(req.params.id);
+      invalidateTags("banners");
       res.sendStatus(204);
     } catch (err: any) {
       console.error("[API] banners.delete error:", err?.message);
@@ -2280,7 +2315,7 @@ export async function registerRoutes(
     res.json({ configured: isGroqConfigured() });
   });
 
-  app.post("/api/ai/perfume-advisor", async (req, res) => {
+  app.post("/api/ai/perfume-advisor", aiLimiter, async (req, res) => {
     try {
       if (!isGroqConfigured()) {
         return res.json({ response: "المستشار غير متاح حالياً. يرجى التواصل مع فريق الدعم.", products: [] });
@@ -2296,7 +2331,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/support", async (req, res) => {
+  app.post("/api/ai/support", aiLimiter, async (req, res) => {
     try {
       if (!isGroqConfigured()) {
         return res.json({ response: "الدعم الذكي غير متاح حالياً. تواصل معنا عبر الواتساب 966551329821", needsEscalation: true });
@@ -2315,7 +2350,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/admin-assistant", async (req, res) => {
+  app.post("/api/ai/admin-assistant", aiLimiter, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const u = req.user as any;
     if (!["admin", "assistant_manager", "support", "accountant", "legal"].includes(u?.role)) {
@@ -2337,7 +2372,7 @@ export async function registerRoutes(
 
   // ─── AI Endpoints (legacy) ─────────────────────────────────────
 
-  app.post("/api/ai/size-advisor", async (req, res) => {
+  app.post("/api/ai/size-advisor", aiLimiter, async (req, res) => {
     try {
       const { getSizeRecommendation } = await import("./ai");
       const result = await getSizeRecommendation(req.body);
@@ -2347,7 +2382,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/insights", async (req, res) => {
+  app.post("/api/ai/insights", aiLimiter, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const { getBusinessInsights } = await import("./ai");
@@ -2358,7 +2393,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/generate-description", async (req, res) => {
+  app.post("/api/ai/generate-description", aiLimiter, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const { generateProductDescription } = await import("./ai");
@@ -2369,7 +2404,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/outfit-suggestions", async (req, res) => {
+  app.post("/api/ai/outfit-suggestions", aiLimiter, async (req, res) => {
     try {
       const { getOutfitSuggestions } = await import("./ai");
       const result = await getOutfitSuggestions(req.body);
@@ -3070,7 +3105,7 @@ export async function registerRoutes(
   // ════════════════════════════════════════════════════════════════════════
   // Cart Sync (anonymous + logged-in) — for abandoned-cart tracking
   // ════════════════════════════════════════════════════════════════════════
-  app.post("/api/cart/sync", async (req, res) => {
+  app.post("/api/cart/sync", cartLimiter, async (req, res) => {
     try {
       const { sessionId, items, total } = req.body || {};
       const user: any = req.isAuthenticated() ? req.user : null;
@@ -3327,6 +3362,65 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("[ZATCA] error:", err?.message);
       res.status(500).json({ message: "تعذر إنشاء رمز ZATCA" });
+    }
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Admin: Performance & Scaling
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/admin/performance", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const mongoose = (await import("mongoose")).default;
+      const memMB = (n: number) => +(n / 1024 / 1024).toFixed(1);
+      const mem = process.memoryUsage();
+      res.json({
+        cache: getCacheStats(),
+        rateLimits: {
+          global: { windowMin: 15, max: 500 },
+          auth:   { windowMin: 15, max: 20 },
+          upload: { windowHr:  1, max: 50 },
+          cart:   { windowSec: 60, max: 60 },
+          orderCreate: { windowSec: 60, max: 10 },
+          ai: { windowSec: 60, max: 20 },
+          coupon: { windowSec: 60, max: 30 },
+        },
+        mongo: {
+          state: mongoose.connection.readyState, // 1 = connected
+          host: mongoose.connection.host,
+          name: mongoose.connection.name,
+          poolMax: parseInt(process.env.MONGO_POOL_MAX || "50", 10),
+          poolMin: parseInt(process.env.MONGO_POOL_MIN || "5", 10),
+        },
+        process: {
+          uptimeSec: Math.floor(process.uptime()),
+          rssMB: memMB(mem.rss),
+          heapUsedMB: memMB(mem.heapUsed),
+          heapTotalMB: memMB(mem.heapTotal),
+          nodeVersion: process.version,
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Toggle cache on/off + change default TTL + clear / reset stats
+  app.post("/api/admin/performance/cache", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const { action, enabled, ttlMs } = req.body || {};
+      if (action === "clear") {
+        const n = cacheClear();
+        return res.json({ ok: true, cleared: n });
+      }
+      if (action === "reset-stats") {
+        resetCacheStats();
+        return res.json({ ok: true });
+      }
+      if (typeof enabled === "boolean") setCacheEnabled(enabled);
+      if (typeof ttlMs === "number" && ttlMs > 0) setDefaultTtlMs(ttlMs);
+      res.json({ ok: true, enabled: isCacheEnabled(), defaultTtlMs: getDefaultTtlMs() });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
     }
   });
 

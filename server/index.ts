@@ -7,6 +7,7 @@ import { WebSocketServer } from "ws";
 import { registerWsClient } from "./notifications";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import compression from "compression";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -27,6 +28,15 @@ app.use(helmet({
 
 // ─── Remove x-powered-by ──────────────────────────────────────────────────────
 app.disable("x-powered-by");
+
+// ─── Gzip / Brotli compression for responses ─────────────────────────────────
+app.use(compression({
+  threshold: 1024, // only compress responses ≥1KB
+  filter: (req, res) => {
+    if (req.headers["x-no-compression"]) return false;
+    return compression.filter(req, res);
+  },
+}));
 
 // ─── Global Rate Limiting ─────────────────────────────────────────────────────
 const globalLimiter = rateLimit({

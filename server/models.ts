@@ -522,3 +522,69 @@ const cancellationPolicySchema = new Schema(
   { timestamps: true }
 );
 export const CancellationPolicyModel = mongoose.model("CancellationPolicy", cancellationPolicySchema);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔥 PERFORMANCE INDEXES — defined together for clarity
+// Created automatically by Mongoose on model init (background: true by default).
+// Tuned for the hottest queries in this app:
+//   • orders by user, by status, by date, by branch
+//   • products by category, by featured, full-text search-friendly
+//   • notifications by user (paginated by createdAt desc)
+//   • activity / audit logs by employee + date
+//   • cart sessions by phase + updatedAt (already partially defined above)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Users — phone is the de-facto login key
+userSchema.index({ phone: 1 });
+userSchema.index({ email: 1 }, { sparse: true });
+userSchema.index({ role: 1, isActive: 1 });
+userSchema.index({ createdAt: -1 });
+
+// Products
+productSchema.index({ categoryId: 1, isActive: 1 });
+productSchema.index({ isFeatured: 1, isActive: 1 });
+productSchema.index({ name: "text", description: "text", brand: "text" } as any, { weights: { name: 5, brand: 3, description: 1 } } as any);
+productSchema.index({ createdAt: -1 });
+productSchema.index({ price: 1 });
+
+// Orders — biggest hot table
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ branchId: 1, type: 1, createdAt: -1 });
+orderSchema.index({ trackingNumber: 1 }, { sparse: true });
+
+// Notifications — listed often per user, ordered desc
+notificationSchema.index({ userId: 1, createdAt: -1 });
+notificationSchema.index({ userId: 1, read: 1 });
+
+// Activity / Audit logs
+activityLogSchema.index({ employeeId: 1, createdAt: -1 });
+activityLogSchema.index({ targetType: 1, targetId: 1 });
+auditLogSchema.index({ employeeId: 1, createdAt: -1 });
+auditLogSchema.index({ targetType: 1, targetId: 1, createdAt: -1 });
+
+// Wallet & invoices
+walletTransactionSchema.index({ userId: 1, createdAt: -1 });
+invoiceSchema.index({ orderId: 1 });
+
+// Coupons (lookup by code is unique; usage by user not modelled here)
+couponSchema.index({ isActive: 1, expiryDate: 1 });
+
+// Reviews / wishlist
+productReviewSchema.index({ productId: 1, createdAt: -1 });
+wishlistItemSchema.index({ userId: 1 });
+
+// Banners / categories ordering
+bannerSchema.index({ isActive: 1, type: 1 });
+categorySchema.index({ parentId: 1, sortOrder: 1 });
+
+// Marketing campaigns
+marketingCampaignSchema.index({ status: 1, scheduledFor: 1 });
+
+// Stock transfers
+stockTransferSchema.index({ status: 1, createdAt: -1 });
+
+// Push subscriptions — userId already indexed inline on schema definition
+
