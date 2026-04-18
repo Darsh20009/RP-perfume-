@@ -84,3 +84,12 @@ npm run start     # Production server
 - `client/public/` — Static assets (images, logos, banners, videos)
 - `server/` — Express backend (API, auth, email, seed data)
 - `shared/` — Shared types between client/server
+
+## Branches & Social — Apr 2026 batch
+- **Branch model** extended (`server/models.ts` + `shared/schema.ts`) with: `nameEn`, `address`/`addressEn`, `city`, `email`, `hours`, `image`, `latitude`, `longitude`, `mapUrl`, `isPickupEnabled`, `sortOrder` (Mongoose `strict: false`).
+- **Store settings** extended with: `socialAccounts[]` (admin-managed dynamic list — platform/url/handle/isActive/sortOrder), `bankTransferInstructionsAr/En`, `pickupEnabled`, `pickupInstructionsAr/En`.
+- **Admin > Branches**: rewritten inline form supports edit mode, bilingual fields, image upload, lat/lng inputs with `navigator.geolocation` "تحديد موقعي" auto-fill, live OpenStreetMap iframe preview, Apple/Google Maps quick-open buttons on each card.
+- **Admin > Store Settings**: 3 new cards — Bank Transfer bilingual instructions (inside Payment Methods card), Branch Pickup toggle + bilingual instructions, dynamic Social Accounts manager (10 supported platforms).
+- **Public `/branches`** page (`client/src/pages/Branches.tsx`): luxury navy/gold hero, grid of cards with embedded OSM map preview (when lat/lng present, else branch image), full contact info, pickup badge, and prominent "خرائط أبل" + "خرائط جوجل" buttons (`maps.apple.com/?ll=lat,lon&q=name` — no API key required, opens natively on iPhone/Mac).
+- **Footer** (Layout.tsx): renders dynamic `socialAccounts` from `/api/store/settings` with the previous 4 hardcoded links as fallback when none configured. Adds "فروعنا / Our Branches" link in Help column.
+- **Maps strategy**: free OpenStreetMap iframe for in-page preview; deep-link to Apple/Google Maps for navigation. MapKit JS deferred (would require Apple Developer Program $99/yr).

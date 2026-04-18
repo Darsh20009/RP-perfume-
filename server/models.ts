@@ -230,11 +230,23 @@ const couponSchema = new Schema<Coupon>(
 const branchSchema = new Schema<Branch>(
   {
     name: { type: String, required: true },
+    nameEn: { type: String, default: "" },
     location: String,
+    address: { type: String, default: "" },
+    addressEn: { type: String, default: "" },
+    city: { type: String, default: "" },
     phone: String,
+    email: { type: String, default: "" },
+    hours: { type: String, default: "" },
+    image: { type: String, default: "" },
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+    mapUrl: { type: String, default: "" },
+    isPickupEnabled: { type: Boolean, default: true },
+    sortOrder: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 const bannerSchema = new Schema<Banner>(
@@ -400,12 +412,32 @@ const storeSettingsSchema = new Schema(
     saleSectionImage: { type: String, default: "" },
     bestSellersSectionImage: { type: String, default: "" },
     newArrivalsSectionImage: { type: String, default: "" },
-    // Social links
+    // Social links (legacy — kept for backward compat)
     instagramUrl: { type: String, default: "" },
     twitterUrl: { type: String, default: "" },
     whatsappNumber: { type: String, default: "" },
+    // Dynamic social accounts (admin-controlled)
+    socialAccounts: {
+      type: [{
+        platform: { type: String, default: "instagram" },
+        label: { type: String, default: "" },
+        url: { type: String, default: "" },
+        handle: { type: String, default: "" },
+        color: { type: String, default: "" },
+        isActive: { type: Boolean, default: true },
+        sortOrder: { type: Number, default: 0 },
+      }],
+      default: [],
+    },
+    // Bank transfer extra
+    bankTransferInstructionsAr: { type: String, default: "" },
+    bankTransferInstructionsEn: { type: String, default: "" },
+    // Branch pickup
+    pickupEnabled: { type: Boolean, default: true },
+    pickupInstructionsAr: { type: String, default: "" },
+    pickupInstructionsEn: { type: String, default: "" },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 const wishlistItemSchema = new Schema(

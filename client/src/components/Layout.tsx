@@ -34,6 +34,12 @@ export function Layout({ children }: { children: ReactNode }) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
 
+  const { data: storeSettings } = useQuery<any>({
+    queryKey: ["/api/store/settings"],
+    queryFn: async () => { const r = await fetch("/api/store/settings"); return r.ok ? r.json() : {}; },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: allOrders } = useQuery<any[]>({
     queryKey: ["/api/orders"],
     queryFn: async () => { const r = await fetch("/api/orders"); return r.ok ? r.json() : []; },
@@ -494,6 +500,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('help')}</h3>
             <ul className="space-y-3 text-sm text-gray-800">
               <li><Link href="/terms" className="hover:text-[#c9a96e] transition-colors">{t('terms')}</Link></li>
+              <li><Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#c9a96e] transition-colors">{language === 'ar' ? 'فروعنا' : 'Our Branches'}</Link></li>
             </ul>
           </div>
           <div>
@@ -535,22 +542,47 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="container mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-700 px-4">
           <div className="flex justify-center flex-wrap gap-4 mt-8">
-            <a href="https://www.instagram.com/rfperfume.sa" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white rounded-full hover:scale-105 transition-transform shadow-lg">
-              <Instagram className="h-4 w-4" />
-              <span className="font-bold">Instagram</span>
-            </a>
-            <a href="https://x.com/rfperfume" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-[#1a2744] text-white rounded-full hover:scale-105 transition-transform shadow-lg">
-              <SiX className="h-4 w-4" />
-              <span className="font-bold">X</span>
-            </a>
-            <a href="https://www.snapchat.com/add/rfperfume" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-[#FFFC00] text-black rounded-full hover:scale-105 transition-transform shadow-lg">
-              <SiSnapchat className="h-4 w-4" />
-              <span className="font-bold">Snapchat</span>
-            </a>
-            <a href="https://www.tiktok.com/@rfperfume.sa" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-[#1a2744] text-white rounded-full hover:scale-105 transition-transform shadow-lg">
-              <SiTiktok className="h-4 w-4" />
-              <span className="font-bold">TikTok</span>
-            </a>
+            {(() => {
+              const fallback = [
+                { platform: 'instagram', url: 'https://www.instagram.com/rfperfume.sa', isActive: true },
+                { platform: 'twitter',   url: 'https://x.com/rfperfume', isActive: true },
+                { platform: 'snapchat',  url: 'https://www.snapchat.com/add/rfperfume', isActive: true },
+                { platform: 'tiktok',    url: 'https://www.tiktok.com/@rfperfume.sa', isActive: true },
+              ];
+              const list: any[] = (storeSettings?.socialAccounts && storeSettings.socialAccounts.length > 0)
+                ? storeSettings.socialAccounts
+                : fallback;
+              const active = list.filter((s: any) => s.isActive !== false && s.url).sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
+              const styles: Record<string, { cls: string; Icon: any; label: string }> = {
+                instagram: { cls: 'bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white', Icon: Instagram, label: 'Instagram' },
+                twitter:   { cls: 'bg-[#1a2744] text-white', Icon: SiX, label: 'X' },
+                snapchat:  { cls: 'bg-[#FFFC00] text-black', Icon: SiSnapchat, label: 'Snapchat' },
+                tiktok:    { cls: 'bg-[#1a2744] text-white', Icon: SiTiktok, label: 'TikTok' },
+                whatsapp:  { cls: 'bg-[#25D366] text-white', Icon: SiWhatsapp, label: 'WhatsApp' },
+                facebook:  { cls: 'bg-[#1877F2] text-white', Icon: Globe, label: 'Facebook' },
+                youtube:   { cls: 'bg-[#FF0000] text-white', Icon: Globe, label: 'YouTube' },
+                telegram:  { cls: 'bg-[#26A5E4] text-white', Icon: Globe, label: 'Telegram' },
+                linkedin:  { cls: 'bg-[#0A66C2] text-white', Icon: Globe, label: 'LinkedIn' },
+                website:   { cls: 'bg-[#c9a96e] text-white', Icon: Globe, label: 'Website' },
+              };
+              return active.map((s: any, i: number) => {
+                const meta = styles[s.platform] || styles.website;
+                const Icon = meta.Icon;
+                return (
+                  <a
+                    key={`${s.platform}-${i}`}
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-testid={`link-social-${s.platform}-${i}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full hover:scale-105 transition-transform shadow-lg ${meta.cls}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="font-bold">{s.handle || meta.label}</span>
+                  </a>
+                );
+              });
+            })()}
           </div>
 
           {/* Payment Methods */}

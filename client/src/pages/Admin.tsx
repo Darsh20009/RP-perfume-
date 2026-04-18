@@ -3617,29 +3617,64 @@ const EmployeesManagement = () => {
 const AdminBranches = () => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [branchName, setBranchName] = useState("");
-  const [branchLocation, setBranchLocation] = useState("");
-  const [branchPhone, setBranchPhone] = useState("");
+  const [editing, setEditing] = useState<any | null>(null);
+  const emptyForm = { name: "", nameEn: "", address: "", addressEn: "", city: "", phone: "", email: "", hours: "", image: "", latitude: "", longitude: "", isPickupEnabled: true, isActive: true, sortOrder: 0 };
+  const [b, setB] = useState<any>(emptyForm);
+  const [imgUploading, setImgUploading] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const { data: branches, isLoading } = useQuery<any[]>({ queryKey: ["/api/branches"] });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: { name: string; location: string; phone: string; isActive: boolean }) => {
-      const res = await apiRequest("POST", "/api/admin/branches", data);
+  const openNew = () => { setEditing(null); setB(emptyForm); setIsOpen(true); };
+  const openEdit = (br: any) => {
+    setEditing(br);
+    setB({
+      name: br.name || "", nameEn: br.nameEn || "",
+      address: br.address || br.location || "", addressEn: br.addressEn || "", city: br.city || "",
+      phone: br.phone || "", email: br.email || "", hours: br.hours || "", image: br.image || "",
+      latitude: br.latitude ?? "", longitude: br.longitude ?? "",
+      isPickupEnabled: br.isPickupEnabled !== false, isActive: br.isActive !== false, sortOrder: br.sortOrder || 0,
+    });
+    setIsOpen(true);
+  };
+
+  const buildPayload = () => ({
+    name: b.name.trim(),
+    nameEn: b.nameEn.trim(),
+    location: b.address.trim() || b.city.trim(),
+    address: b.address.trim(),
+    addressEn: b.addressEn.trim(),
+    city: b.city.trim(),
+    phone: b.phone.trim(),
+    email: b.email.trim(),
+    hours: b.hours.trim(),
+    image: b.image,
+    latitude: b.latitude === "" ? null : Number(b.latitude),
+    longitude: b.longitude === "" ? null : Number(b.longitude),
+    isPickupEnabled: !!b.isPickupEnabled,
+    isActive: !!b.isActive,
+    sortOrder: Number(b.sortOrder) || 0,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const payload = buildPayload();
+      const url = editing ? `/api/admin/branches/${editing.id}` : "/api/admin/branches";
+      const method = editing ? "PATCH" : "POST";
+      const res = await apiRequest(method, url, payload);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم النجاح", description: "تم إضافة الفرع بنجاح" });
-      setIsOpen(false);
-      setBranchName(""); setBranchLocation(""); setBranchPhone("");
+      toast({ title: editing ? "تم التحديث" : "تم الحفظ", description: editing ? "تم تحديث بيانات الفرع" : "تم إضافة الفرع بنجاح" });
+      setIsOpen(false); setEditing(null); setB(emptyForm);
     },
-    onError: () => toast({ title: "خطأ", description: "فشل إضافة الفرع", variant: "destructive" }),
+    onError: () => toast({ title: "خطأ", description: "فشلت العملية", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => { await apiRequest("DELETE", `/api/admin/branches/${id}`); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/branches"] }); toast({ title: "تم الحذف", description: "تم حذف الفرع" }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/branches"] }); toast({ title: "تم الحذف" }); },
     onError: () => toast({ title: "خطأ", description: "فشل حذف الفرع", variant: "destructive" }),
   });
 
@@ -3651,42 +3686,150 @@ const AdminBranches = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/branches"] }),
   });
 
+  const handleAutoLocate = () => {
+    if (!navigator.geolocation) { toast({ title: "غير مدعوم", description: "المتصفح لا يدعم تحديد الموقع", variant: "destructive" }); return; }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setB((p: any) => ({ ...p, latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) })); setLocating(false); toast({ title: "تم تحديد الموقع" }); },
+      () => { setLocating(false); toast({ title: "فشل تحديد الموقع", description: "تأكد من السماح بالوصول للموقع", variant: "destructive" }); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const uploadImg = async (file: File) => {
+    setImgUploading(true);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const r = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      const d = await r.json(); if (d.url) setB((p: any) => ({ ...p, image: d.url }));
+    } catch { toast({ title: "فشل الرفع", variant: "destructive" }); }
+    finally { setImgUploading(false); }
+  };
+
+  const appleMapsUrl = (br: any) => br.latitude && br.longitude
+    ? `https://maps.apple.com/?ll=${br.latitude},${br.longitude}&q=${encodeURIComponent(br.name)}`
+    : `https://maps.apple.com/?q=${encodeURIComponent([br.name, br.address || br.location, br.city].filter(Boolean).join(", "))}`;
+  const googleMapsUrl = (br: any) => br.latitude && br.longitude
+    ? `https://www.google.com/maps/search/?api=1&query=${br.latitude},${br.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([br.name, br.address || br.location, br.city].filter(Boolean).join(", "))}`;
+
   if (isLoading) return <Loader2 className="animate-spin mx-auto mt-12" />;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-black uppercase tracking-tight">إدارة الفروع</h2>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-black uppercase tracking-tight">إدارة الفروع</h2>
+          <p className="text-xs text-muted-foreground font-bold mt-1">يظهر للعميل كل فرع نشط في صفحة "فروعنا" مع زر فتح في خرائط أبل/جوجل</p>
+        </div>
+        <Dialog open={isOpen} onOpenChange={(v) => { setIsOpen(v); if (!v) { setEditing(null); setB(emptyForm); } }}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-branch" className="gap-2 rounded-none font-black uppercase text-xs">
+            <Button data-testid="button-add-branch" onClick={openNew} className="gap-2 rounded-none font-black uppercase text-xs">
               <Plus className="h-4 w-4" /> إضافة فرع
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]" dir="rtl">
+          <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
-              <DialogTitle className="text-right font-black uppercase">فرع جديد</DialogTitle>
+              <DialogTitle className="text-right font-black uppercase">{editing ? "تعديل الفرع" : "فرع جديد"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase">اسم الفرع *</label>
-                <Input data-testid="input-branch-name" value={branchName} onChange={e => setBranchName(e.target.value)} placeholder="مثلاً: فرع الرياض" className="rounded-none" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">الاسم (عربي) *</label>
+                  <Input data-testid="input-branch-name" value={b.name} onChange={e => setB({ ...b, name: e.target.value })} placeholder="فرع الرياض" className="rounded-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">Name (English)</label>
+                  <Input data-testid="input-branch-nameEn" value={b.nameEn} onChange={e => setB({ ...b, nameEn: e.target.value })} placeholder="Riyadh Branch" className="rounded-none" dir="ltr" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1 col-span-2">
+                  <label className="text-xs font-bold uppercase">العنوان</label>
+                  <Input data-testid="input-branch-address" value={b.address} onChange={e => setB({ ...b, address: e.target.value })} placeholder="حي المروج، شارع الأمير سلطان" className="rounded-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">Address (English)</label>
+                  <Input value={b.addressEn} onChange={e => setB({ ...b, addressEn: e.target.value })} placeholder="Al Murouj, Prince Sultan St." className="rounded-none" dir="ltr" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">المدينة</label>
+                  <Input value={b.city} onChange={e => setB({ ...b, city: e.target.value })} placeholder="الرياض" className="rounded-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">رقم الهاتف</label>
+                  <Input data-testid="input-branch-phone" value={b.phone} onChange={e => setB({ ...b, phone: e.target.value })} placeholder="05xxxxxxxx" className="rounded-none" dir="ltr" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase">البريد الإلكتروني</label>
+                  <Input value={b.email} onChange={e => setB({ ...b, email: e.target.value })} placeholder="branch@rfperfume.sa" className="rounded-none" dir="ltr" />
+                </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase">الموقع</label>
-                <Input data-testid="input-branch-location" value={branchLocation} onChange={e => setBranchLocation(e.target.value)} placeholder="مثلاً: حي المروج، الرياض" className="rounded-none" />
+                <label className="text-xs font-bold uppercase">ساعات العمل</label>
+                <Input value={b.hours} onChange={e => setB({ ...b, hours: e.target.value })} placeholder="السبت - الخميس: 10ص - 11م" className="rounded-none" />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase">رقم الهاتف</label>
-                <Input data-testid="input-branch-phone" value={branchPhone} onChange={e => setBranchPhone(e.target.value)} placeholder="05xxxxxxxx" className="rounded-none" />
+
+              <div className="border-t border-black/5 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase">الموقع على الخريطة</label>
+                  <Button type="button" data-testid="button-auto-locate" variant="outline" size="sm" className="rounded-none text-[10px] font-black uppercase h-8 gap-1" onClick={handleAutoLocate} disabled={locating}>
+                    {locating ? <Loader2 className="h-3 w-3 animate-spin" /> : <MapPin className="h-3 w-3" />}
+                    تحديد موقعي الحالي
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">خط العرض (Latitude)</label>
+                    <Input value={b.latitude} onChange={e => setB({ ...b, latitude: e.target.value })} placeholder="24.713552" className="rounded-none font-mono" dir="ltr" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">خط الطول (Longitude)</label>
+                    <Input value={b.longitude} onChange={e => setB({ ...b, longitude: e.target.value })} placeholder="46.675297" className="rounded-none font-mono" dir="ltr" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">يمكنك أيضاً نسخها من خرائط جوجل بضغط مطوّل على الموقع</p>
+                {b.latitude && b.longitude && (
+                  <div className="rounded-none border border-black/10 overflow-hidden h-48">
+                    <iframe
+                      title="معاينة الموقع"
+                      className="w-full h-full"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(b.longitude)-0.01},${Number(b.latitude)-0.01},${Number(b.longitude)+0.01},${Number(b.latitude)+0.01}&layer=mapnik&marker=${b.latitude},${b.longitude}`}
+                    />
+                  </div>
+                )}
               </div>
+
+              <div className="border-t border-black/5 pt-4 space-y-2">
+                <label className="text-xs font-black uppercase">صورة الفرع</label>
+                <div className="flex items-center gap-3">
+                  {b.image && <img src={b.image} alt="" className="h-16 w-16 object-cover rounded-none border border-black/10" />}
+                  <Input type="file" accept="image/*" disabled={imgUploading} className="h-10 text-xs flex-1" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(f); }} />
+                  {b.image && <button type="button" onClick={() => setB({ ...b, image: "" })} className="text-[10px] text-red-500 font-bold hover:underline">حذف</button>}
+                </div>
+                {imgUploading && <p className="text-[10px] text-primary font-bold">جاري الرفع...</p>}
+              </div>
+
+              <div className="border-t border-black/5 pt-4 grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-3 border border-black/10 rounded-none">
+                  <Label className="text-xs font-black uppercase cursor-pointer">الفرع نشط</Label>
+                  <Switch checked={!!b.isActive} onCheckedChange={(v) => setB({ ...b, isActive: v })} />
+                </div>
+                <div className="flex items-center justify-between p-3 border border-black/10 rounded-none">
+                  <Label className="text-xs font-black uppercase cursor-pointer">يدعم الاستلام</Label>
+                  <Switch checked={!!b.isPickupEnabled} onCheckedChange={(v) => setB({ ...b, isPickupEnabled: v })} />
+                </div>
+              </div>
+
               <Button
                 data-testid="button-submit-branch"
                 className="w-full rounded-none font-black uppercase text-xs"
-                disabled={!branchName.trim() || createMutation.isPending}
-                onClick={() => createMutation.mutate({ name: branchName.trim(), location: branchLocation.trim(), phone: branchPhone.trim(), isActive: true })}
+                disabled={!b.name.trim() || saveMutation.isPending}
+                onClick={() => saveMutation.mutate()}
               >
-                {createMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "حفظ الفرع"}
+                {saveMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : (editing ? "تحديث الفرع" : "حفظ الفرع")}
               </Button>
             </div>
           </DialogContent>
@@ -3700,39 +3843,36 @@ const AdminBranches = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {branches?.map(branch => (
-          <Card key={branch.id} className="rounded-none border-black/10">
+        {branches?.map((branch: any) => (
+          <Card key={branch.id} className="rounded-none border-black/10 overflow-hidden">
+            {branch.image && <div className="h-32 bg-muted overflow-hidden"><img src={branch.image} alt={branch.name} className="w-full h-full object-cover" /></div>}
             <CardHeader className="border-b border-black/5 pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-black uppercase">{branch.name}</CardTitle>
-                <Button
-                  data-testid={`button-delete-branch-${branch.id}`}
-                  variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => deleteMutation.mutate(branch.id)}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button data-testid={`button-edit-branch-${branch.id}`} variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(branch)}>
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button data-testid={`button-delete-branch-${branch.id}`} variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { if (confirm("حذف هذا الفرع؟")) deleteMutation.mutate(branch.id); }} disabled={deleteMutation.isPending}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-4 space-y-2">
-              <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {branch.location || "لا يوجد موقع"}
-              </p>
-              <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {branch.phone || "لا يوجد رقم"}
-              </p>
-              <div className="pt-2 flex items-center justify-between">
-                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${branch.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {branch.isActive ? 'نشط' : 'مغلق'}
-                </span>
-                <Button
-                  data-testid={`button-toggle-branch-${branch.id}`}
-                  variant="outline" size="sm" className="rounded-none text-[10px] font-black uppercase h-7"
-                  onClick={() => toggleMutation.mutate({ id: branch.id, isActive: !branch.isActive })}
-                >
-                  {branch.isActive ? 'إغلاق' : 'تفعيل'}
-                </Button>
+              <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> {branch.address || branch.location || "لا يوجد عنوان"}</p>
+              {branch.phone && <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1" dir="ltr"><Phone className="h-3 w-3" /> {branch.phone}</p>}
+              {branch.hours && <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {branch.hours}</p>}
+              {branch.latitude && branch.longitude && (
+                <div className="flex gap-2 pt-2">
+                  <a href={appleMapsUrl(branch)} target="_blank" rel="noreferrer" className="flex-1 text-center text-[10px] font-black uppercase border border-black/20 px-2 py-1.5 hover:bg-black hover:text-white transition-colors">خرائط أبل</a>
+                  <a href={googleMapsUrl(branch)} target="_blank" rel="noreferrer" className="flex-1 text-center text-[10px] font-black uppercase border border-black/20 px-2 py-1.5 hover:bg-black hover:text-white transition-colors">جوجل</a>
+                </div>
+              )}
+              <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
+                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${branch.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{branch.isActive ? 'نشط' : 'مغلق'}</span>
+                {branch.isPickupEnabled !== false && <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-primary/10 text-primary">استلام مفعّل</span>}
+                <Button data-testid={`button-toggle-branch-${branch.id}`} variant="outline" size="sm" className="rounded-none text-[10px] font-black uppercase h-7" onClick={() => toggleMutation.mutate({ id: branch.id, isActive: !branch.isActive })}>{branch.isActive ? 'إغلاق' : 'تفعيل'}</Button>
               </div>
             </CardContent>
           </Card>
@@ -4094,11 +4234,17 @@ const StoreSettingsPanel = () => {
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [bankLogo, setBankLogo] = useState("");
   const [bankLogoUploading, setBankLogoUploading] = useState(false);
+  const [bankTransferInstructionsAr, setBankTransferInstructionsAr] = useState("");
+  const [bankTransferInstructionsEn, setBankTransferInstructionsEn] = useState("");
   const [methods, setMethods] = useState<Record<string, boolean>>({});
   const [saleSectionImage, setSaleSectionImage] = useState("");
   const [bestSellersSectionImage, setBestSellersSectionImage] = useState("");
   const [newArrivalsSectionImage, setNewArrivalsSectionImage] = useState("");
   const [sectionUploading, setSectionUploading] = useState<string | null>(null);
+  const [socials, setSocials] = useState<any[]>([]);
+  const [pickupEnabled, setPickupEnabled] = useState(true);
+  const [pickupInstructionsAr, setPickupInstructionsAr] = useState("");
+  const [pickupInstructionsEn, setPickupInstructionsEn] = useState("");
 
   useEffect(() => {
     if (settings) {
@@ -4107,6 +4253,8 @@ const StoreSettingsPanel = () => {
       setBankIBAN(settings.bankIBAN ?? "SA6280000501608016226411");
       setBankAccountNumber(settings.bankAccountNumber ?? "");
       setBankLogo(settings.bankLogo ?? "");
+      setBankTransferInstructionsAr(settings.bankTransferInstructionsAr ?? "");
+      setBankTransferInstructionsEn(settings.bankTransferInstructionsEn ?? "");
       setSaleSectionImage(settings.saleSectionImage ?? "");
       setBestSellersSectionImage(settings.bestSellersSectionImage ?? "");
       setNewArrivalsSectionImage(settings.newArrivalsSectionImage ?? "");
@@ -4114,8 +4262,28 @@ const StoreSettingsPanel = () => {
         wallet: true, tap: true, stc_pay: true, apple_pay: true,
         bank_transfer: true, tamara: true, tabby: true,
       });
+      setSocials(Array.isArray(settings.socialAccounts) ? settings.socialAccounts : []);
+      setPickupEnabled(settings.pickupEnabled !== false);
+      setPickupInstructionsAr(settings.pickupInstructionsAr ?? "");
+      setPickupInstructionsEn(settings.pickupInstructionsEn ?? "");
     }
   }, [settings]);
+
+  const SOCIAL_PLATFORMS = [
+    { value: "instagram", label: "Instagram" },
+    { value: "twitter",   label: "X / Twitter" },
+    { value: "snapchat",  label: "Snapchat" },
+    { value: "tiktok",    label: "TikTok" },
+    { value: "facebook",  label: "Facebook" },
+    { value: "youtube",   label: "YouTube" },
+    { value: "whatsapp",  label: "WhatsApp" },
+    { value: "telegram",  label: "Telegram" },
+    { value: "linkedin",  label: "LinkedIn" },
+    { value: "website",   label: "موقع إلكتروني" },
+  ];
+  const updateSocial = (i: number, patch: any) => setSocials(prev => prev.map((s, idx) => idx === i ? { ...s, ...patch } : s));
+  const addSocial = () => setSocials(prev => [...prev, { platform: "instagram", url: "", handle: "", isActive: true, sortOrder: prev.length }]);
+  const removeSocial = (i: number) => setSocials(prev => prev.filter((_, idx) => idx !== i));
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -4136,7 +4304,14 @@ const StoreSettingsPanel = () => {
   });
 
   const handleSave = () => {
-    saveMutation.mutate({ bankName, bankAccountHolder, bankIBAN, bankAccountNumber, bankLogo, paymentMethods: methods, saleSectionImage, bestSellersSectionImage, newArrivalsSectionImage });
+    saveMutation.mutate({
+      bankName, bankAccountHolder, bankIBAN, bankAccountNumber, bankLogo,
+      bankTransferInstructionsAr, bankTransferInstructionsEn,
+      paymentMethods: methods,
+      saleSectionImage, bestSellersSectionImage, newArrivalsSectionImage,
+      socialAccounts: socials.map((s, i) => ({ ...s, sortOrder: s.sortOrder ?? i })),
+      pickupEnabled, pickupInstructionsAr, pickupInstructionsEn,
+    });
   };
 
   const methodLabels: Record<string, string> = {
@@ -4288,15 +4463,94 @@ const StoreSettingsPanel = () => {
             <div key={key} className="flex items-center justify-between p-4 border border-black/5 bg-secondary/10 hover:bg-secondary/20 transition-colors">
               <Label className="font-black text-sm cursor-pointer">{label}</Label>
               <Switch
+                data-testid={`switch-payment-${key}`}
                 checked={methods[key] !== false}
                 onCheckedChange={v => setMethods(prev => ({ ...prev, [key]: v }))}
               />
             </div>
           ))}
+          <div className="border-t border-black/5 pt-4 space-y-3">
+            <Label className="text-xs font-black uppercase">تعليمات إضافية للتحويل البنكي (عربي)</Label>
+            <Textarea data-testid="textarea-bank-instructions-ar" value={bankTransferInstructionsAr} onChange={e => setBankTransferInstructionsAr(e.target.value)} placeholder="مثلاً: أرسل صورة الإيصال على واتساب لتأكيد الطلب" className="rounded-none min-h-20" />
+            <Label className="text-xs font-black uppercase">Bank Transfer Notes (English)</Label>
+            <Textarea value={bankTransferInstructionsEn} onChange={e => setBankTransferInstructionsEn(e.target.value)} placeholder="e.g. Send receipt via WhatsApp to confirm order" className="rounded-none min-h-20" dir="ltr" />
+          </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} disabled={saveMutation.isPending} className="w-full h-12 font-black uppercase tracking-widest text-sm">
+      {/* Branch Pickup Settings */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Building className="h-5 w-5 text-primary" />
+            الاستلام من الفرع
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">يفعّل خيار "الاستلام من الفرع" في صفحة الدفع. يدير قائمة الفروع من تبويب "الفروع"</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center justify-between p-4 border border-black/5 bg-secondary/10">
+            <Label className="font-black text-sm cursor-pointer">تفعيل الاستلام من الفرع</Label>
+            <Switch data-testid="switch-pickup-enabled" checked={pickupEnabled} onCheckedChange={setPickupEnabled} />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">تعليمات الاستلام (عربي)</Label>
+            <Textarea data-testid="textarea-pickup-instructions-ar" value={pickupInstructionsAr} onChange={e => setPickupInstructionsAr(e.target.value)} placeholder="مثلاً: تواصل مع الفرع قبل الحضور، الطلب جاهز خلال ساعة" className="rounded-none min-h-20" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">Pickup Instructions (English)</Label>
+            <Textarea value={pickupInstructionsEn} onChange={e => setPickupInstructionsEn(e.target.value)} placeholder="e.g. Call branch before pickup, ready in 1 hour" className="rounded-none min-h-20" dir="ltr" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Social Accounts (admin-managed) */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6 flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+              <Globe className="h-5 w-5 text-primary" />
+              حسابات السوشيال ميديا
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-bold mt-1">تظهر في الفوتر وصفحة "تواصل معنا". أعد ترتيبها بـ "ترتيب العرض"</p>
+          </div>
+          <Button data-testid="button-add-social" type="button" onClick={addSocial} size="sm" className="rounded-none gap-1 font-black uppercase text-xs h-8">
+            <Plus className="h-3 w-3" /> إضافة
+          </Button>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-3">
+          {socials.length === 0 && (
+            <p className="text-center text-xs text-muted-foreground font-bold py-6 border border-dashed border-black/10">لا توجد حسابات بعد — اضغط "إضافة"</p>
+          )}
+          {socials.map((s, i) => (
+            <div key={i} className="grid grid-cols-12 gap-2 p-3 border border-black/10 bg-white items-end">
+              <div className="col-span-3 space-y-1">
+                <label className="text-[10px] font-black uppercase">المنصة</label>
+                <select data-testid={`select-social-platform-${i}`} value={s.platform || "instagram"} onChange={e => updateSocial(i, { platform: e.target.value })} className="h-9 w-full text-xs font-bold border border-black/10 px-2 rounded-none bg-white">
+                  {SOCIAL_PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+              </div>
+              <div className="col-span-5 space-y-1">
+                <label className="text-[10px] font-black uppercase">الرابط</label>
+                <Input data-testid={`input-social-url-${i}`} value={s.url || ""} onChange={e => updateSocial(i, { url: e.target.value })} placeholder="https://..." className="rounded-none h-9 font-mono text-xs" dir="ltr" />
+              </div>
+              <div className="col-span-2 space-y-1">
+                <label className="text-[10px] font-black uppercase">المعرّف</label>
+                <Input value={s.handle || ""} onChange={e => updateSocial(i, { handle: e.target.value })} placeholder="@rfperfume" className="rounded-none h-9 text-xs" dir="ltr" />
+              </div>
+              <div className="col-span-1 flex items-center justify-center pb-1">
+                <Switch data-testid={`switch-social-active-${i}`} checked={s.isActive !== false} onCheckedChange={v => updateSocial(i, { isActive: v })} />
+              </div>
+              <div className="col-span-1 flex items-center justify-center pb-1">
+                <Button data-testid={`button-remove-social-${i}`} type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeSocial(i)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Button onClick={handleSave} data-testid="button-save-store-settings" disabled={saveMutation.isPending} className="w-full h-12 font-black uppercase tracking-widest text-sm">
         {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <Save className="h-4 w-4 ml-2" />}
         حفظ الإعدادات
       </Button>

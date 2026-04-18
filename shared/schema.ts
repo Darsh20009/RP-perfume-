@@ -250,8 +250,20 @@ export type WalletTransaction = InsertWalletTransaction & { _id: string; id: str
 // Branch Schema
 export const insertBranchSchema = z.object({
   name: z.string().min(1, "اسم الفرع مطلوب"),
+  nameEn: z.string().optional().default(""),
   location: z.string().optional(),
+  address: z.string().optional().default(""),
+  addressEn: z.string().optional().default(""),
+  city: z.string().optional().default(""),
   phone: z.string().optional(),
+  email: z.string().optional().default(""),
+  hours: z.string().optional().default(""),
+  image: z.string().optional().default(""),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  mapUrl: z.string().optional().default(""),
+  isPickupEnabled: z.boolean().optional().default(true),
+  sortOrder: z.number().optional().default(0),
   isActive: z.boolean().default(true),
 });
 
