@@ -32,6 +32,7 @@ const SORT_OPTIONS = [
 export default function Products() {
   const { data: products, isLoading } = useProducts();
   const { data: dbCategories } = useQuery<any[]>({ queryKey: ["/api/categories"] });
+  const { data: storeSettings } = useQuery<any>({ queryKey: ["/api/store/settings"] });
   const { t, language } = useLanguage();
   const isRtl = language === "ar";
   const [location] = useLocation();
@@ -72,7 +73,15 @@ export default function Products() {
       img: c.image || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200&h=200&fit=crop",
       categoryId: c.id, special: null,
     })),
-    ...SPECIAL_CATEGORIES.slice(1),
+    ...SPECIAL_CATEGORIES.slice(1).map((sc) => {
+      const overrides: Record<string, string | undefined> = {
+        sale: storeSettings?.saleSectionImage,
+        "best-sellers": storeSettings?.bestSellersSectionImage,
+        "new-arrivals": storeSettings?.newArrivalsSectionImage,
+      };
+      const customImg = overrides[sc.slug];
+      return customImg ? { ...sc, img: customImg } : sc;
+    }),
   ];
 
   const activeCatData = CATEGORIES.find(c => c.slug === activeCategory);

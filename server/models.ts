@@ -382,6 +382,10 @@ const storeSettingsSchema = new Schema(
     },
     // Shipping settings
     freeShippingThreshold: { type: Number, default: 0 },
+    // Special section images (Sale / Best Sellers / New Arrivals icons)
+    saleSectionImage: { type: String, default: "" },
+    bestSellersSectionImage: { type: String, default: "" },
+    newArrivalsSectionImage: { type: String, default: "" },
     // Social links
     instagramUrl: { type: String, default: "" },
     twitterUrl: { type: String, default: "" },

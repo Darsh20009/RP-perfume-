@@ -4011,6 +4011,10 @@ const StoreSettingsPanel = () => {
   const [bankLogo, setBankLogo] = useState("");
   const [bankLogoUploading, setBankLogoUploading] = useState(false);
   const [methods, setMethods] = useState<Record<string, boolean>>({});
+  const [saleSectionImage, setSaleSectionImage] = useState("");
+  const [bestSellersSectionImage, setBestSellersSectionImage] = useState("");
+  const [newArrivalsSectionImage, setNewArrivalsSectionImage] = useState("");
+  const [sectionUploading, setSectionUploading] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings) {
@@ -4019,6 +4023,9 @@ const StoreSettingsPanel = () => {
       setBankIBAN(settings.bankIBAN ?? "SA6280000501608016226411");
       setBankAccountNumber(settings.bankAccountNumber ?? "");
       setBankLogo(settings.bankLogo ?? "");
+      setSaleSectionImage(settings.saleSectionImage ?? "");
+      setBestSellersSectionImage(settings.bestSellersSectionImage ?? "");
+      setNewArrivalsSectionImage(settings.newArrivalsSectionImage ?? "");
       setMethods(settings.paymentMethods ?? {
         wallet: true, tap: true, stc_pay: true, apple_pay: true,
         bank_transfer: true, tamara: true, tabby: true,
@@ -4045,7 +4052,7 @@ const StoreSettingsPanel = () => {
   });
 
   const handleSave = () => {
-    saveMutation.mutate({ bankName, bankAccountHolder, bankIBAN, bankAccountNumber, bankLogo, paymentMethods: methods });
+    saveMutation.mutate({ bankName, bankAccountHolder, bankIBAN, bankAccountNumber, bankLogo, paymentMethods: methods, saleSectionImage, bestSellersSectionImage, newArrivalsSectionImage });
   };
 
   const methodLabels: Record<string, string> = {
@@ -4119,6 +4126,67 @@ const StoreSettingsPanel = () => {
               )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Special Section Images (Sale / Best Sellers / New Arrivals) */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Sparkles className="h-5 w-5 text-primary" />
+            صور الأقسام الخاصة
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">يتم استخدامها كأيقونات في شريط الأقسام بصفحة المنتجات. اتركها فارغة لاستخدام الصورة الافتراضية</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-5">
+          {[
+            { key: "sale", label: "العروض (Sale)", value: saleSectionImage, setter: setSaleSectionImage },
+            { key: "best", label: "الأكثر مبيعاً (Best Sellers)", value: bestSellersSectionImage, setter: setBestSellersSectionImage },
+            { key: "new",  label: "وصل حديثاً (New Arrivals)", value: newArrivalsSectionImage, setter: setNewArrivalsSectionImage },
+          ].map((s) => (
+            <div key={s.key} className="space-y-2 border-b border-black/5 pb-5 last:border-0 last:pb-0">
+              <Label className="text-xs font-black uppercase">{s.label}</Label>
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-black/10 bg-muted flex items-center justify-center shrink-0">
+                  {s.value ? (
+                    <img src={s.value} alt={s.label} className="w-full h-full object-cover" data-testid={`img-section-${s.key}`} />
+                  ) : (
+                    <Sparkles className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    disabled={sectionUploading === s.key}
+                    className="h-10 text-xs"
+                    data-testid={`input-upload-section-${s.key}`}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setSectionUploading(s.key);
+                      try {
+                        const fd = new FormData();
+                        fd.append("file", file);
+                        const r = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+                        const d = await r.json();
+                        if (d.url) { s.setter(d.url); toast({ title: "تم رفع الصورة" }); }
+                      } catch { toast({ title: "فشل الرفع", variant: "destructive" }); }
+                      finally { setSectionUploading(null); }
+                    }}
+                  />
+                  {sectionUploading === s.key && <p className="text-[10px] text-primary font-bold mt-1">جاري الرفع...</p>}
+                </div>
+                {s.value && (
+                  <button
+                    onClick={() => s.setter("")}
+                    className="text-[10px] text-red-500 font-bold hover:underline shrink-0"
+                    data-testid={`button-clear-section-${s.key}`}
+                  >حذف</button>
+                )}
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
