@@ -203,19 +203,25 @@ export async function registerRoutes(
   // Image Upload Endpoint — persists to Object Storage if configured,
   // else local disk. Both produce the same /uploads/<filename> URL.
   app.post("/api/upload", upload.any(), async (req, res) => {
-    const files = req.files as Express.Multer.File[];
-    const file = files?.[0] || (req as any).file;
-    if (!file) {
+    const files = (req.files as Express.Multer.File[]) || [];
+    const single = (req as any).file as Express.Multer.File | undefined;
+    const all = files.length > 0 ? files : (single ? [single] : []);
+    if (all.length === 0) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    try {
-      const { persistUpload } = await import("./uploads");
-      const result = await persistUpload(file.path, file.filename);
-      res.json({ url: result.url, storage: result.storage, bytes: result.bytes });
-    } catch (e: any) {
-      console.error("[upload] persist failed:", e?.message);
-      res.json({ url: `/uploads/${file.filename}`, storage: "local" });
+    const { persistUpload } = await import("./uploads");
+    const results: { url: string; storage: string; bytes?: number }[] = [];
+    for (const f of all) {
+      try {
+        const r = await persistUpload(f.path, f.filename);
+        results.push({ url: r.url, storage: r.storage, bytes: r.bytes });
+      } catch (e: any) {
+        console.error("[upload] persist failed:", e?.message);
+        results.push({ url: `/uploads/${f.filename}`, storage: "local" });
+      }
     }
+    // Backward-compat: also expose .url (first file) for legacy single-file callers
+    res.json({ urls: results.map(r => r.url), files: results, url: results[0].url, storage: results[0].storage, bytes: results[0].bytes });
   });
 
   // Bank Transfer Receipt Upload
@@ -1839,17 +1845,86 @@ export async function registerRoutes(
       const user = req.user as any;
       const existing = await storage.getUserReviewForProduct(user.id, req.params.id);
       if (existing) return res.status(409).json({ message: "لقد قمت بتقييم هذا المنتج مسبقاً" });
+      // Note: race-condition safety — DB has unique index on { userId, productId }; duplicate-key handled in catch.
+      // Denormalize product info for admin/home view
+      const product = await storage.getProduct(req.params.id);
+      const rawImages = Array.isArray(req.body.images) ? req.body.images : [];
+      // Whitelist: only allow paths under /uploads/ (block protocol-relative //evil.com/x.jpg)
+      const images = rawImages
+        .filter((u: any) => typeof u === "string" && /^\/uploads\/[A-Za-z0-9._\-]+$/.test(u))
+        .slice(0, 5);
       const review = await storage.createProductReview({
         productId: req.params.id,
         userId: user.id,
         userName: user.name || "عميل",
-        rating: Number(req.body.rating),
-        comment: req.body.comment || "",
-      });
+        userAvatar: user.avatar || "",
+        rating: Math.min(5, Math.max(1, Number(req.body.rating) || 5)),
+        comment: String(req.body.comment || "").slice(0, 1000),
+        images,
+        productName: product?.name || "",
+        productImage: (product as any)?.images?.[0] || "",
+      } as any);
       res.status(201).json(review);
     } catch (err: any) {
+      if (err?.code === 11000) {
+        return res.status(409).json({ message: "لقد قمت بتقييم هذا المنتج مسبقاً" });
+      }
       res.status(500).json({ message: "خطأ في إضافة التقييم" });
     }
+  });
+
+  // Public — homepage testimonial carousel
+  app.get("/api/reviews/featured", async (req, res) => {
+    try {
+      const limit = Math.min(24, parseInt((req.query.limit as string) || "12", 10));
+      const items = await storage.getFeaturedReviews(limit);
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  // ─── Admin Reviews Management ────────────────────────────────────────────────
+  app.get("/api/admin/reviews", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const { rating, hasReply, q, page, limit } = req.query as any;
+      const r = await storage.getAllReviews({
+        rating: rating ? parseInt(rating, 10) : undefined,
+        hasReply: hasReply === "yes" ? true : hasReply === "no" ? false : undefined,
+        q: q || undefined,
+        page: page ? parseInt(page, 10) : 1,
+        limit: limit ? parseInt(limit, 10) : 20,
+      });
+      res.json(r);
+    } catch (err: any) { res.status(500).json({ message: err.message, items: [], total: 0 }); }
+  });
+
+  app.post("/api/admin/reviews/:id/reply", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const text = String(req.body?.text || "").trim().slice(0, 1500);
+      if (!text) return res.status(400).json({ message: "الرد مطلوب" });
+      const r = await storage.replyToReview(req.params.id, {
+        text,
+        byUserId: String(user.id),
+        byName: user.name || "إدارة رفيف العود",
+      });
+      if (!r) return res.status(404).json({ message: "التقييم غير موجود" });
+      res.json(r);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.patch("/api/admin/reviews/:id/featured", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const r = await storage.setReviewFeatured(req.params.id, !!req.body?.isFeatured);
+      if (!r) return res.status(404).json({ message: "التقييم غير موجود" });
+      res.json(r);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.delete("/api/admin/reviews/:id", checkPermission("orders.view"), async (req, res) => {
+    try {
+      await storage.deleteReview(req.params.id);
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
   // ─── Low Stock ───────────────────────────────────────────────────────────────

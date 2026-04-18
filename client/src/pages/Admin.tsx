@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DescriptionGenerator } from "@/components/ai/DescriptionGenerator";
 import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminInbox from "@/pages/admin/AdminInbox";
+import AdminReviews from "@/pages/admin/AdminReviews";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
@@ -4265,6 +4266,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
       label: "العملاء",
       items: [
         { id: "customers", label: "قاعدة العملاء", icon: UserIcon },
+        { id: "reviews", label: "تقييمات العملاء", icon: Star },
         { id: "vendors", label: "البائعون", icon: Store },
         { id: "coupons", label: "أكواد الخصم", icon: Tag },
         { id: "broadcast", label: "إشعارات جماعية", icon: Megaphone },
@@ -4590,6 +4592,7 @@ export default function Admin() {
                 {activeTab === "shipping"  && <ShippingCompaniesPanel />}
                 {activeTab === "shifts"    && <ShiftsManagement />}
                 {activeTab === "customers" && <CustomersTable />}
+                {activeTab === "reviews"   && <AdminReviews />}
                 {activeTab === "vendors"   && <VendorsPanel />}
                 {activeTab === "coupons"   && <CouponsTable />}
                 {activeTab === "marketing" && <MarketingManagement />}

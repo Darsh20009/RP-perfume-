@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { CustomerTestimonials } from "@/components/CustomerTestimonials";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
@@ -460,6 +461,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── ماذا يقول عملاؤنا — TESTIMONIALS CAROUSEL ─────────────── */}
+      <CustomerTestimonials />
 
       {/* ── TABBY & TAMARA ─────────────────────────────── */}
       <section className="py-12 md:py-16 bg-[#faf8f5]">

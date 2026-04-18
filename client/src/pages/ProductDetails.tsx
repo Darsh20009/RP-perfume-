@@ -4,7 +4,7 @@ import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { useRoute } from "wouter";
 import { useState, useEffect, useMemo } from "react";
-import { ShoppingBag, Check, Heart, Star, Send, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingBag, Check, Heart, Star, Send, Loader2, ChevronLeft, ChevronRight, ImagePlus, X, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
@@ -71,10 +71,42 @@ export default function ProductDetails() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const remaining = 5 - reviewImages.length;
+    if (remaining <= 0) {
+      toast({ title: isAr ? "الحد الأقصى ٥ صور" : "Maximum 5 images", variant: "destructive" });
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      Array.from(files).slice(0, remaining).forEach(f => fd.append("files", f));
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      if (!res.ok) throw new Error("upload failed");
+      const data = await res.json();
+      const urls: string[] = (data.urls || data.files || []).map((u: any) => typeof u === "string" ? u : u.url).filter(Boolean);
+      setReviewImages(prev => [...prev, ...urls].slice(0, 5));
+    } catch {
+      toast({ title: isAr ? "فشل رفع الصورة" : "Upload failed", variant: "destructive" });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
   const submitReview = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/products/${id}/reviews`, { rating: reviewRating, comment: reviewComment });
+      const res = await apiRequest("POST", `/api/products/${id}/reviews`, {
+        rating: reviewRating,
+        comment: reviewComment,
+        images: reviewImages,
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || "خطأ");
@@ -83,8 +115,10 @@ export default function ProductDetails() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/products", id, "reviews"] });
+      qc.invalidateQueries({ queryKey: ["/api/reviews/featured"] });
       setReviewComment("");
       setReviewRating(5);
+      setReviewImages([]);
       toast({ title: isAr ? "تم إرسال تقييمك بنجاح" : "Review submitted successfully" });
     },
     onError: (err: any) => {
@@ -607,9 +641,38 @@ export default function ProductDetails() {
                   className="w-full border border-black/10 px-4 py-3 text-sm font-medium focus:outline-none focus:border-black resize-none bg-white"
                   data-testid="textarea-review"
                 />
+                {/* Image attachments */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {reviewImages.map((url, i) => (
+                      <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-black/10 group" data-testid={`review-img-preview-${i}`}>
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setReviewImages(prev => prev.filter((_, j) => j !== i))}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                          data-testid={`button-remove-img-${i}`}
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                    {reviewImages.length < 5 && (
+                      <label className="w-16 h-16 rounded-lg border-2 border-dashed border-black/15 hover:border-amber-400 hover:bg-amber-50/50 flex items-center justify-center cursor-pointer transition-colors" data-testid="button-attach-image">
+                        {uploadingImage ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                        ) : (
+                          <ImagePlus className="w-5 h-5 text-slate-400" />
+                        )}
+                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400">{isAr ? `يمكنك إرفاق حتى ٥ صور (${reviewImages.length}/5)` : `Attach up to 5 photos (${reviewImages.length}/5)`}</p>
+                </div>
                 <button
                   onClick={() => submitReview.mutate()}
-                  disabled={submitReview.isPending}
+                  disabled={submitReview.isPending || uploadingImage}
                   className="flex items-center gap-2 px-6 py-3 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-black/80 transition-colors disabled:opacity-50"
                   data-testid="button-submit-review"
                 >
@@ -632,7 +695,7 @@ export default function ProductDetails() {
                   <p className="text-xs mt-1">{isAr ? "كن أول من يقيّم هذا المنتج" : "Be the first to review this product"}</p>
                 </div>
               ) : (
-                reviews.map((review: ProductReview) => (
+                reviews.map((review: any) => (
                   <div key={review.id} className="border-b border-black/5 pb-4" data-testid={`review-${review.id}`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-black text-sm">{review.userName || (isAr ? "عميل" : "Customer")}</span>
@@ -643,6 +706,31 @@ export default function ProductDetails() {
                       </div>
                     </div>
                     {review.comment && <p className="text-sm text-slate-600 leading-relaxed">{review.comment}</p>}
+                    {review.images?.length > 0 && (
+                      <div className="flex gap-2 mt-3 flex-wrap">
+                        {review.images.map((url: string, i: number) => (
+                          <button
+                            key={url + i}
+                            type="button"
+                            onClick={() => setLightboxImage(url)}
+                            className="w-20 h-20 rounded-lg overflow-hidden border border-black/5 hover:border-amber-400 transition-all hover:scale-105"
+                            data-testid={`button-review-img-${review.id}-${i}`}
+                          >
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {review.adminReply?.text && (
+                      <div className="mt-3 ms-4 ps-3 border-s-2 border-amber-400 bg-amber-50/40 py-2 pe-3 rounded-e-md">
+                        <div className="flex items-center gap-2 mb-1">
+                          <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
+                          <span className="text-[11px] font-black text-amber-900">{review.adminReply.byName || (isAr ? "إدارة المتجر" : "Store Team")}</span>
+                          <span className="text-[10px] text-amber-700/70">{isAr ? "ردّ" : "replied"}</span>
+                        </div>
+                        <p className="text-[13px] text-slate-700 leading-relaxed">{review.adminReply.text}</p>
+                      </div>
+                    )}
                     <p className="text-[10px] text-slate-700 mt-2">{new Date(review.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US")}</p>
                   </div>
                 ))
@@ -651,6 +739,25 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+
+      {/* Image lightbox for review photos */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setLightboxImage(null)}
+          data-testid="review-lightbox"
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20"
+            onClick={() => setLightboxImage(null)}
+            data-testid="button-close-lightbox"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img src={lightboxImage} alt="" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+        </div>
+      )}
     </Layout>
   );
 }

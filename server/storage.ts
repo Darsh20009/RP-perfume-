@@ -115,6 +115,12 @@ export interface IStorage {
   getProductReviews(productId: string): Promise<ProductReview[]>;
   createProductReview(review: InsertProductReview): Promise<ProductReview>;
   getUserReviewForProduct(userId: string, productId: string): Promise<ProductReview | undefined>;
+  // Admin / discovery
+  getAllReviews(opts?: { rating?: number; hasReply?: boolean; q?: string; page?: number; limit?: number }): Promise<{ items: ProductReview[]; total: number }>;
+  replyToReview(reviewId: string, reply: { text: string; byUserId: string; byName: string }): Promise<ProductReview | undefined>;
+  deleteReview(reviewId: string): Promise<void>;
+  setReviewFeatured(reviewId: string, isFeatured: boolean): Promise<ProductReview | undefined>;
+  getFeaturedReviews(limit?: number): Promise<ProductReview[]>;
 
   // Low Stock
   getLowStockProducts(threshold?: number): Promise<Product[]>;
@@ -732,6 +738,59 @@ export class MongoDBStorage implements IStorage {
   async createProductReview(insertReview: InsertProductReview): Promise<ProductReview> {
     const review = await ProductReviewModel.create(insertReview);
     return { ...review.toObject(), id: (review as any)._id.toString() } as any;
+  }
+
+  async getAllReviews(opts: { rating?: number; hasReply?: boolean; q?: string; page?: number; limit?: number } = {}): Promise<{ items: ProductReview[]; total: number }> {
+    const q: any = {};
+    const andClauses: any[] = [];
+    if (opts.rating) q.rating = opts.rating;
+    if (opts.hasReply === true) q["adminReply.text"] = { $ne: "" };
+    if (opts.hasReply === false) {
+      andClauses.push({ $or: [{ "adminReply.text": "" }, { "adminReply.text": { $exists: false } }, { adminReply: { $exists: false } }] });
+    }
+    if (opts.q) {
+      const rx = new RegExp(String(opts.q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      andClauses.push({ $or: [{ comment: rx }, { userName: rx }, { productName: rx }] });
+    }
+    if (andClauses.length > 0) q.$and = andClauses;
+    const page = Math.max(1, opts.page || 1);
+    const limit = Math.min(100, Math.max(5, opts.limit || 20));
+    const [items, total] = await Promise.all([
+      ProductReviewModel.find(q).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      ProductReviewModel.countDocuments(q),
+    ]);
+    return { items: items.map(r => ({ ...r, id: (r as any)._id.toString() } as any)), total };
+  }
+
+  async replyToReview(reviewId: string, reply: { text: string; byUserId: string; byName: string }): Promise<ProductReview | undefined> {
+    const r = await ProductReviewModel.findByIdAndUpdate(
+      reviewId,
+      { $set: { adminReply: { ...reply, at: new Date() } } },
+      { new: true }
+    ).lean();
+    return r ? { ...r, id: (r as any)._id.toString() } as any : undefined;
+  }
+
+  async deleteReview(reviewId: string): Promise<void> {
+    await ProductReviewModel.deleteOne({ _id: reviewId });
+  }
+
+  async setReviewFeatured(reviewId: string, isFeatured: boolean): Promise<ProductReview | undefined> {
+    const r = await ProductReviewModel.findByIdAndUpdate(reviewId, { $set: { isFeatured } }, { new: true }).lean();
+    return r ? { ...r, id: (r as any)._id.toString() } as any : undefined;
+  }
+
+  async getFeaturedReviews(limit = 12): Promise<ProductReview[]> {
+    // Featured first, then highly-rated reviews with comments
+    const items = await ProductReviewModel.find({
+      isHidden: { $ne: true },
+      rating: { $gte: 4 },
+      comment: { $ne: "" },
+    })
+      .sort({ isFeatured: -1, rating: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+    return items.map(r => ({ ...r, id: (r as any)._id.toString() } as any));
   }
 
   async getUserReviewForProduct(userId: string, productId: string): Promise<ProductReview | undefined> {

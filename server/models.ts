@@ -407,8 +407,24 @@ const productReviewSchema = new Schema(
     productId: { type: String, required: true },
     userId: { type: String, required: true },
     userName: { type: String, default: "" },
+    userAvatar: { type: String, default: "" },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, default: "" },
+    images: { type: [String], default: [] },
+    // Denormalized product info for fast admin/home view
+    productName: { type: String, default: "" },
+    productImage: { type: String, default: "" },
+    // Admin/employee reply
+    adminReply: {
+      text: { type: String, default: "" },
+      byUserId: { type: String, default: "" },
+      byName: { type: String, default: "" },
+      at: { type: Date },
+    },
+    // Visibility / featuring
+    isHidden: { type: Boolean, default: false },
+    isFeatured: { type: Boolean, default: false },
+    helpfulCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -628,6 +644,8 @@ couponSchema.index({ isActive: 1, expiryDate: 1 });
 
 // Reviews / wishlist
 productReviewSchema.index({ productId: 1, createdAt: -1 });
+productReviewSchema.index({ userId: 1, productId: 1 }, { unique: true });
+productReviewSchema.index({ isFeatured: -1, rating: -1, createdAt: -1 });
 wishlistItemSchema.index({ userId: 1 });
 
 // Banners / categories ordering

@@ -30,6 +30,11 @@ A full-stack Arabic luxury perfume e-commerce platform. Built with React + Expre
 - **Admin:** phone `567891011`, password `123456`
 
 ## Key Features
+- **Customer Reviews System** (NEW):
+  - **Customer side** (`ProductDetails.tsx`): Star rating + comment + photo attachments (up to 5 images via `/api/upload`). Image lightbox viewer. Admin replies appear inline with luxury styling.
+  - **Home page carousel** (`components/CustomerTestimonials.tsx`): "ماذا يقول عملاؤنا" — auto-rotating featured testimonials with navy/gold luxury card design, avatars, star ratings, photos, and product links. Powered by `GET /api/reviews/featured` (rating ≥ 4 with comments, sorted by featured-flag).
+  - **Admin panel** (`/admin` → "تقييمات العملاء" tab → `pages/admin/AdminReviews.tsx`): full management with filter (rating + reply status + search), inline reply, mark-as-featured, delete with confirmation, photo lightbox, stat cards (total / avg / unanswered / featured).
+  - **Backend**: extended `productReviewSchema` (added `images`, `adminReply{text,byUserId,byName,at}`, `isHidden`, `isFeatured`, `productName`, `productImage` denormalized for fast admin/home queries). Routes: `GET /api/reviews/featured` (public), `GET/POST/PATCH/DELETE /api/admin/reviews*` (permission-gated by `orders.view`).
 - **Employee Inbox** (`/admin` → "صندوق البريد"): IMAP+SMTP integration for custom-domain mailboxes (Zoho/Gmail/Outlook/Yandex/Custom). Server-side encryption (AES-256-GCM) of app passwords. Auto-sync every 2 min. Full read/reply/forward/delete UI. Per-employee accounts; admins see all.
   - Backend: `server/inbox.ts` (IMAP via `imapflow`, SMTP via `nodemailer`, parsing via `mailparser`); models `MailAccount` + `MailMessage` in `server/models.ts`; routes under `/api/admin/inbox/*`.
   - Frontend: `client/src/pages/admin/AdminInbox.tsx` (3-column layout: accounts/folders sidebar + message list + preview pane + compose dialog + account management dialog).
