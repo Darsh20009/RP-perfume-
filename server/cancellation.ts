@@ -4,11 +4,11 @@
  */
 import {
   OrderModel, ProductModel, UserModel,
-  WalletTransactionModel, NotificationModel,
+  WalletTransactionModel,
   CancellationPolicyModel,
 } from "./models";
 import { sendEmail } from "./email";
-import { sendPushToUser, pushToUser } from "./notifications";
+import { pushToUser, fireNotify } from "./notifications";
 
 export async function getPolicy() {
   let policy: any = await CancellationPolicyModel.findOne({ key: "main" }).lean();
@@ -122,23 +122,16 @@ export async function cancelOrder(opts: CancelOptions) {
   // 4) Notifications (customer)
   if (policy.notifyCustomer !== false && order.userId) {
     try {
-      await NotificationModel.create({
-        userId: String(order.userId),
-        type: refundAmount > 0 ? "success" : "info",
-        title: "❌ تم إلغاء طلبك",
-        body: refundAmount > 0
+      // Unified 3-layer notification
+      await fireNotify(
+        String(order.userId),
+        "❌ تم إلغاء طلبك",
+        refundAmount > 0
           ? `طلبك #${ref} أُلغي. تم استرداد ${refundAmount.toFixed(2)} ر.س لمحفظتك.`
           : `طلبك #${ref} أُلغي.${opts.reason ? ` السبب: ${opts.reason}` : ""}`,
-        link: "/orders",
-        icon: "❌",
-      });
-      await sendPushToUser(String(order.userId), {
-        title: "تم إلغاء طلبك",
-        body: refundAmount > 0
-          ? `استُرد مبلغ ${refundAmount.toFixed(2)} ر.س لمحفظتك`
-          : `طلبك #${ref}`,
-        url: "/orders",
-      });
+        { type: refundAmount > 0 ? "success" : "info", link: "/orders", icon: "❌" }
+      );
+      // Extra real-time payload (so the orders page can update the row instantly)
       pushToUser(String(order.userId), {
         type: "order_status",
         orderId: String(order._id),

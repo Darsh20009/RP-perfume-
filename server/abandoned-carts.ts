@@ -9,9 +9,9 @@
  *    AND were not converted, and sends a single auto-reminder.
  *  - Employees can manually re-notify any abandoned cart with optional discount.
  */
-import { CartSessionModel, UserModel, OrderModel, CouponModel, NotificationModel } from "./models";
+import { CartSessionModel, UserModel, OrderModel, CouponModel } from "./models";
 import { sendEmail } from "./email";
-import { sendPushToUser, pushToUser } from "./notifications";
+import { pushToUser, fireNotify } from "./notifications";
 
 const ABANDON_AFTER_MS = 5 * 60 * 1000;       // 5 minutes
 const TICK_MS = 60 * 1000;                    // run every 60s
@@ -105,34 +105,22 @@ async function sendReminder(cart: any, opts: {
 
   const itemCount = (cart.items || []).reduce((s: number, i: any) => s + (i.quantity || 0), 0);
 
-  // Push
+  // Unified 3-layer notification (DB + WS + Web Push)
   try {
-    await sendPushToUser(String(cart.userId), {
-      title: discountCode ? `🎁 خصم ${discountPercent}% خاص لك` : "🌸 سلتك تنتظرك",
-      body: discountCode
-        ? `${itemCount} منتجات بانتظارك مع خصم ${discountPercent}%`
-        : `${itemCount} منتجات في سلتك. أكمل طلبك الآن.`,
-      url: "/cart",
-    });
+    await fireNotify(
+      String(cart.userId),
+      discountCode ? `🎁 خصم ${discountPercent}% لإكمال طلبك` : "🌸 سلتك تنتظرك",
+      discountCode
+        ? `استخدم الكود ${discountCode} للحصول على خصم ${discountPercent}% — ${itemCount} منتجات بانتظارك`
+        : `${itemCount} منتجات في سلتك بقيمة ${cart.total.toFixed(2)} ر.س`,
+      { type: "info", link: "/cart", icon: discountCode ? "🎁" : "🛒" }
+    );
+    // Extra real-time payload (lets the cart icon badge update live)
     pushToUser(String(cart.userId), {
       type: "cart_reminder",
       itemCount,
       total: cart.total,
       discountCode,
-    });
-  } catch {}
-
-  // In-app notification
-  try {
-    await NotificationModel.create({
-      userId: String(cart.userId),
-      type: "info",
-      title: discountCode ? `خصم ${discountPercent}% لإكمال طلبك` : "سلتك تنتظرك",
-      body: discountCode
-        ? `استخدم الكود ${discountCode} للحصول على خصم ${discountPercent}%`
-        : `${itemCount} منتجات في سلتك بقيمة ${cart.total.toFixed(2)} ر.س`,
-      link: "/cart",
-      icon: discountCode ? "🎁" : "🛒",
     });
   } catch {}
 
