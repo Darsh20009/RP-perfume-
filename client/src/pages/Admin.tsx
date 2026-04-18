@@ -2382,9 +2382,9 @@ const OrdersManagement = memo(() => {
       </div>
 
       {filteredOrders.length === 0 && (
-        <div className="text-center py-16 rounded-2xl bg-slate-50 border border-slate-200">
-          <ShoppingCart className="w-10 h-10 text-white/10 mx-auto mb-3" />
-          <p className="text-white/30 text-sm">لا توجد طلبات في هذا الفلتر</p>
+        <div className="text-center py-16 rounded-2xl bg-[#0f1729] border border-white/10">
+          <ShoppingCart className="w-10 h-10 text-white/20 mx-auto mb-3" />
+          <p className="text-white/50 text-sm">لا توجد طلبات في هذا الفلتر</p>
         </div>
       )}
 
@@ -2393,7 +2393,7 @@ const OrdersManagement = memo(() => {
           const isExpanded = expandedId === order.id;
           const items = Array.isArray(order.items) ? order.items : [];
           return (
-            <div key={order.id} className="rounded-2xl border border-slate-200 overflow-hidden bg-white hover:border-slate-300 transition-all">
+            <div key={order.id} className="rounded-2xl border border-white/10 overflow-hidden bg-[#0f1729] hover:border-white/20 transition-all">
                 <div
                   className="flex justify-between items-center p-5 cursor-pointer hover:bg-white/3 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : order.id)}
