@@ -4,6 +4,8 @@
  * All templates are Arabic RTL with RF Perfume branding
  */
 
+import { LOGO_BASE64 } from "./_logo";
+
 const SMTP2GO_API = "https://api.smtp2go.com/v3/email/send";
 
 function getCredentials() {
@@ -117,7 +119,7 @@ function baseTemplate(title: string, content: string): string {
 <body>
 <div class="wrapper">
   <div class="header">
-    <img class="logo-img" src="https://rfperfume.sa/images/logos/logo-light-nobg.png" alt="رفيف العود" />
+    <img class="logo-img" src="${LOGO_BASE64}" alt="رفيف العود" />
     <div class="logo-text">رفيف العود</div>
     <div class="logo-sub">RF PERFUME · LUXURY FRAGRANCES</div>
   </div>

@@ -303,9 +303,6 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className={`hidden md:flex items-center gap-8 text-[11px] font-black uppercase ${language === 'en' ? 'tracking-widest' : ''}`}>
             <Link href="/" className={`transition-colors hover:text-primary ${location === '/' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('home')}</Link>
             <Link href="/products" className={`transition-colors hover:text-primary ${location === '/products' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('shop')}</Link>
-            <Link href="/stores" className={`transition-colors hover:text-primary ${location === '/stores' ? 'text-foreground' : 'text-muted-foreground'} font-bold`}>
-              {language === 'ar' ? 'المتاجر' : 'Stores'}
-            </Link>
             {deferredPrompt && (
               <Button 
                 onClick={handleInstall}

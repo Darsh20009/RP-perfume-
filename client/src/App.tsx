@@ -18,6 +18,7 @@ import Register from "@/pages/Register";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { PWAPrompt } from "@/components/PWAPrompt";
+import { IOSInstallGuide } from "@/components/IOSInstallGuide";
 
 const ProfileInvoices = lazy(() => import("@/pages/ProfileInvoices"));
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -191,8 +192,12 @@ function Router() {
       <Route path="/payment/stc-checkout" component={STCCheckout} />
       <Route path="/paymob/result" component={PaymobResult} />
       <Route path="/terms" component={Terms} />
-      <Route path="/stores" component={VendorsList} />
-      <Route path="/stores/:id" component={VendorStore} />
+      <Route path="/admin/stores">
+        <ProtectedRoute component={VendorsList} permission="staff.manage" />
+      </Route>
+      <Route path="/admin/stores/:id">
+        <ProtectedRoute component={VendorStore} permission="staff.manage" />
+      </Route>
       <Route path="/vendor/apply">
         <ProtectedRoute component={VendorApply} />
       </Route>
@@ -213,6 +218,7 @@ function AppContent() {
       <ErrorBoundary>
         <Router />
         <PWAPrompt />
+        <IOSInstallGuide />
       </ErrorBoundary>
     </div>
   );
