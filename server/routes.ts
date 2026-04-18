@@ -863,74 +863,226 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/verify-reset", async (req, res) => {
-    const { phone, name } = req.body;
-    if (!phone || !name) {
-      return res.status(400).json({ message: "جميع الحقول مطلوبة" });
-    }
-    try {
-      const cleanPhone = phone.replace(/\D/g, "");
-      const corePhone = cleanPhone.startsWith("0") ? cleanPhone.substring(1) : cleanPhone;
-      
-      console.log(`[RESET] Verifying user: Name="${name}", Phone="${phone}" (Core: "${corePhone}")`);
-      
-      const user = await UserModel.findOne({
-        $and: [
-          { name: { $regex: new RegExp(`^${name}$`, "i") } },
-          { 
-            $or: [
-              { phone: corePhone },
-              { phone: "0" + corePhone },
-              { username: corePhone },
-              { username: "0" + corePhone }
-            ]
-          }
-        ]
-      }).lean();
+  // ════════════════════════════════════════════════════════════════════════
+  // Forgot Password Flow — Phone-first, smart routing
+  // ────────────────────────────────────────────────────────────────────────
+  // Step 1 (init):    POST /api/auth/forgot/init       { phone }
+  //   → Employees / users WITH email   →  emails 6-digit OTP, returns { method: "otp", masked }
+  //   → Customers WITHOUT email        →  returns { method: "verify",
+  //                                       prompt: "name OR previous order number" }
+  //
+  // Step 2 (verify):  POST /api/auth/forgot/verify     { phone, code? , name? , orderNumber? }
+  //   → Validates whichever path applies → returns { resetToken } (single use, 15 min)
+  //
+  // Step 3 (reset):   POST /api/auth/forgot/reset      { resetToken, password }
+  //   → Sets new password, clears all reset state
+  // ════════════════════════════════════════════════════════════════════════
 
+  function maskEmail(e: string) {
+    const [u, d] = String(e || "").split("@");
+    if (!u || !d) return e;
+    return `${u.slice(0, 2)}***@${d}`;
+  }
+  function normalizePhone(raw: string) {
+    let p = (raw || "").replace(/\D/g, "");
+    if (p.startsWith("966")) p = p.substring(3);
+    if (p.startsWith("0")) p = p.substring(1);
+    return p;
+  }
+  async function findUserByPhone(raw: string) {
+    const core = normalizePhone(raw);
+    if (!core) return null;
+    return await UserModel.findOne({
+      $or: [
+        { phone: core }, { phone: "0" + core },
+        { username: core }, { username: "0" + core },
+      ],
+    });
+  }
+  const STAFF_ROLES = ["admin", "assistant_manager", "tech_support", "accountant", "legal_consultant", "employee", "support", "cashier"];
+
+  // ── Step 1: init ─────────────────────────────────────────────────────────
+  app.post("/api/auth/forgot/init", async (req, res) => {
+    try {
+      const { phone } = req.body || {};
+      if (!phone) return res.status(400).json({ message: "رقم الجوال مطلوب" });
+      const user: any = await findUserByPhone(phone);
       if (!user) {
-        console.log(`[RESET] Verification failed for: ${name} / ${phone}`);
-        return res.status(404).json({ message: "المعلومات غير متطابقة" });
+        // Generic message — do not leak whether the phone is registered
+        return res.json({ method: "verify", prompt: "name_or_order" });
       }
-      
-      console.log(`[RESET] User verified: ${user._id}`);
-      res.json({ id: user._id.toString() });
+
+      const isStaff = STAFF_ROLES.includes(user.role);
+      const hasEmail = !!(user.email && /^\S+@\S+\.\S+$/.test(user.email) && !user.email.endsWith("@rfperfume.sa"));
+
+      // Employees ALWAYS go through email — required for them
+      if (isStaff) {
+        if (!hasEmail) {
+          return res.status(400).json({ message: "حسابك موظف ولا يحتوي بريداً صالحاً — راجع المدير" });
+        }
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        user.passwordResetCode = code;
+        user.passwordResetCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
+        user.passwordResetAttempts = 0;
+        await user.save();
+        try {
+          const { sendPasswordResetEmail } = await import("./email");
+          await sendPasswordResetEmail({ to: user.email, customerName: user.name, otp: code });
+        } catch (e: any) { console.error("[Forgot] email failed:", e?.message); }
+        return res.json({ method: "otp", masked: maskEmail(user.email) });
+      }
+
+      // Customer with email → OTP path
+      if (hasEmail) {
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        user.passwordResetCode = code;
+        user.passwordResetCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
+        user.passwordResetAttempts = 0;
+        await user.save();
+        try {
+          const { sendPasswordResetEmail } = await import("./email");
+          await sendPasswordResetEmail({ to: user.email, customerName: user.name, otp: code });
+        } catch (e: any) { console.error("[Forgot] email failed:", e?.message); }
+        return res.json({ method: "otp", masked: maskEmail(user.email), allowVerify: true });
+      }
+
+      // Customer without email → verify identity via name OR previous order number
+      return res.json({ method: "verify", prompt: "name_or_order" });
     } catch (err: any) {
-      console.error("[RESET] verify-reset error:", err?.message);
-      res.status(500).json({ message: "خطأ في التحقق من الهوية" });
+      console.error("[Forgot/init] error:", err?.message);
+      res.status(500).json({ message: "خطأ في معالجة الطلب" });
     }
   });
 
-  app.post("/api/reset-password", async (req, res) => {
-    const { id, password } = req.body;
-    if (!id || !password) {
-      return res.status(400).json({ message: "بيانات غير مكتملة" });
-    }
-    
+  // ── Step 2: verify (OTP or identity) ─────────────────────────────────────
+  app.post("/api/auth/forgot/verify", async (req, res) => {
     try {
-      // Hash the new password before saving
+      const { phone, code, name, orderNumber } = req.body || {};
+      if (!phone) return res.status(400).json({ message: "رقم الجوال مطلوب" });
+      const user: any = await findUserByPhone(phone);
+      if (!user) return res.status(400).json({ message: "البيانات غير متطابقة" });
+
+      // Throttle brute force (max 5 wrong attempts, then must restart from init)
+      if ((user.passwordResetAttempts || 0) >= 5) {
+        return res.status(429).json({ message: "محاولات كثيرة خاطئة — ابدأ من جديد" });
+      }
+
+      let verified = false;
+
+      // Path A: OTP from email
+      if (code) {
+        const valid = user.passwordResetCode &&
+                      String(user.passwordResetCode) === String(code) &&
+                      user.passwordResetCodeExpires &&
+                      new Date(user.passwordResetCodeExpires).getTime() > Date.now();
+        if (valid) verified = true;
+      }
+
+      // Path B: identity (name or previous-order match) — customers only
+      if (!verified && (name || orderNumber)) {
+        if (STAFF_ROLES.includes(user.role)) {
+          return res.status(403).json({ message: "الموظفون يستخدمون البريد فقط" });
+        }
+        let nameOk = false, orderOk = false;
+        if (name) {
+          const n = String(name).trim().toLowerCase();
+          const userName = String(user.name || "").trim().toLowerCase();
+          // Accept full match OR ≥2 word overlap
+          if (n && userName && (userName === n || n.split(/\s+/).filter(p => userName.includes(p)).length >= 2)) {
+            nameOk = true;
+          }
+        }
+        if (orderNumber) {
+          const orderId = String(orderNumber).trim();
+          const order: any = await OrderModel.findOne({
+            userId: String(user._id),
+            $or: [
+              { _id: orderId.length === 24 ? orderId : null },
+              { orderNumber: orderId },
+            ].filter(Boolean) as any,
+          }).lean();
+          if (order) orderOk = true;
+        }
+        if (nameOk || orderOk) verified = true;
+      }
+
+      if (!verified) {
+        user.passwordResetAttempts = (user.passwordResetAttempts || 0) + 1;
+        await user.save();
+        return res.status(400).json({ message: "البيانات غير صحيحة" });
+      }
+
+      // Issue single-use reset token (15 min)
+      const { randomBytes } = await import("crypto");
+      const resetToken = randomBytes(32).toString("hex");
+      user.passwordResetToken = resetToken;
+      user.passwordResetTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
+      user.passwordResetCode = undefined;
+      user.passwordResetCodeExpires = undefined;
+      user.passwordResetAttempts = 0;
+      await user.save();
+      res.json({ resetToken });
+    } catch (err: any) {
+      console.error("[Forgot/verify] error:", err?.message);
+      res.status(500).json({ message: "خطأ في التحقق" });
+    }
+  });
+
+  // ── Step 3: reset ────────────────────────────────────────────────────────
+  app.post("/api/auth/forgot/reset", async (req, res) => {
+    try {
+      const { resetToken, password } = req.body || {};
+      if (!resetToken || !password || String(password).length < 6) {
+        return res.status(400).json({ message: "بيانات غير صالحة (كلمة مرور 6 أحرف على الأقل)" });
+      }
+      const user: any = await UserModel.findOne({
+        passwordResetToken: resetToken,
+        passwordResetTokenExpires: { $gt: new Date() },
+      });
+      if (!user) return res.status(400).json({ message: "رمز إعادة التعيين غير صالح أو منتهي" });
+
       const { scrypt, randomBytes } = await import("crypto");
       const { promisify } = await import("util");
       const scryptAsync = promisify(scrypt);
-      
+      const salt = randomBytes(16).toString("hex");
+      const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
+      user.password = `${buffer.toString("hex")}.${salt}`;
+      user.mustChangePassword = false;
+      user.passwordResetToken = undefined;
+      user.passwordResetTokenExpires = undefined;
+      await user.save();
+      res.json({ ok: true, message: "تم تحديث كلمة المرور — يمكنك تسجيل الدخول" });
+    } catch (err: any) {
+      console.error("[Forgot/reset] error:", err?.message);
+      res.status(500).json({ message: "خطأ في تحديث كلمة المرور" });
+    }
+  });
+
+  // ── Legacy (kept for backward compatibility) ─────────────────────────────
+  app.post("/api/verify-reset", async (req, res) => {
+    const { phone, name } = req.body || {};
+    if (!phone || !name) return res.status(400).json({ message: "جميع الحقول مطلوبة" });
+    const user: any = await findUserByPhone(phone);
+    if (!user) return res.status(404).json({ message: "المعلومات غير متطابقة" });
+    const userName = String(user.name || "").trim().toLowerCase();
+    const inName = String(name).trim().toLowerCase();
+    if (userName !== inName) return res.status(404).json({ message: "المعلومات غير متطابقة" });
+    res.json({ id: user._id.toString() });
+  });
+  app.post("/api/reset-password", async (req, res) => {
+    const { id, password } = req.body || {};
+    if (!id || !password) return res.status(400).json({ message: "بيانات غير مكتملة" });
+    try {
+      const { scrypt, randomBytes } = await import("crypto");
+      const { promisify } = await import("util");
+      const scryptAsync = promisify(scrypt);
       const salt = randomBytes(16).toString("hex");
       const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
       const hashedPassword = `${buffer.toString("hex")}.${salt}`;
-      
-      console.log(`[RESET] Updating password for user: ${id}`);
-      // Use UserModel directly to ensure immediate update with correct field names
-      const result = await UserModel.findByIdAndUpdate(id, { 
-        password: hashedPassword,
-        mustChangePassword: false 
-      }, { new: true });
-
-      if (!result) {
-        return res.status(404).send("المستخدم غير موجود");
-      }
-      
+      const result = await UserModel.findByIdAndUpdate(id, { password: hashedPassword, mustChangePassword: false }, { new: true });
+      if (!result) return res.status(404).send("المستخدم غير موجود");
       res.json({ message: "تم تحديث كلمة المرور بنجاح" });
     } catch (err: any) {
-      console.error(`[RESET] Error updating password:`, err);
       res.status(500).send("فشل تحديث كلمة المرور");
     }
   });
@@ -1100,46 +1252,151 @@ export async function registerRoutes(
       const userData = req.body;
       let phone = (userData.phone || "").replace(/\D/g, "");
       if (phone.startsWith("0")) phone = phone.substring(1);
-      const email = userData.email || `${phone}@rfperfume.sa`;
+      const email = (userData.email || "").trim();
       const username = userData.username || phone;
+      const role = userData.role || "employee";
+
+      // Email is REQUIRED for staff so they can activate their account
+      if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        return res.status(400).send("البريد الإلكتروني للموظف مطلوب لإرسال رابط التفعيل");
+      }
 
       const existingUser = await storage.getUserByUsername(phone);
       if (existingUser) {
         if (existingUser.role !== "customer" && existingUser.role !== "admin") {
-           return res.status(400).send("مستخدم بهذا الرقم موجود بالفعل كـ " + existingUser.role);
+          return res.status(400).send("مستخدم بهذا الرقم موجود بالفعل كـ " + existingUser.role);
         }
         const updatedUser = await storage.updateUser(existingUser.id, {
           ...userData,
-          role: userData.role || "employee",
-          isActive: true
+          role,
+          isActive: true,
         });
         return res.json(updatedUser);
       }
 
-      const { scrypt, randomBytes } = await import("crypto");
-      const { promisify } = await import("util");
-      const scryptAsync = promisify(scrypt);
-      const defaultPassword = "2030";
-      const salt = randomBytes(16).toString("hex");
-      const buffer = (await scryptAsync(defaultPassword, salt, 64)) as Buffer;
-      const hashedPassword = `${buffer.toString("hex")}.${salt}`;
+      // Generate activation token (48h validity) — employee sets their own password
+      const { randomBytes } = await import("crypto");
+      const activationToken = randomBytes(32).toString("hex");
+      const activationExpires = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
       const user = await storage.createUser({
         ...userData,
         phone,
         email,
         username,
-        password: hashedPassword,
+        password: "", // empty — they MUST activate to set one
         walletBalance: "0",
         mustChangePassword: true,
-        isActive: true,
-        role: userData.role || "employee",
+        isActive: false, // inactive until activation
+        role,
         addresses: [],
-        permissions: userData.permissions || []
+        permissions: userData.permissions || [],
+        activationToken,
+        activationExpires,
+      } as any);
+
+      // Send activation email
+      try {
+        const { sendActivationEmail } = await import("./email");
+        const baseUrl =
+          process.env.PUBLIC_BASE_URL ||
+          (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
+          `${req.protocol}://${req.get("host")}`;
+        const activationLink = `${baseUrl}/activate?token=${activationToken}`;
+        await sendActivationEmail({
+          to: email,
+          name: user.name || username,
+          role,
+          activationLink,
+          expiresInHours: 48,
+        });
+      } catch (e: any) {
+        console.error("[Staff] Activation email failed:", e?.message);
+      }
+
+      res.status(201).json({
+        ...user,
+        activationEmailSent: true,
+        message: "تم إنشاء الموظف وأرسل رابط التفعيل إلى بريده",
       });
-      res.status(201).json(user);
     } catch (err: any) {
       res.status(400).send(err.message);
+    }
+  });
+
+  // ── Resend activation email (for an existing inactive employee) ──────────
+  app.post("/api/admin/users/:id/resend-activation", checkPermission("staff.manage"), async (req, res) => {
+    try {
+      const { randomBytes } = await import("crypto");
+      const user: any = await UserModel.findById(req.params.id);
+      if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+      if (!user.email) return res.status(400).json({ message: "لا يوجد بريد إلكتروني" });
+
+      user.activationToken = randomBytes(32).toString("hex");
+      user.activationExpires = new Date(Date.now() + 48 * 60 * 60 * 1000);
+      await user.save();
+
+      const { sendActivationEmail } = await import("./email");
+      const baseUrl =
+        process.env.PUBLIC_BASE_URL ||
+        (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
+        `${req.protocol}://${req.get("host")}`;
+      await sendActivationEmail({
+        to: user.email,
+        name: user.name,
+        role: user.role,
+        activationLink: `${baseUrl}/activate?token=${user.activationToken}`,
+        expiresInHours: 48,
+      });
+      res.json({ ok: true, message: "تم إعادة إرسال رابط التفعيل" });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ── Activate account (employee clicks the link, sets their password) ─────
+  app.post("/api/auth/activate", async (req, res) => {
+    try {
+      const { token, password } = req.body || {};
+      if (!token || !password || String(password).length < 6) {
+        return res.status(400).json({ message: "بيانات غير صالحة (كلمة مرور 6 أحرف على الأقل)" });
+      }
+      const user: any = await UserModel.findOne({
+        activationToken: token,
+        activationExpires: { $gt: new Date() },
+      });
+      if (!user) {
+        return res.status(400).json({ message: "رابط التفعيل غير صالح أو منتهي الصلاحية" });
+      }
+      const { scrypt, randomBytes } = await import("crypto");
+      const { promisify } = await import("util");
+      const scryptAsync = promisify(scrypt);
+      const salt = randomBytes(16).toString("hex");
+      const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
+      user.password = `${buffer.toString("hex")}.${salt}`;
+      user.activationToken = undefined;
+      user.activationExpires = undefined;
+      user.mustChangePassword = false;
+      user.isActive = true;
+      await user.save();
+      res.json({ ok: true, message: "تم تفعيل حسابك. يمكنك تسجيل الدخول الآن", username: user.username });
+    } catch (err: any) {
+      console.error("[Activate] error:", err?.message);
+      res.status(500).json({ message: "خطأ في تفعيل الحساب" });
+    }
+  });
+
+  // ── Inspect activation token (for the activate page UI) ──────────────────
+  app.get("/api/auth/activate/:token", async (req, res) => {
+    try {
+      const user: any = await UserModel.findOne({
+        activationToken: req.params.token,
+        activationExpires: { $gt: new Date() },
+      }).select("name email username role").lean();
+      if (!user) return res.status(404).json({ valid: false, message: "رابط غير صالح أو منتهي" });
+      res.json({ valid: true, name: user.name, email: user.email, username: user.username, role: user.role });
+    } catch (err: any) {
+      res.status(500).json({ valid: false, message: err.message });
     }
   });
 

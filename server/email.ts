@@ -605,5 +605,57 @@ export async function sendAdminAlertEmail(params: {
   });
 }
 
+/** Account activation email — for newly created employees to set their own password */
+export async function sendActivationEmail(params: {
+  to: string;
+  name: string;
+  role: string;
+  activationLink: string;
+  expiresInHours: number;
+}) {
+  const roleLabels: Record<string, string> = {
+    admin: "مدير",
+    assistant_manager: "مساعد مدير",
+    tech_support: "دعم فني",
+    accountant: "محاسب",
+    legal_consultant: "مستشار قانوني",
+    employee: "موظف",
+    support: "دعم",
+    cashier: "كاشير",
+  };
+  const roleLabel = roleLabels[params.role] || "موظف";
+
+  const content = `
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:48px;margin-bottom:12px;line-height:1;">🎉</div>
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#000;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">مرحباً بك في فريق رفيف العود</h1>
+      <p style="margin:0;font-size:14px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">تم إنشاء حسابك كـ ${roleLabel}</p>
+    </div>
+
+    <p style="margin:0 0 16px;font-size:14px;color:rgba(0,0,0,0.75);line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+      مرحباً ${params.name},<br/>
+      تم إنشاء حسابك في نظام رفيف العود. لتفعيل حسابك وتعيين كلمة المرور الخاصة بك، اضغط على الزر أدناه:
+    </p>
+
+    ${ctaButton(params.activationLink, "تفعيل الحساب وتعيين كلمة المرور")}
+
+    <p style="margin:24px 0 0;padding:14px 16px;background:#fff8ec;border:1px solid #f0c674;border-radius:8px;font-size:13px;color:#5a4400;line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+      ⏰ هذا الرابط صالح لمدة <b>${params.expiresInHours} ساعة</b> فقط. بعد انتهاء المدة، اطلب من المدير إعادة إرسال رابط جديد.
+    </p>
+
+    <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid rgba(0,0,0,0.06);font-size:11px;color:rgba(0,0,0,0.45);line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+      إذا لم تكن تتوقع هذا البريد، تجاهله ولن يتم تفعيل أي حساب.
+    </p>
+  `;
+
+  return sendEmail({
+    to: params.to,
+    toName: params.name,
+    subject: `🎉 تفعيل حسابك في رفيف العود`,
+    html: baseTemplate("تفعيل الحساب", content),
+    text: `مرحباً ${params.name}, لتفعيل حسابك وتعيين كلمة المرور: ${params.activationLink}`,
+  });
+}
+
 /** Low-level direct send — for custom use */
 export { sendEmail };

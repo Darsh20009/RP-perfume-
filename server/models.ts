@@ -31,6 +31,17 @@ const userSchema = new Schema<User>(
     loyaltyPoints: { type: Number, default: 0 },
     loyaltyTier: { type: String, enum: ["bronze", "silver", "gold", "platinum"], default: "bronze" },
     totalSpent: { type: Number, default: 0 },
+
+    // ── Account activation (employees) ──
+    activationToken: { type: String, index: true, sparse: true },
+    activationExpires: { type: Date },
+
+    // ── Password reset (customers + employees) ──
+    passwordResetCode: { type: String },        // 6-digit OTP (email path)
+    passwordResetCodeExpires: { type: Date },
+    passwordResetToken: { type: String, index: true, sparse: true }, // single-use token after verify
+    passwordResetTokenExpires: { type: Date },
+    passwordResetAttempts: { type: Number, default: 0 }, // throttle brute force on OTP / verify
   },
   { timestamps: true }
 );
