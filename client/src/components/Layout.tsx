@@ -42,6 +42,13 @@ export function Layout({ children }: { children: ReactNode }) {
   });
   const pendingAdminCount = (allOrders || []).filter((o: any) => o.status === "pending_payment").length;
 
+  // ── Dynamic nav: admin-managed CustomPages flagged as showInNav ──────────
+  const { data: navPages = [] } = useQuery<any[]>({
+    queryKey: ["/api/pages", "nav"],
+    queryFn: async () => { const r = await fetch("/api/pages?nav=true"); return r.ok ? r.json() : []; },
+    staleTime: 5 * 60_000,
+  });
+
   useEffect(() => {
     if (user?.role === "admin" && pendingAdminCount > 0) {
       document.title = `(${pendingAdminCount}) لوحة التحكم | رفيف العود`;
@@ -161,6 +168,11 @@ export function Layout({ children }: { children: ReactNode }) {
                       {[
                         { href: "/", icon: Home, label: t('home') },
                         { href: "/products", icon: Tag, label: t('shop') },
+                        ...navPages.map((p: any) => ({
+                          href: `/pages/${p.slug}`,
+                          icon: Tag,
+                          label: language === 'ar' ? (p.titleAr || p.titleEn || p.slug) : (p.titleEn || p.titleAr || p.slug),
+                        })),
                         ...(user ? [{ href: "/orders", icon: Package, label: t('myOrders') }] : []),
                         ...(user?.role === 'admin' ? [{ href: "/admin", icon: LayoutDashboard, label: t('adminPanel'), accent: true, badge: pendingAdminCount }] : []),
                       ].map(({ href, icon: Icon, label, accent, badge }: any) => {
@@ -303,6 +315,20 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className={`hidden md:flex items-center gap-8 text-[11px] font-black uppercase ${language === 'en' ? 'tracking-widest' : ''}`}>
             <Link href="/" className={`transition-colors hover:text-primary ${location === '/' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('home')}</Link>
             <Link href="/products" className={`transition-colors hover:text-primary ${location === '/products' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('shop')}</Link>
+            {navPages.map((p: any) => {
+              const href = `/pages/${p.slug}`;
+              const label = language === 'ar' ? (p.titleAr || p.titleEn || p.slug) : (p.titleEn || p.titleAr || p.slug);
+              return (
+                <Link
+                  key={p._id || p.id || p.slug}
+                  href={href}
+                  className={`transition-colors hover:text-primary ${location === href ? 'text-foreground' : 'text-muted-foreground'}`}
+                  data-testid={`link-nav-page-${p.slug}`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
             {deferredPrompt && (
               <Button 
                 onClick={handleInstall}

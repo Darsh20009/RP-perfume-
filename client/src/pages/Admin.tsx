@@ -681,13 +681,17 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
       name: product?.name || "",
+      nameEn: (product as any)?.nameEn || "",
       description: product?.description || "",
+      descriptionEn: (product as any)?.descriptionEn || "",
       price: product?.price || "0",
       cost: product?.cost || "0",
       images: product?.images || [],
       categoryIds: [],
       variants: (product as any)?.variants || [],
       isFeatured: product?.isFeatured || false,
+      isOnSale: (product as any)?.isOnSale || false,
+      salePrice: (product as any)?.salePrice || "",
     } as any
   });
 
@@ -766,7 +770,7 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
   };
 
   const addVariant = () => {
-    setVariants([...variants, { color: "", size: "", sku: `SKU-${Date.now()}`, stock: 0, image: "" }]);
+    setVariants([...variants, { color: "", size: "", sku: `SKU-${Date.now()}`, stock: 0, price: 0, cost: 0, image: "" }]);
   };
 
   const removeVariant = (index: number) => {
@@ -781,8 +785,9 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
         categoryId: selectedCategoryIds[0] || "",
         variants: variants.map(v => ({
           ...v,
-          stock: Number(v.stock),
-          cost: Number(v.cost || 0)
+          stock: Number(v.stock) || 0,
+          price: Number(v.price) || 0,
+          cost: Number(v.cost) || 0,
         })),
         price: data.price.toString(),
         cost: data.cost.toString(),
@@ -806,12 +811,23 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
         <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6 mt-8" dir="rtl">
            <div className="grid grid-cols-2 gap-6 text-right">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">اسم المنتج</Label>
-                  <Input {...form.register("name")} className="rounded-none h-12 text-right" />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">اسم المنتج (عربي)</Label>
+                  <Input {...form.register("name")} className="rounded-none h-12 text-right" data-testid="input-product-name-ar" />
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Product Name (English)</Label>
+                  <Input {...form.register("nameEn" as any)} dir="ltr" className="rounded-none h-12 text-left" data-testid="input-product-name-en" />
+                </div>
+              </div>
+
+           <div className="grid grid-cols-2 gap-6 text-right">
+                <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (ر.س)</Label>
-                  <Input type="number" {...form.register("price")} className="rounded-none h-12 text-right" />
+                  <Input type="number" step="0.01" {...form.register("price")} className="rounded-none h-12 text-right" data-testid="input-product-price" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
+                  <Input type="number" step="0.01" {...form.register("cost")} className="rounded-none h-12 text-right" data-testid="input-product-cost" />
                 </div>
               </div>
 
@@ -853,11 +869,20 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
                     ))}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
-                  <Input type="number" {...form.register("cost")} className="rounded-none h-12 text-right" />
+                <div className="space-y-2 flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer w-full bg-secondary/10 p-3 border border-black/10">
+                    <input type="checkbox" checked={!!form.watch("isOnSale" as any)} onChange={e => form.setValue("isOnSale" as any, e.target.checked)} className="accent-red-500 w-4 h-4" data-testid="checkbox-product-onsale" />
+                    <span className="text-[11px] font-bold">🏷️ ضمن العروض (Sale)</span>
+                  </label>
                 </div>
               </div>
+
+              {form.watch("isOnSale" as any) && (
+                <div className="space-y-2 text-right">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (ر.س)</Label>
+                  <Input type="number" step="0.01" {...form.register("salePrice" as any)} placeholder="السعر بعد التخفيض" className="rounded-none h-12 text-right border-red-300" data-testid="input-product-saleprice" />
+                </div>
+              )}
 
            <div className="space-y-2 text-right">
                 <div className="flex justify-between items-center">
@@ -876,7 +901,6 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
                   </div>
                 </div>
                 
-                {/* Image Gallery */}
                 <div className="grid grid-cols-6 gap-2 bg-secondary/5 p-3 border border-black/5">
                   {(form.watch("images") || []).map((img: string, idx: number) => (
                     <div key={idx} className="relative group">
@@ -903,65 +927,76 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
                 <p className="text-[8px] text-black/40 mt-1">يمكنك رفع عدة صور للمنتج. الصورة الأولى ستظهر في قائمة المنتجات</p>
               </div>
 
-           <div className="space-y-2 text-right">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">الوصف التفصيلي</Label>
-                <DescriptionGenerator
-                  productName={form.watch("name") || ""}
-                  productCategory={categories?.find((c: any) => c.id === selectedCategoryIds[0])?.name || "ملابس"}
-                  price={Number(form.watch("price")) || 0}
-                  onApply={(desc) => form.setValue("description", desc)}
-                />
-                <Textarea {...form.register("description")} className="rounded-none min-h-[100px] text-right" />
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">الوصف التفصيلي (عربي)</Label>
+                  <DescriptionGenerator
+                    productName={form.watch("name") || ""}
+                    productCategory={categories?.find((c: any) => c.id === selectedCategoryIds[0])?.name || "عطور"}
+                    price={Number(form.watch("price")) || 0}
+                    onApply={(desc) => form.setValue("description", desc)}
+                  />
+                  <Textarea {...form.register("description")} className="rounded-none min-h-[140px] text-right" data-testid="textarea-product-description-ar" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Description (English)</Label>
+                  <Textarea {...form.register("descriptionEn" as any)} dir="ltr" className="rounded-none min-h-[140px] text-left mt-[34px]" placeholder="English description (optional)" data-testid="textarea-product-description-en" />
+                </div>
               </div>
 
            <div className="space-y-4 pt-4 border-t border-black/5 text-right">
                 <div className="flex justify-between items-center">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-black/40">المتغيرات (الألوان والمقاسات والصور)</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addVariant} className="rounded-none text-[10px] font-black uppercase tracking-widest h-8">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-black/40">المتغيرات (لون / مقاس / سعر / مخزون / صورة)</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={addVariant} className="rounded-none text-[10px] font-black uppercase tracking-widest h-8" data-testid="button-add-variant">
                     إضافة متغير <Plus className="mr-1 h-3 w-3" />
                   </Button>
                 </div>
-                
+                <p className="text-[9px] text-black/50">💡 اترك سعر المتغير = 0 لاستخدام السعر الأساسي للمنتج. حدد سعراً مختلفاً لكل حجم/لون عند الحاجة.</p>
+
                 <div className="space-y-3">
                   {variants.map((v, i) => (
-                    <div key={i} className="grid grid-cols-6 gap-3 items-end bg-secondary/10 p-4 border border-black/5">
-                      <div className="space-y-1">
+                    <div key={i} className="grid grid-cols-12 gap-2 items-end bg-secondary/10 p-3 border border-black/5">
+                      <div className="col-span-2 space-y-1">
                         <Label className="text-[9px] font-bold">اللون</Label>
-                        <Input value={v.color} onChange={(e) => updateVariant(i, "color", e.target.value)} className="h-8 rounded-none text-xs text-right" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[9px] font-bold">المقاس</Label>
-                        <Input value={v.size} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[9px] font-bold">المخزون</Label>
-                        <Input type="number" value={v.stock} onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value))} className="h-8 rounded-none text-xs text-right" />
+                        <Input value={v.color || ""} onChange={(e) => updateVariant(i, "color", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="ذهبي" data-testid={`input-variant-color-${i}`} />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <Label className="text-[9px] font-bold">صورة المتغير</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={(e) => handleImageUpload(e, i)} 
-                            className="h-8 rounded-none text-[8px] pt-1.5 cursor-pointer" 
-                          />
-                          {v.image && (
-                            <div className="w-8 h-8 border border-black/5 overflow-hidden shrink-0">
-                              <img src={v.image} alt="" className="w-full h-full object-cover" />
-                            </div>
-                          )}
+                        <Label className="text-[9px] font-bold">المقاس/الحجم</Label>
+                        <Input value={v.size || ""} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="50ml" data-testid={`input-variant-size-${i}`} />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold text-emerald-700">السعر (ر.س)</Label>
+                        <Input type="number" step="0.01" value={v.price ?? 0} onChange={(e) => updateVariant(i, "price", parseFloat(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right border-emerald-300" placeholder="0" data-testid={`input-variant-price-${i}`} />
+                      </div>
+                      <div className="col-span-1 space-y-1">
+                        <Label className="text-[9px] font-bold">المخزون</Label>
+                        <Input type="number" value={v.stock ?? 0} onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right" data-testid={`input-variant-stock-${i}`} />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold">SKU</Label>
+                        <Input value={v.sku || ""} onChange={(e) => updateVariant(i, "sku", e.target.value)} className="h-8 rounded-none text-[10px] text-right" data-testid={`input-variant-sku-${i}`} />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold">صورة</Label>
+                        <div className="flex gap-1 items-center">
+                          <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, i)} className="h-8 rounded-none text-[8px] pt-1.5 cursor-pointer" />
+                          {v.image && <div className="w-8 h-8 border border-black/5 overflow-hidden shrink-0"><img src={v.image} alt="" className="w-full h-full object-cover" /></div>}
                         </div>
                       </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(i)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="col-span-1 flex justify-end">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(i)} className="h-8 w-8 text-destructive hover:bg-destructive/10" data-testid={`button-remove-variant-${i}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
+                  {variants.length === 0 && (
+                    <div className="text-center py-6 text-black/40 text-[10px] border border-dashed border-black/10">لا توجد متغيرات. اضغط "إضافة متغير" لإضافة لون/مقاس/سعر مختلف.</div>
+                  )}
                 </div>
               </div>
 
-           <Button type="submit" className="w-full h-14 rounded-none font-black uppercase tracking-widest text-lg">تحديث المنتج</Button>
+           <Button type="submit" className="w-full h-14 rounded-none font-black uppercase tracking-widest text-lg" data-testid="button-submit-product">تحديث المنتج</Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -997,13 +1032,17 @@ const ProductsTable = memo(() => {
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
       name: "",
+      nameEn: "",
       description: "",
+      descriptionEn: "",
       price: "0",
       cost: "0",
       images: [],
       categoryIds: [],
       variants: [],
       isFeatured: false,
+      isOnSale: false,
+      salePrice: "",
     } as any
   });
 
@@ -1011,12 +1050,16 @@ const ProductsTable = memo(() => {
     if (editingProduct) {
       form.reset({
         name: editingProduct.name,
+        nameEn: (editingProduct as any).nameEn || "",
         description: editingProduct.description,
+        descriptionEn: (editingProduct as any).descriptionEn || "",
         price: editingProduct.price,
         cost: editingProduct.cost,
         images: editingProduct.images || [],
         categoryIds: [],
         isFeatured: editingProduct.isFeatured,
+        isOnSale: (editingProduct as any).isOnSale || false,
+        salePrice: (editingProduct as any).salePrice || "",
         variants: (editingProduct as any).variants || [],
       } as any);
       setVariants((editingProduct as any).variants || []);
@@ -1028,13 +1071,17 @@ const ProductsTable = memo(() => {
     } else {
       form.reset({
         name: "",
+        nameEn: "",
         description: "",
+        descriptionEn: "",
         price: "0",
         cost: "0",
         images: [],
         categoryIds: [],
         variants: [],
         isFeatured: false,
+        isOnSale: false,
+        salePrice: "",
       } as any);
       setVariants([]);
       setSelectedCategoryIds([]);
@@ -1042,7 +1089,7 @@ const ProductsTable = memo(() => {
   }, [editingProduct]); // Removed 'form' from dependencies to avoid infinite loop
 
   const addVariant = () => {
-    setVariants([...variants, { color: "", size: "", sku: `SKU-${Date.now()}`, stock: 0, image: "" }]);
+    setVariants([...variants, { color: "", size: "", sku: `SKU-${Date.now()}`, stock: 0, price: 0, cost: 0, image: "" }]);
   };
 
   const removeVariant = (index: number) => {
@@ -1073,8 +1120,9 @@ const ProductsTable = memo(() => {
         categoryId: selectedCategoryIds[0] || "",
         variants: variants.map(v => ({
           ...v,
-          stock: Number(v.stock),
-          cost: Number(v.cost || 0)
+          stock: Number(v.stock) || 0,
+          price: Number(v.price) || 0,
+          cost: Number(v.cost) || 0,
         })),
         price: data.price.toString(),
         cost: data.cost.toString(),
@@ -1170,12 +1218,23 @@ const ProductsTable = memo(() => {
             <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6 mt-8" dir="rtl">
               <div className="grid grid-cols-2 gap-6 text-right">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">اسم المنتج</Label>
-                  <Input {...form.register("name")} className="rounded-none h-12 text-right" />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">اسم المنتج (عربي)</Label>
+                  <Input {...form.register("name")} className="rounded-none h-12 text-right" data-testid="input-product-name-ar-add" />
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Product Name (English)</Label>
+                  <Input {...form.register("nameEn" as any)} dir="ltr" className="rounded-none h-12 text-left" data-testid="input-product-name-en-add" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 text-right">
+                <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (ر.س)</Label>
-                  <Input type="number" {...form.register("price")} className="rounded-none h-12 text-right" />
+                  <Input type="number" step="0.01" {...form.register("price")} className="rounded-none h-12 text-right" data-testid="input-product-price-add" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
+                  <Input type="number" step="0.01" {...form.register("cost")} className="rounded-none h-12 text-right" data-testid="input-product-cost-add" />
                 </div>
               </div>
 
@@ -1217,11 +1276,20 @@ const ProductsTable = memo(() => {
                     ))}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
-                  <Input type="number" {...form.register("cost")} className="rounded-none h-12 text-right" />
+                <div className="space-y-2 flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer w-full bg-secondary/10 p-3 border border-black/10">
+                    <input type="checkbox" checked={!!form.watch("isOnSale" as any)} onChange={e => form.setValue("isOnSale" as any, e.target.checked)} className="accent-red-500 w-4 h-4" data-testid="checkbox-product-onsale-add" />
+                    <span className="text-[11px] font-bold">🏷️ ضمن العروض (Sale)</span>
+                  </label>
                 </div>
               </div>
+
+              {form.watch("isOnSale" as any) && (
+                <div className="space-y-2 text-right">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (ر.س)</Label>
+                  <Input type="number" step="0.01" {...form.register("salePrice" as any)} placeholder="السعر بعد التخفيض" className="rounded-none h-12 text-right border-red-300" data-testid="input-product-saleprice-add" />
+                </div>
+              )}
 
               <div className="space-y-2 text-right">
                 <div className="flex justify-between items-center">
@@ -1267,61 +1335,72 @@ const ProductsTable = memo(() => {
                 <p className="text-[8px] text-black/40 mt-1">يمكنك رفع عدة صور للمنتج. الصورة الأولى ستظهر في قائمة المنتجات</p>
               </div>
 
-              <div className="space-y-2 text-right">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">الوصف التفصيلي</Label>
-                <DescriptionGenerator
-                  productName={form.watch("name") || ""}
-                  productCategory={categories?.find((c: any) => c.id === selectedCategoryIds[0])?.name || "ملابس"}
-                  price={Number(form.watch("price")) || 0}
-                  onApply={(desc) => form.setValue("description", desc)}
-                />
-                <Textarea {...form.register("description")} className="rounded-none min-h-[100px] text-right" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">الوصف التفصيلي (عربي)</Label>
+                  <DescriptionGenerator
+                    productName={form.watch("name") || ""}
+                    productCategory={categories?.find((c: any) => c.id === selectedCategoryIds[0])?.name || "عطور"}
+                    price={Number(form.watch("price")) || 0}
+                    onApply={(desc) => form.setValue("description", desc)}
+                  />
+                  <Textarea {...form.register("description")} className="rounded-none min-h-[140px] text-right" data-testid="textarea-product-description-ar-add" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Description (English)</Label>
+                  <Textarea {...form.register("descriptionEn" as any)} dir="ltr" className="rounded-none min-h-[140px] text-left mt-[34px]" placeholder="English description (optional)" data-testid="textarea-product-description-en-add" />
+                </div>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-black/5 text-right">
                 <div className="flex justify-between items-center">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-black/40">المتغيرات (الألوان والمقاسات والصور)</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addVariant} className="rounded-none text-[10px] font-black uppercase tracking-widest h-8">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-black/40">المتغيرات (لون / مقاس / سعر / مخزون / صورة)</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={addVariant} className="rounded-none text-[10px] font-black uppercase tracking-widest h-8" data-testid="button-add-variant-add">
                     إضافة متغير <Plus className="mr-1 h-3 w-3" />
                   </Button>
                 </div>
-                
+                <p className="text-[9px] text-black/50">💡 اترك سعر المتغير = 0 لاستخدام السعر الأساسي للمنتج. حدد سعراً مختلفاً لكل حجم/لون عند الحاجة.</p>
+
                 <div className="space-y-3">
                   {variants.map((v, i) => (
-                    <div key={i} className="grid grid-cols-6 gap-3 items-end bg-secondary/10 p-4 border border-black/5">
-                      <div className="space-y-1">
+                    <div key={i} className="grid grid-cols-12 gap-2 items-end bg-secondary/10 p-3 border border-black/5">
+                      <div className="col-span-2 space-y-1">
                         <Label className="text-[9px] font-bold">اللون</Label>
-                        <Input value={v.color} onChange={(e) => updateVariant(i, "color", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="أسود" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[9px] font-bold">المقاس</Label>
-                        <Input value={v.size} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="L" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[9px] font-bold">المخزون</Label>
-                        <Input type="number" value={v.stock} onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value))} className="h-8 rounded-none text-xs text-right" />
+                        <Input value={v.color || ""} onChange={(e) => updateVariant(i, "color", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="ذهبي" />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <Label className="text-[9px] font-bold">صورة المتغير</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={(e) => handleImageUpload(e, i)} 
-                            className="h-8 rounded-none text-[8px] pt-1.5 cursor-pointer" 
-                          />
-                          {v.image && (
-                            <div className="w-8 h-8 border border-black/5 overflow-hidden shrink-0">
-                              <img src={v.image} alt="" className="w-full h-full object-cover" />
-                            </div>
-                          )}
+                        <Label className="text-[9px] font-bold">المقاس/الحجم</Label>
+                        <Input value={v.size || ""} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="50ml" />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold text-emerald-700">السعر (ر.س)</Label>
+                        <Input type="number" step="0.01" value={v.price ?? 0} onChange={(e) => updateVariant(i, "price", parseFloat(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right border-emerald-300" placeholder="0" />
+                      </div>
+                      <div className="col-span-1 space-y-1">
+                        <Label className="text-[9px] font-bold">المخزون</Label>
+                        <Input type="number" value={v.stock ?? 0} onChange={(e) => updateVariant(i, "stock", parseInt(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right" />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold">SKU</Label>
+                        <Input value={v.sku || ""} onChange={(e) => updateVariant(i, "sku", e.target.value)} className="h-8 rounded-none text-[10px] text-right" />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <Label className="text-[9px] font-bold">صورة</Label>
+                        <div className="flex gap-1 items-center">
+                          <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, i)} className="h-8 rounded-none text-[8px] pt-1.5 cursor-pointer" />
+                          {v.image && <div className="w-8 h-8 border border-black/5 overflow-hidden shrink-0"><img src={v.image} alt="" className="w-full h-full object-cover" /></div>}
                         </div>
                       </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(i)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="col-span-1 flex justify-end">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(i)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
+                  {variants.length === 0 && (
+                    <div className="text-center py-6 text-black/40 text-[10px] border border-dashed border-black/10">لا توجد متغيرات. اضغط "إضافة متغير" لإضافة لون/مقاس/سعر مختلف.</div>
+                  )}
                 </div>
               </div>
 

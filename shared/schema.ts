@@ -127,11 +127,15 @@ export type Coupon = InsertCoupon & { _id: string; id: string; usageCount: numbe
 // Product Schema
 export const insertProductSchema = z.object({
   name: z.string().min(1),
+  nameEn: z.string().optional().default(""),
   description: z.string().min(1),
+  descriptionEn: z.string().optional().default(""),
   price: z.string(),
   cost: z.string(),
   images: z.array(z.string()),
   isFeatured: z.boolean().default(false),
+  isOnSale: z.boolean().optional().default(false),
+  salePrice: z.string().optional().default(""),
   barcode: z.string().optional(),
   printBarcode: z.boolean().default(true),
   categoryId: z.string().optional(),
@@ -141,6 +145,7 @@ export const insertProductSchema = z.object({
     size: z.string().optional(),
     sku: z.string(),
     stock: z.number().default(0),
+    price: z.number().default(0),
     cost: z.number().default(0),
     image: z.string().optional(),
   })).default([]),

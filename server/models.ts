@@ -86,7 +86,9 @@ const vendorSchema = new Schema(
 const productSchema = new Schema<Product>(
   {
     name: { type: String, required: true },
+    nameEn: { type: String, default: "" },
     description: { type: String, required: true },
+    descriptionEn: { type: String, default: "" },
     price: { type: String, required: true },
     cost: { type: String, required: true },
     images: [String],
@@ -98,10 +100,13 @@ const productSchema = new Schema<Product>(
       size: String,
       sku: String,
       stock: Number,
+      price: { type: Number, default: 0 },
       cost: { type: Number, default: 0 },
       image: String,
     }],
     isFeatured: { type: Boolean, default: false },
+    isOnSale: { type: Boolean, default: false },
+    salePrice: { type: String, default: "" },
   },
   { timestamps: true }
 );

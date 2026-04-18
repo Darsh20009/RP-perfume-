@@ -1971,7 +1971,7 @@ export async function registerRoutes(
   // ─── Custom Pages ───────────────────────────────────────────────────────────
   app.get("/api/pages", async (req, res) => {
     try {
-      const navOnly = req.query.nav === "1";
+      const navOnly = req.query.nav === "1" || req.query.nav === "true";
       const items = await storage.getCustomPages({ activeOnly: true, navOnly });
       res.json(items);
     } catch (err: any) { res.json([]); }
