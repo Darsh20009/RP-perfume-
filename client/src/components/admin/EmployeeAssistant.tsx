@@ -77,14 +77,19 @@ export function EmployeeAssistant() {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       }
     } catch (err: any) {
+      // Detect language from user input to keep the fallback bilingual-friendly
+      const isArabic = /[\u0600-\u06ff]/.test(text);
+      const fallback = isArabic
+        ? "عذراً، تعذّر الاتصال بالمساعد الآن. تحقق من اتصالك بالإنترنت وحاول مجدداً بعد لحظات."
+        : "Sorry, I couldn't reach the assistant right now. Please check your connection and try again in a moment.";
       toast({
-        title: "خطأ",
-        description: err.message || "تعذّر التواصل مع المساعد",
+        title: isArabic ? "تعذّر الاتصال" : "Connection issue",
+        description: err.message || (isArabic ? "تعذّر التواصل مع المساعد" : "Could not reach the assistant"),
         variant: "destructive",
       });
       setMessages([
         ...newMessages,
-        { role: "assistant", content: "عذراً، حدث خطأ. حاول مرة أخرى." },
+        { role: "assistant", content: fallback },
       ]);
     } finally {
       setBusy(false);

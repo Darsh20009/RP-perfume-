@@ -715,98 +715,107 @@ When done: a concise English reply summarising what you did — no excessive tab
 
 // ─── Assistant Loop ─────────────────────────────────────────────────────────
 
-async function groqWithTools(messages: any[], maxIterations = 8): Promise<any> {
+async function callGroq(allMessages: any[]): Promise<{ ok: boolean; status?: number; data?: any; errText?: string }> {
+  // Try every available key once; rotate on 429/5xx
+  const triedKeys = new Set<number>();
+  let lastStatus = 0;
+  let lastText = "";
+  for (let attempt = 0; attempt < Math.max(GROQ_KEYS.length, 1); attempt++) {
+    const idx = (keyIndex + attempt) % Math.max(GROQ_KEYS.length, 1);
+    if (triedKeys.has(idx)) continue;
+    triedKeys.add(idx);
+    const key = GROQ_KEYS[idx];
+    if (!key) continue;
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: allMessages,
+          tools: TOOLS,
+          tool_choice: "auto",
+          temperature: 0.2,
+          max_tokens: 1800,
+        }),
+      });
+      if (res.ok) {
+        keyIndex = (idx + 1) % Math.max(GROQ_KEYS.length, 1);
+        const data = await res.json();
+        return { ok: true, data };
+      }
+      lastStatus = res.status;
+      lastText = (await res.text()).slice(0, 300);
+      console.error("[Assistant Groq]", res.status, lastText);
+      if (res.status !== 429 && res.status < 500) break; // permanent error
+    } catch (e: any) {
+      lastText = e?.message || String(e);
+      console.error("[Assistant Groq] network", lastText);
+    }
+  }
+  return { ok: false, status: lastStatus, errText: lastText };
+}
+
+const GRACEFUL_FALLBACK = (lang: "ar" | "en", reason: string) => lang === "ar"
+  ? `عذراً، ما قدرت أكمل هذا الطلب الآن (${reason}). تقدر تجرب من جديد بعد لحظات، أو تصيغ الطلب بطريقة مختلفة. لو احتجت مساعدة محددة، اكتبها لي وراح أحاول من زاوية ثانية.`
+  : `Sorry, I couldn't complete this request right now (${reason}). Please try again in a moment, or rephrase your question. If you tell me what you need specifically, I'll try a different approach.`;
+
+async function groqWithTools(messages: any[], lang: "ar" | "en" = "ar", maxIterations = 8): Promise<any> {
   const allMessages = [...messages];
   const actions: Array<{ tool: string; args: any; result: any }> = [];
 
   for (let i = 0; i < maxIterations; i++) {
-    const key = getNextKey();
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: allMessages,
-        tools: TOOLS,
-        tool_choice: "auto",
-        temperature: 0.2,
-        max_tokens: 1800,
-      }),
-    });
+    const result = await callGroq(allMessages);
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("[Assistant Groq]", res.status, text.slice(0, 300));
-      // On 429, retry once with a different key
-      if (res.status === 429) {
-        const fbKey = getNextKey();
-        const retry = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${fbKey}` },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: allMessages,
-            tools: TOOLS,
-            tool_choice: "auto",
-            temperature: 0.2,
-            max_tokens: 1800,
-          }),
-        });
-        if (!retry.ok) throw new Error(`Groq error ${retry.status}`);
-        const data = await retry.json();
-        const message = data.choices?.[0]?.message;
-        if (!message) throw new Error("No response from model");
-        allMessages.push(message);
-        const tc = message.tool_calls;
-        if (!tc || tc.length === 0) return { reply: message.content || "", actions };
-        const results = await Promise.all(tc.map(async (call: any) => {
-          let parsedArgs: any = {};
-          try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch {}
-          const result = await execTool(call.function.name, parsedArgs, null);
-          actions.push({ tool: call.function.name, args: parsedArgs, result });
-          return { tool_call_id: call.id, role: "tool" as const, name: call.function.name, content: JSON.stringify(result) };
-        }));
-        allMessages.push(...results);
-        continue;
-      }
-      throw new Error(`Groq error ${res.status}`);
+    if (!result.ok) {
+      const reason = lang === "ar"
+        ? (result.status === 429 ? "خدمة الذكاء مزدحمة حالياً" : `خطأ تقني ${result.status || ""}`.trim())
+        : (result.status === 429 ? "AI service is currently busy" : `technical error ${result.status || ""}`.trim());
+      return { reply: GRACEFUL_FALLBACK(lang, reason), actions };
     }
 
-    const data = await res.json();
-    const message = data.choices?.[0]?.message;
-    if (!message) throw new Error("No response from model");
+    const message = result.data?.choices?.[0]?.message;
+    if (!message) {
+      return { reply: GRACEFUL_FALLBACK(lang, lang === "ar" ? "رد فارغ من النموذج" : "empty model response"), actions };
+    }
 
     allMessages.push(message);
 
     const toolCalls = message.tool_calls;
     if (!toolCalls || toolCalls.length === 0) {
-      return { reply: message.content || "", actions };
+      return { reply: message.content || GRACEFUL_FALLBACK(lang, lang === "ar" ? "بدون رد" : "no reply"), actions };
     }
 
-    const results = await Promise.all(
+    // Execute all tool calls — never let a tool failure crash the loop
+    const toolResults = await Promise.all(
       toolCalls.map(async (call: any) => {
         const fnName = call.function.name;
         let parsedArgs: any = {};
         try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch {}
-        const result = await execTool(fnName, parsedArgs, null);
-        actions.push({ tool: fnName, args: parsedArgs, result });
+        let toolResult: any;
+        try {
+          toolResult = await execTool(fnName, parsedArgs, null);
+        } catch (e: any) {
+          console.error(`[Assistant Tool] ${fnName} threw:`, e?.message);
+          toolResult = { error: true, message: e?.message || "tool failed", tool: fnName };
+        }
+        actions.push({ tool: fnName, args: parsedArgs, result: toolResult });
         return {
           tool_call_id: call.id,
           role: "tool" as const,
           name: fnName,
-          content: JSON.stringify(result),
+          content: JSON.stringify(toolResult),
         };
       })
     );
 
-    allMessages.push(...results);
+    allMessages.push(...toolResults);
   }
 
   return {
-    reply: "تم تنفيذ عدة خطوات، لكنني وصلت للحد الأقصى من التكرار. الإجراءات المنفذة موجودة أعلاه — أخبرني إن أردت متابعة المهمة.",
+    reply: lang === "ar"
+      ? "نفذت عدة خطوات لكن وصلت للحد الأقصى من التكرارات. النتائج أعلاه — لو تبيني أكمل من نقطة معينة، خبّرني."
+      : "I performed several steps but reached the maximum iteration limit. Results are above — let me know if you'd like me to continue from a specific point.",
     actions,
   };
 }
@@ -826,31 +835,48 @@ export function registerEmployeeAssistant(app: Express) {
         return res.status(403).json({ message: "ليس لديك صلاحية" });
       }
 
-      if (GROQ_KEYS.length === 0) {
-        return res.status(503).json({ message: "AI غير مُفعّل" });
-      }
-
       const { messages = [] } = req.body;
       const userMessages = Array.isArray(messages) ? messages.slice(-12) : [];
 
       // Detect language from the most recent user message
       const lastUserMsg = [...userMessages].reverse().find((m: any) => m.role === "user");
-      const lang = lastUserMsg?.content ? detectLang(String(lastUserMsg.content)) : "ar";
+      const lang: "ar" | "en" = lastUserMsg?.content ? detectLang(String(lastUserMsg.content)) : "ar";
+
+      if (GROQ_KEYS.length === 0) {
+        return res.json({
+          reply: lang === "ar"
+            ? "خدمة الذكاء الاصطناعي غير مفعّلة على الخادم حالياً. تواصل مع المسؤول التقني لتفعيل مفاتيح Groq API."
+            : "The AI service is not enabled on the server right now. Please contact the technical admin to set up the Groq API keys.",
+          actions: [],
+        });
+      }
 
       const today = new Date().toISOString().slice(0, 10);
       const systemPrompt = lang === "ar"
         ? SYSTEM_PROMPT_AR(today, user.role, user.name || user.phone)
         : SYSTEM_PROMPT_EN(today, user.role, user.name || user.phone);
 
-      const result = await groqWithTools([
-        { role: "system", content: systemPrompt },
-        ...userMessages,
-      ]);
+      const result = await groqWithTools(
+        [{ role: "system", content: systemPrompt }, ...userMessages],
+        lang,
+      );
 
       res.json(result);
     } catch (err: any) {
-      console.error("[Assistant]", err);
-      res.status(500).json({ message: err.message || "خطأ في المساعد" });
+      console.error("[Assistant] unexpected:", err);
+      // Never expose 500 to UI — always return a graceful bilingual reply
+      const fallbackLang: "ar" | "en" = (() => {
+        try {
+          const m = (req.body?.messages || []).slice().reverse().find((x: any) => x.role === "user");
+          return m?.content ? detectLang(String(m.content)) : "ar";
+        } catch { return "ar"; }
+      })();
+      res.json({
+        reply: fallbackLang === "ar"
+          ? "صار خطأ غير متوقع أثناء معالجة طلبك. حاول من جديد بعد لحظة، ولو استمرت المشكلة بلّغ المسؤول التقني."
+          : "An unexpected error happened while handling your request. Please try again in a moment, and if it persists notify the technical admin.",
+        actions: [],
+      });
     }
   });
 }

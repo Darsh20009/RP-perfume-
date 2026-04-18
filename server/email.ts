@@ -154,6 +154,51 @@ function baseTemplate(title: string, content: string): string {
 </html>`;
 }
 
+// ─── Bilingual helpers ─────────────────────────────────────────────────────────
+
+/** Detects the customer's preferred language from any text (name, address, etc.) */
+export function detectLangFromText(text: string): "ar" | "en" {
+  if (!text) return "ar";
+  const s = String(text).replace(/\s+/g, "");
+  if (!s) return "ar";
+  let ar = 0, en = 0;
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (c >= 0x0600 && c <= 0x06ff) ar++;
+    else if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a)) en++;
+  }
+  return ar >= en ? "ar" : "en";
+}
+
+/** Render the same string in both languages, primary first */
+function bi(ar: string, en: string, lang: "ar" | "en" = "ar"): string {
+  return lang === "ar"
+    ? `${ar}<span style="display:inline-block;margin:0 6px;color:rgba(0,0,0,0.25);">|</span><span style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-weight:700;direction:ltr;unicode-bidi:isolate;">${en}</span>`
+    : `<span style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-weight:700;direction:ltr;unicode-bidi:isolate;">${en}</span><span style="display:inline-block;margin:0 6px;color:rgba(0,0,0,0.25);">|</span>${ar}`;
+}
+
+/** Render a paragraph that mirrors the message in both languages */
+function biPara(ar: string, en: string): string {
+  return `
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="margin:8px 0;">
+      <tr>
+        <td dir="rtl" style="text-align:right;font-size:14px;color:rgba(0,0,0,0.7);line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:6px 0;">${ar}</td>
+      </tr>
+      <tr>
+        <td dir="ltr" style="text-align:left;font-size:13px;color:rgba(0,0,0,0.55);line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:6px 0;border-top:1px dashed rgba(0,0,0,0.08);">${en}</td>
+      </tr>
+    </table>`;
+}
+
+/** Wrap an English mirror block to display below the primary content */
+function englishMirror(content: string): string {
+  return `
+    <div dir="ltr" style="text-align:left;margin:32px 0 0;padding:24px 0 0;border-top:2px solid rgba(0,0,0,0.08);font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+      <p style="margin:0 0 8px;font-size:10px;font-weight:700;letter-spacing:0.2em;color:rgba(0,0,0,0.4);text-transform:uppercase;">English Version</p>
+      ${content}
+    </div>`;
+}
+
 // ─── Email-safe HTML helpers (use tables, not flex/grid) ───────────────────────
 
 /** Renders an info row as a table — works in Gmail, Outlook, all clients */
@@ -279,12 +324,22 @@ export async function sendOrderConfirmationEmail(params: {
     </p>
   `;
 
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">Order Received ✅</h2>
+    <p style="margin:0 0 16px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">Thank you ${params.customerName}, your order is in safe hands</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Order Number:</b> #${params.orderRef}</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Total:</b> ${params.total.toLocaleString("en-US")} SAR</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Payment Method:</b> ${params.paymentMethod}</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Delivery Address:</b> ${params.deliveryAddress}</p>
+    <p style="margin:16px 0 0;font-size:12px;color:rgba(0,0,0,0.6);line-height:1.7;">Your order is being prepared and we'll be in touch shortly. Track it anytime from your account at <a href="https://e-commerce.rfperfume.sa/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">e-commerce.rfperfume.sa/orders</a></p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `✅ تم استلام طلبك #${params.orderRef} — رفيف العود`,
-    html: baseTemplate(`تأكيد الطلب #${params.orderRef}`, content),
-    text: `تم استلام طلبك #${params.orderRef} بقيمة ${params.total} ر.س. شكراً لتسوقك مع رفيف العود.`,
+    subject: `✅ تم استلام طلبك #${params.orderRef} | Order #${params.orderRef} Received — RF Perfume`,
+    html: baseTemplate(`تأكيد الطلب #${params.orderRef} / Order Confirmation`, content + enMirror),
+    text: `تم استلام طلبك #${params.orderRef} بقيمة ${params.total} ر.س. شكراً لتسوقك مع رفيف العود.\n\nYour order #${params.orderRef} (${params.total} SAR) has been received. Thank you for shopping with RF Perfume.`,
   });
 }
 
@@ -396,12 +451,28 @@ export async function sendOrderStatusEmail(params: {
     ${ctaButton("https://e-commerce.rfperfume.sa/orders", cfg.cta)}
   `;
 
+  const enLabels: Record<string, { title: string; subtitle: string; cta: string }> = {
+    processing: { title: "Your order is being prepared", subtitle: "Our team is carefully assembling your order", cta: "Track Order" },
+    shipped:    { title: "Your order is on its way!",     subtitle: "Handed off to the shipping carrier",       cta: "Track Shipment" },
+    completed:  { title: "Your order has been delivered!", subtitle: "We hope you love it",                      cta: "Shop Again" },
+    cancelled:  { title: "Your order has been cancelled", subtitle: "We're sorry — contact us with any questions", cta: "Contact Us" },
+  };
+  const enInfo = enLabels[params.status];
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">${cfg.emoji} ${enInfo.title}</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">${enInfo.subtitle}</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Order Number:</b> #${params.orderRef}</p>
+    ${params.trackingNumber ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Tracking:</b> ${params.trackingNumber}${params.shippingProvider ? ` (${params.shippingProvider})` : ""}</p>` : ""}
+    ${params.reason ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Reason:</b> ${params.reason}</p>` : ""}
+    <p style="margin:12px 0 0;font-size:12px;color:rgba(0,0,0,0.6);"><a href="https://e-commerce.rfperfume.sa/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">${enInfo.cta} →</a></p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `${cfg.emoji} طلبك #${params.orderRef} — ${cfg.badgeText} | رفيف العود`,
-    html: baseTemplate(`تحديث الطلب #${params.orderRef}`, content),
-    text: `تحديث طلبك #${params.orderRef}: ${cfg.badgeText}`,
+    subject: `${cfg.emoji} طلبك #${params.orderRef} — ${cfg.badgeText} | Order #${params.orderRef} — ${enInfo.title}`,
+    html: baseTemplate(`تحديث الطلب #${params.orderRef} / Order Update`, content + enMirror),
+    text: `تحديث طلبك #${params.orderRef}: ${cfg.badgeText}\nOrder #${params.orderRef} status: ${enInfo.title}`,
   });
 }
 
@@ -435,12 +506,25 @@ export async function sendWelcomeEmail(params: {
     </p>
   `;
 
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">👋 Welcome ${params.customerName}!</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">You've joined the RF Perfume family</p>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.7);line-height:1.7;">We're delighted to have you. Your account is ready and you can now shop hundreds of luxury fragrances safely and easily.</p>
+    <ul style="margin:0;padding:0 0 0 20px;font-size:12px;color:rgba(0,0,0,0.7);line-height:1.8;">
+      <li>✅ <b>Secure account</b> — your data is protected with the highest encryption standards</li>
+      <li>🚚 <b>Fast shipping</b> — delivery within 2–4 business days</li>
+      <li>💳 <b>Multiple payment options</b> — Mada, Visa, STC Pay, Apple Pay, Tamara, Tabby</li>
+      <li>🔔 <b>Real-time notifications</b> — track your orders moment by moment</li>
+    </ul>
+    <p style="margin:16px 0 0;font-size:12px;"><a href="https://e-commerce.rfperfume.sa/products" style="color:#1a2744;font-weight:800;text-decoration:none;">Start Shopping →</a></p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `👋 أهلاً ${params.customerName}! مرحباً بك في رفيف العود`,
-    html: baseTemplate("مرحباً بك في رفيف العود", content),
-    text: `أهلاً ${params.customerName}! مرحباً بك في رفيف العود. يمكنك الآن التسوق من أفضل المنتجات.`,
+    subject: `👋 أهلاً ${params.customerName}! مرحباً بك في رفيف العود | Welcome to RF Perfume`,
+    html: baseTemplate("مرحباً بك في رفيف العود / Welcome to RF Perfume", content + enMirror),
+    text: `أهلاً ${params.customerName}! مرحباً بك في رفيف العود.\nWelcome ${params.customerName}! Your RF Perfume account is ready.`,
   });
 }
 
@@ -487,12 +571,24 @@ export async function sendPaymentConfirmationEmail(params: {
     ${ctaButton("https://e-commerce.rfperfume.sa/orders", "عرض طلباتي")}
   `;
 
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">💳 Payment Successful!</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">Your payment was processed securely</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Order Number:</b> #${params.orderRef}</p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Amount Paid:</b> <span style="color:#16a34a;font-weight:900;">${params.amount.toLocaleString("en-US")} SAR</span></p>
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Payment Method:</b> ${params.paymentMethod}</p>
+    ${params.transactionId ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Transaction ID:</b> <code>${params.transactionId.slice(0, 24)}</code></p>` : ""}
+    ${params.authCode ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Authorization Code:</b> <code style="color:#15803d;font-weight:900;">${params.authCode}</code></p>` : ""}
+    <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Date & Time:</b> ${new Date().toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })}</p>
+    <p style="margin:16px 0 0;font-size:12px;color:rgba(0,0,0,0.6);line-height:1.7;">Keep this email as your payment receipt. If you don't recognize this transaction, contact us immediately.</p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `💳 تأكيد الدفع — طلب #${params.orderRef} | رفيف العود`,
-    html: baseTemplate("تأكيد الدفع", content),
-    text: `تم الدفع بنجاح. طلب #${params.orderRef} — ${params.amount.toLocaleString()} ر.س.`,
+    subject: `💳 تأكيد الدفع — طلب #${params.orderRef} | Payment Confirmed — Order #${params.orderRef}`,
+    html: baseTemplate("تأكيد الدفع / Payment Confirmation", content + enMirror),
+    text: `تم الدفع بنجاح. طلب #${params.orderRef} — ${params.amount.toLocaleString()} ر.س.\nPayment confirmed. Order #${params.orderRef} — ${params.amount.toLocaleString("en-US")} SAR.`,
   });
 }
 
@@ -528,12 +624,20 @@ export async function sendPasswordResetEmail(params: {
     </p>
   `;
 
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">🔐 Password Reset</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">We received a request to reset your password</p>
+    ${params.otp ? `<p style="margin:0 0 8px;font-size:13px;color:rgba(0,0,0,0.7);">Your verification code is: <span style="font-family:monospace;font-weight:900;font-size:18px;color:#1a2744;letter-spacing:0.2em;">${params.otp}</span> (valid for 10 minutes)</p>` : ""}
+    ${params.resetLink ? `<p style="margin:8px 0;font-size:12px;"><a href="${params.resetLink}" style="color:#1a2744;font-weight:800;text-decoration:none;">Reset Password →</a></p>` : ""}
+    <p style="margin:12px 0 0;font-size:11px;color:rgba(0,0,0,0.5);line-height:1.7;">If you didn't request a password reset, ignore this email. Nothing will change in your account.</p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `🔐 استعادة كلمة المرور — رفيف العود`,
-    html: baseTemplate("استعادة كلمة المرور", content),
-    text: `رمز استعادة كلمة المرور: ${params.otp || ""}`,
+    subject: `🔐 استعادة كلمة المرور | Password Reset — RF Perfume`,
+    html: baseTemplate("استعادة كلمة المرور / Password Reset", content + enMirror),
+    text: `رمز استعادة كلمة المرور: ${params.otp || ""}\nPassword reset code: ${params.otp || ""}`,
   });
 }
 
@@ -561,9 +665,10 @@ export async function sendAdminAlertEmail(params: {
     ${ctaButton("https://e-commerce.rfperfume.sa/admin", "لوحة التحكم")}
   `;
 
+  // Admin alerts can also include an English mirror by passing data with `_en_*` keys; otherwise just the original
   return sendEmail({
     to: params.to,
-    subject: params.subject,
+    subject: params.subject.includes("|") ? params.subject : `${params.subject} | RF Perfume Admin Alert`,
     html: baseTemplate(params.title, content),
     text: `${params.title}\n${params.message}`,
   });
@@ -612,12 +717,27 @@ export async function sendActivationEmail(params: {
     </p>
   `;
 
+  const enRoleLabels: Record<string, string> = {
+    admin: "Administrator", assistant_manager: "Assistant Manager", tech_support: "Tech Support",
+    accountant: "Accountant", legal_consultant: "Legal Consultant", employee: "Employee",
+    support: "Support", cashier: "Cashier",
+  };
+  const enRole = enRoleLabels[params.role] || "Team Member";
+  const enMirror = englishMirror(`
+    <h2 style="margin:0 0 6px;font-size:20px;font-weight:900;color:#000000;">🎉 Welcome to the RF Perfume Team</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;">Your account has been created as ${enRole}</p>
+    <p style="margin:0 0 12px;font-size:13px;color:rgba(0,0,0,0.7);line-height:1.7;">Hi ${params.name},<br/>Your RF Perfume staff account has been created. To activate it and set your password, click the link below:</p>
+    <p style="margin:8px 0;font-size:12px;"><a href="${params.activationLink}" style="color:#1a2744;font-weight:800;text-decoration:none;">Activate Account & Set Password →</a></p>
+    <p style="margin:12px 0;padding:12px 14px;background:#fff8ec;border:1px solid #f0c674;border-radius:8px;font-size:12px;color:#5a4400;line-height:1.6;">⏰ This link is valid for <b>${params.expiresInHours} hours</b> only. After expiry, ask your manager to send a new activation link.</p>
+    <p style="margin:12px 0 0;font-size:11px;color:rgba(0,0,0,0.5);line-height:1.6;">If you weren't expecting this email, ignore it and no account will be activated.</p>
+  `);
+
   return sendEmail({
     to: params.to,
     toName: params.name,
-    subject: `🎉 تفعيل حسابك في رفيف العود`,
-    html: baseTemplate("تفعيل الحساب", content),
-    text: `مرحباً ${params.name}, لتفعيل حسابك وتعيين كلمة المرور: ${params.activationLink}`,
+    subject: `🎉 تفعيل حسابك في رفيف العود | Activate your RF Perfume account`,
+    html: baseTemplate("تفعيل الحساب / Account Activation", content + enMirror),
+    text: `مرحباً ${params.name}, لتفعيل حسابك: ${params.activationLink}\nHi ${params.name}, activate your account: ${params.activationLink}`,
   });
 }
 
