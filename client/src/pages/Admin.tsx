@@ -25,6 +25,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DescriptionGenerator } from "@/components/ai/DescriptionGenerator";
 import AdminEmail from "@/pages/admin/AdminEmail";
+import AdminInbox from "@/pages/admin/AdminInbox";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
@@ -4280,6 +4281,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
     {
       label: "النظام",
       items: [
+        { id: "inbox", label: "صندوق البريد", icon: Bell },
         { id: "email", label: "البريد الإلكتروني", icon: Send },
         { id: "logs", label: "سجل العمليات", icon: History },
         { id: "settings", label: "إعدادات المتجر", icon: Settings2 },
@@ -4451,6 +4453,7 @@ const pageTitles: Record<string, string> = {
   marketing:    "الحملات التسويقية",
   "flash-deals": "عروض فلاش",
   returns:      "المرتجعات والاسترداد",
+  inbox:        "صندوق البريد — الموظفين",
   email:        "البريد الإلكتروني",
   logs:         "سجل العمليات",
   settings:     "إعدادات المتجر",
@@ -4593,6 +4596,7 @@ export default function Admin() {
                 {activeTab === "broadcast" && <BroadcastPanel />}
                 {activeTab === "flash-deals" && <FlashDealsPanel />}
                 {activeTab === "returns"   && <AdminReturnsPanel />}
+                {activeTab === "inbox"     && <AdminInbox />}
                 {activeTab === "email"     && <AdminEmail />}
                 {activeTab === "logs"      && <AdminAuditLogs />}
                 {activeTab === "settings"  && <StoreSettingsPanel />}

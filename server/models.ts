@@ -527,6 +527,56 @@ const cancellationPolicySchema = new Schema(
 );
 export const CancellationPolicyModel = mongoose.model("CancellationPolicy", cancellationPolicySchema);
 
+// ─── Employee Inbox ────────────────────────────────────────────────────────
+const mailAccountSchema = new Schema(
+  {
+    userId:      { type: String, index: true, default: "" }, // owner; "" = shared
+    email:       { type: String, required: true, unique: true },
+    displayName: { type: String, default: "" },
+    provider:    { type: String, default: "zoho" },
+    imapHost:    { type: String, required: true },
+    imapPort:    { type: Number, default: 993 },
+    smtpHost:    { type: String, required: true },
+    smtpPort:    { type: Number, default: 465 },
+    password:    { type: String, required: true }, // encrypted (AES-256-GCM payload)
+    isActive:    { type: Boolean, default: true },
+    color:       { type: String, default: "#c9a96e" },
+    lastSyncAt:  { type: Date },
+    lastSyncStatus: { type: String, enum: ["ok", "error", "pending"], default: "pending" },
+    lastSyncError:  { type: String, default: "" },
+  },
+  { timestamps: true }
+);
+mailAccountSchema.index({ userId: 1, isActive: 1 });
+export const MailAccountModel = mongoose.model("MailAccount", mailAccountSchema);
+
+const mailMessageSchema = new Schema(
+  {
+    accountId:  { type: String, required: true, index: true },
+    folder:     { type: String, default: "INBOX", index: true },
+    uid:        { type: String, required: true },
+    messageId:  { type: String, default: "" },
+    subject:    { type: String, default: "" },
+    fromEmail:  { type: String, default: "" },
+    fromName:   { type: String, default: "" },
+    toEmails:   [{ type: String }],
+    ccEmails:   [{ type: String }],
+    date:       { type: Date, index: true },
+    textBody:   { type: String, default: "" },
+    htmlBody:   { type: String, default: "" },
+    snippet:    { type: String, default: "" },
+    attachments: [{ filename: String, contentType: String, size: Number }],
+    isRead:     { type: Boolean, default: false, index: true },
+    isStarred:  { type: Boolean, default: false },
+    inReplyTo:  { type: String, default: "" },
+  },
+  { timestamps: true }
+);
+mailMessageSchema.index({ accountId: 1, folder: 1, uid: 1 }, { unique: true });
+mailMessageSchema.index({ accountId: 1, folder: 1, date: -1 });
+mailMessageSchema.index({ accountId: 1, isRead: 1 });
+export const MailMessageModel = mongoose.model("MailMessage", mailMessageSchema);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 🔥 PERFORMANCE INDEXES — defined together for clarity
 // Created automatically by Mongoose on model init (background: true by default).

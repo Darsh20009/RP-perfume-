@@ -30,6 +30,10 @@ A full-stack Arabic luxury perfume e-commerce platform. Built with React + Expre
 - **Admin:** phone `567891011`, password `123456`
 
 ## Key Features
+- **Employee Inbox** (`/admin` → "صندوق البريد"): IMAP+SMTP integration for custom-domain mailboxes (Zoho/Gmail/Outlook/Yandex/Custom). Server-side encryption (AES-256-GCM) of app passwords. Auto-sync every 2 min. Full read/reply/forward/delete UI. Per-employee accounts; admins see all.
+  - Backend: `server/inbox.ts` (IMAP via `imapflow`, SMTP via `nodemailer`, parsing via `mailparser`); models `MailAccount` + `MailMessage` in `server/models.ts`; routes under `/api/admin/inbox/*`.
+  - Frontend: `client/src/pages/admin/AdminInbox.tsx` (3-column layout: accounts/folders sidebar + message list + preview pane + compose dialog + account management dialog).
+  - Encryption key: `INBOX_ENC_KEY` env var (falls back to `SESSION_SECRET`).
 - Consumer storefront (perfumes, cart, checkout)
 - Video splash screen on first visit (session-based)
 - Admin dashboard with RBAC (5 employee roles: مدير, مساعد مدير, دعم فني, محاسب, مستشار قانوني)

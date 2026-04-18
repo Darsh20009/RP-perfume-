@@ -9,7 +9,8 @@ import { seed } from "./seed";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { UserModel, NotificationModel, PushSubscriptionModel, ActivityLogModel, StoreSettingsModel } from "./models";
+import { UserModel, NotificationModel, PushSubscriptionModel, ActivityLogModel, StoreSettingsModel, MailAccountModel, MailMessageModel } from "./models";
+import { encryptSecret, PROVIDER_PRESETS, testConnection as testInboxConnection, syncAccount as syncInboxAccount, setMessageFlags as setInboxFlags, deleteMessage as deleteInboxMessage, sendFromAccount as sendInboxMessage } from "./inbox";
 import { paymentGateway } from "./payments";
 import { fireNotify, fireNotifyAdmins, VAPID_PUBLIC_KEY } from "./notifications";
 import {
@@ -3451,6 +3452,191 @@ export async function registerRoutes(
       res.status(500).json({ message: err.message });
     }
   });
+
+  // ─── Employee Inbox (Zoho / Gmail / etc. via IMAP+SMTP) ─────────────────────
+  // Helper: check inbox account ownership (admins bypass)
+  const ADMIN_ROLES = ["admin", "assistant_manager", "tech_support"];
+  async function assertAccountAccess(req: any, accountId: string): Promise<{ ok: true; account: any } | { ok: false; status: number; message: string }> {
+    if (!accountId) return { ok: false, status: 400, message: "accountId مطلوب" };
+    const account = await MailAccountModel.findById(accountId).lean();
+    if (!account) return { ok: false, status: 404, message: "الحساب غير موجود" };
+    const userId = String(req.user?._id || req.user?.id || "");
+    const isAdmin = ADMIN_ROLES.includes(req.user?.role);
+    if (!isAdmin && String((account as any).userId || "") !== userId) {
+      return { ok: false, status: 403, message: "ليس لديك صلاحية على هذا الحساب" };
+    }
+    return { ok: true, account };
+  }
+
+  app.get("/api/admin/inbox/providers", checkPermission("settings.manage"), async (_req, res) => {
+    res.json(PROVIDER_PRESETS);
+  });
+
+  app.get("/api/admin/inbox/accounts", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const isAdmin = ["admin", "assistant_manager", "tech_support"].includes((req as any).user?.role);
+      const filter: any = { isActive: true };
+      if (!isAdmin) filter.userId = userId;
+      const accounts = await MailAccountModel.find(filter).sort({ createdAt: 1 }).lean();
+      const result = await Promise.all(accounts.map(async (a: any) => {
+        const unreadCount = await MailMessageModel.countDocuments({ accountId: a._id.toString(), folder: "INBOX", isRead: false });
+        return {
+          id: a._id.toString(),
+          userId: a.userId,
+          email: a.email,
+          displayName: a.displayName,
+          provider: a.provider,
+          imapHost: a.imapHost, imapPort: a.imapPort,
+          smtpHost: a.smtpHost, smtpPort: a.smtpPort,
+          color: a.color,
+          isActive: a.isActive,
+          lastSyncAt: a.lastSyncAt,
+          lastSyncStatus: a.lastSyncStatus,
+          lastSyncError: a.lastSyncError,
+          unreadCount,
+        };
+      }));
+      res.json(result);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.post("/api/admin/inbox/accounts/test", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const r = await testInboxConnection(req.body);
+      res.json(r);
+    } catch (err: any) { res.status(500).json({ message: err.message, ok: false }); }
+  });
+
+  app.post("/api/admin/inbox/accounts", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const { email, password, displayName, provider, userId, color, imapHost, imapPort, smtpHost, smtpPort } = req.body;
+      if (!email || !password) return res.status(400).json({ message: "البريد وكلمة المرور مطلوبان" });
+      const preset = PROVIDER_PRESETS[provider || "zoho"] || PROVIDER_PRESETS.custom;
+      const account = await MailAccountModel.create({
+        email, displayName: displayName || email.split("@")[0],
+        provider: provider || "zoho",
+        userId: userId || "",
+        imapHost: imapHost || preset.imapHost,
+        imapPort: imapPort || preset.imapPort,
+        smtpHost: smtpHost || preset.smtpHost,
+        smtpPort: smtpPort || preset.smtpPort,
+        password: encryptSecret(password),
+        color: color || "#c9a96e",
+      });
+      // Trigger first sync in background
+      syncInboxAccount(account._id.toString(), { limit: 30 }).catch(e => console.error("[Inbox] initial sync:", e?.message));
+      res.json({ id: account._id.toString(), email: account.email });
+    } catch (err: any) {
+      const msg = err?.code === 11000 ? "هذا البريد مضاف مسبقاً" : (err?.message || "خطأ");
+      res.status(400).json({ message: msg });
+    }
+  });
+
+  app.delete("/api/admin/inbox/accounts/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const chk = await assertAccountAccess(req, req.params.id);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      await MailAccountModel.deleteOne({ _id: req.params.id });
+      await MailMessageModel.deleteMany({ accountId: req.params.id });
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.post("/api/admin/inbox/accounts/:id/sync", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const chk = await assertAccountAccess(req, req.params.id);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      const r = await syncInboxAccount(req.params.id, { limit: 50, folder: req.body?.folder || "INBOX" });
+      res.json(r);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.get("/api/admin/inbox/messages", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const { accountId, folder = "INBOX", q = "", filter = "all", page = "1", limit = "30" } = req.query as any;
+      const chk = await assertAccountAccess(req, accountId);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      const query: any = { accountId, folder };
+      if (filter === "unread") query.isRead = false;
+      if (filter === "starred") query.isStarred = true;
+      if (q) {
+        const rx = new RegExp(String(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        query.$or = [{ subject: rx }, { fromEmail: rx }, { fromName: rx }, { snippet: rx }];
+      }
+      const pg = Math.max(1, parseInt(page, 10));
+      const lm = Math.min(100, Math.max(5, parseInt(limit, 10)));
+      const [items, total] = await Promise.all([
+        MailMessageModel.find(query).sort({ date: -1 }).skip((pg - 1) * lm).limit(lm).select("-htmlBody -textBody").lean(),
+        MailMessageModel.countDocuments(query),
+      ]);
+      res.json({ items: items.map((m: any) => ({ ...m, id: m._id.toString() })), total, page: pg, limit: lm });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  // Helper for message-by-id ownership check
+  async function assertMessageAccess(req: any, msgId: string) {
+    const msg = await MailMessageModel.findById(msgId).lean() as any;
+    if (!msg) return { ok: false as const, status: 404, message: "غير موجود" };
+    const chk = await assertAccountAccess(req, msg.accountId);
+    if (!chk.ok) return chk;
+    return { ok: true as const, msg };
+  }
+
+  app.get("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const chk = await assertMessageAccess(req, req.params.id);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      res.json({ ...chk.msg, id: chk.msg._id.toString() });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.patch("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const chk = await assertMessageAccess(req, req.params.id);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      const { isRead, isStarred } = req.body || {};
+      const msg = await setInboxFlags(req.params.id, { isRead, isStarred });
+      res.json({ id: msg._id.toString(), isRead: msg.isRead, isStarred: msg.isStarred });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.delete("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const chk = await assertMessageAccess(req, req.params.id);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      await deleteInboxMessage(req.params.id);
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.post("/api/admin/inbox/send", checkPermission("orders.view"), async (req, res) => {
+    try {
+      const { accountId, to, cc, bcc, subject, html, text, inReplyTo, references } = req.body || {};
+      if (!accountId || !to || !subject) return res.status(400).json({ message: "accountId, to, subject مطلوبة" });
+      const chk = await assertAccountAccess(req, accountId);
+      if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+      const r = await sendInboxMessage(accountId, {
+        to: Array.isArray(to) ? to : [to],
+        cc: cc ? (Array.isArray(cc) ? cc : [cc]) : undefined,
+        bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
+        subject, html, text, inReplyTo,
+        references: Array.isArray(references) ? references : (references ? [references] : undefined),
+      });
+      res.json({ ok: true, ...r });
+    } catch (err: any) { res.status(500).json({ message: err.message, ok: false }); }
+  });
+
+  // Background sync (every 2 minutes)
+  setInterval(async () => {
+    try {
+      const accounts = await MailAccountModel.find({ isActive: true });
+      for (const acc of accounts) {
+        try { await syncInboxAccount(acc._id.toString(), { limit: 20 }); }
+        catch (e: any) { console.warn("[Inbox] auto-sync failed for", acc.email, "-", e?.message); }
+      }
+    } catch (e: any) { console.warn("[Inbox] auto-sync loop:", e?.message); }
+  }, 2 * 60_000);
 
   // Boot the abandoned-cart background worker
   startAbandonedCartWorker();
