@@ -1,5 +1,5 @@
 import type { User, InsertUser, Product, InsertProduct, Order, InsertOrder, Category, InsertCategory, WalletTransaction, InsertWalletTransaction, OrderStatus, ActivityLog, InsertActivityLog, Coupon, InsertCoupon, Branch, InsertBranch, Banner, InsertBanner, CashShift, InsertCashShift, BranchInventory, ShippingCompany, InsertShippingCompany, AuditLog, InsertAuditLog, Role, InsertRole, StockTransfer, InsertStockTransfer, Invoice, InsertInvoice, WishlistItem, InsertWishlistItem, ProductReview, InsertProductReview, Vendor, InsertVendor, FlashDeal, InsertFlashDeal, ReturnRequest, InsertReturnRequest } from "@shared/schema";
-import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, ReturnRequestModel } from "./models";
+import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, ReturnRequestModel, PromoStripItemModel, CustomPageModel, ProductInsightsModel } from "./models";
 
 export interface IStorage {
   // Users
@@ -148,6 +148,26 @@ export interface IStorage {
   getReturnRequest(id: string): Promise<ReturnRequest | undefined>;
   createReturnRequest(data: InsertReturnRequest): Promise<ReturnRequest>;
   updateReturnRequest(id: string, update: Partial<InsertReturnRequest>): Promise<ReturnRequest>;
+
+  // Promo Strip (admin-controlled trust badges)
+  getPromoStripItems(activeOnly?: boolean): Promise<any[]>;
+  createPromoStripItem(data: any): Promise<any>;
+  updatePromoStripItem(id: string, update: any): Promise<any>;
+  deletePromoStripItem(id: string): Promise<void>;
+
+  // Custom Pages
+  getCustomPages(opts?: { activeOnly?: boolean; navOnly?: boolean }): Promise<any[]>;
+  getCustomPageBySlug(slug: string): Promise<any | undefined>;
+  createCustomPage(data: any): Promise<any>;
+  updateCustomPage(id: string, update: any): Promise<any>;
+  deleteCustomPage(id: string): Promise<void>;
+
+  // AI Product Insights
+  getProductInsights(productId: string): Promise<any | undefined>;
+  upsertProductInsights(productId: string, data: any): Promise<any>;
+
+  // Verified-buyer review eligibility
+  hasUserPurchasedProduct(userId: string, productId: string): Promise<boolean>;
 }
 
 export class MongoDBStorage implements IStorage {
@@ -778,6 +798,72 @@ export class MongoDBStorage implements IStorage {
   async setReviewFeatured(reviewId: string, isFeatured: boolean): Promise<ProductReview | undefined> {
     const r = await ProductReviewModel.findByIdAndUpdate(reviewId, { $set: { isFeatured } }, { new: true }).lean();
     return r ? { ...r, id: (r as any)._id.toString() } as any : undefined;
+  }
+
+  // ── Promo Strip ────────────────────────────────────────────────
+  async getPromoStripItems(activeOnly = false): Promise<any[]> {
+    const q: any = activeOnly ? { isActive: true } : {};
+    const items = await PromoStripItemModel.find(q).sort({ sortOrder: 1, createdAt: 1 }).lean();
+    return items.map(i => ({ ...i, id: (i as any)._id.toString() }));
+  }
+  async createPromoStripItem(data: any): Promise<any> {
+    const item = await PromoStripItemModel.create(data);
+    return { ...item.toObject(), id: (item as any)._id.toString() };
+  }
+  async updatePromoStripItem(id: string, update: any): Promise<any> {
+    const item = await PromoStripItemModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+    return item ? { ...item, id: (item as any)._id.toString() } : undefined;
+  }
+  async deletePromoStripItem(id: string): Promise<void> {
+    await PromoStripItemModel.findByIdAndDelete(id);
+  }
+
+  // ── Custom Pages ───────────────────────────────────────────────
+  async getCustomPages(opts: { activeOnly?: boolean; navOnly?: boolean } = {}): Promise<any[]> {
+    const q: any = {};
+    if (opts.activeOnly) q.isActive = true;
+    if (opts.navOnly) q.showInNav = true;
+    const items = await CustomPageModel.find(q).sort({ sortOrder: 1, createdAt: -1 }).lean();
+    return items.map(i => ({ ...i, id: (i as any)._id.toString() }));
+  }
+  async getCustomPageBySlug(slug: string): Promise<any | undefined> {
+    const item = await CustomPageModel.findOne({ slug }).lean();
+    return item ? { ...item, id: (item as any)._id.toString() } : undefined;
+  }
+  async createCustomPage(data: any): Promise<any> {
+    const item = await CustomPageModel.create(data);
+    return { ...item.toObject(), id: (item as any)._id.toString() };
+  }
+  async updateCustomPage(id: string, update: any): Promise<any> {
+    const item = await CustomPageModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+    return item ? { ...item, id: (item as any)._id.toString() } : undefined;
+  }
+  async deleteCustomPage(id: string): Promise<void> {
+    await CustomPageModel.findByIdAndDelete(id);
+  }
+
+  // ── AI Product Insights ────────────────────────────────────────
+  async getProductInsights(productId: string): Promise<any | undefined> {
+    const item = await ProductInsightsModel.findOne({ productId }).lean();
+    return item ? { ...item, id: (item as any)._id.toString() } : undefined;
+  }
+  async upsertProductInsights(productId: string, data: any): Promise<any> {
+    const item = await ProductInsightsModel.findOneAndUpdate(
+      { productId },
+      { $set: { ...data, productId, generatedAt: new Date() } },
+      { new: true, upsert: true }
+    ).lean();
+    return { ...item, id: (item as any)._id.toString() };
+  }
+
+  // ── Verified buyer check ──────────────────────────────────────
+  async hasUserPurchasedProduct(userId: string, productId: string): Promise<boolean> {
+    const order = await OrderModel.findOne({
+      userId,
+      paymentStatus: "paid",
+      "items.productId": productId,
+    }, { _id: 1 }).lean();
+    return !!order;
   }
 
   async getFeaturedReviews(limit = 12): Promise<ProductReview[]> {

@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { insertProductSchema, type InsertProduct, orderStatuses, employeePermissions, insertUserSchema, type InsertUser } from "@shared/schema";
 import { api } from "@shared/routes";
-import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin } from "lucide-react";
+import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin, Sparkles, FileText, Brain } from "lucide-react";
 import { Link } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -27,6 +27,9 @@ import { DescriptionGenerator } from "@/components/ai/DescriptionGenerator";
 import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminInbox from "@/pages/admin/AdminInbox";
 import AdminReviews from "@/pages/admin/AdminReviews";
+import AdminPromoStrip from "@/pages/admin/AdminPromoStrip";
+import AdminPages from "@/pages/admin/AdminPages";
+import AdminAiInsights from "@/pages/admin/AdminAiInsights";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
@@ -4278,6 +4281,14 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
         { id: "marketing", label: "الحملات التسويقية", icon: Activity },
         { id: "flash-deals", label: "عروض فلاش", icon: Zap },
         { id: "returns", label: "المرتجعات", icon: RotateCcw },
+        { id: "promo-strip", label: "شريط المميّزات", icon: Sparkles },
+        { id: "pages", label: "صفحات المتجر", icon: FileText },
+      ]
+    },
+    {
+      label: "ذكاء اصطناعي",
+      items: [
+        { id: "ai-insights", label: "تحليلات المخزون AI", icon: Brain },
       ]
     },
     {
@@ -4593,6 +4604,9 @@ export default function Admin() {
                 {activeTab === "shifts"    && <ShiftsManagement />}
                 {activeTab === "customers" && <CustomersTable />}
                 {activeTab === "reviews"   && <AdminReviews />}
+                {activeTab === "promo-strip" && <AdminPromoStrip />}
+                {activeTab === "pages"     && <AdminPages />}
+                {activeTab === "ai-insights" && <AdminAiInsights />}
                 {activeTab === "vendors"   && <VendorsPanel />}
                 {activeTab === "coupons"   && <CouponsTable />}
                 {activeTab === "marketing" && <MarketingManagement />}

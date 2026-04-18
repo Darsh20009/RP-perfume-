@@ -246,3 +246,80 @@ Reply in JSON only, in English:
 
   return groqJSON(prompt, 400, 0.6);
 }
+
+/** Generate AI insights from product reviews — scent profile, longevity, occasions, summary. */
+export async function generateProductInsights(params: {
+  productName: string;
+  productCategory?: string;
+  reviews: { rating: number; comment: string }[];
+}): Promise<{
+  summaryAr: string;
+  summaryEn: string;
+  scentNotes: string[];
+  longevity: string;
+  sillage: string;
+  occasions: string[];
+  pros: string[];
+  cons: string[];
+  sentiment: number;
+}> {
+  if (!isGroqConfigured()) throw new Error("AI service not configured");
+  const reviewsText = params.reviews.slice(0, 30).map((r, i) => `${i + 1}. (${r.rating}★) ${r.comment}`).join("\n");
+  const prompt = `أنت خبير عطور محترف. حلّل تقييمات العملاء لهذا العطر واستخرج الملف العطري بدقّة.
+
+المنتج: ${params.productName}${params.productCategory ? ` — الفئة: ${params.productCategory}` : ""}
+
+تقييمات العملاء:
+${reviewsText}
+
+أعد JSON فقط بالشكل التالي (بدون أي نص خارج الـ JSON):
+{
+  "summaryAr": "ملخص في جملتين بالعربية يصف الانطباع العام",
+  "summaryEn": "two-sentence English summary of overall impression",
+  "scentNotes": ["نوتات عطرية مستخرجة من التقييمات (3-6 كلمات)"],
+  "longevity": "وصف ثبات العطر (مثال: ٦-٨ ساعات / متوسط / قوي)",
+  "sillage": "وصف بصمة العطر (هادئ / متوسط / قوي / يلفت الأنظار)",
+  "occasions": ["مناسبات يُنصح بها (3-5 كلمات)"],
+  "pros": ["أبرز 3 ميزات"],
+  "cons": ["أبرز 2 ملاحظات سلبية أو 'لا توجد ملاحظات سلبية بارزة'"],
+  "sentiment": 0.85
+}
+`;
+  return groqJSON(prompt, 700, 0.3);
+}
+
+/** Generate inventory insights — restock suggestions, slow movers, anomalies. */
+export async function generateInventoryInsights(params: {
+  products: { name: string; stock: number; sold30d: number; revenue30d: number; price: number }[];
+  totalRevenue: number;
+}): Promise<{
+  topMovers: { name: string; insight: string }[];
+  slowMovers: { name: string; insight: string }[];
+  restockUrgent: { name: string; reason: string; suggestedQty: number }[];
+  overallHealth: string;
+  recommendations: string[];
+}> {
+  if (!isGroqConfigured()) throw new Error("AI service not configured");
+  const productsList = params.products.slice(0, 40).map((p, i) =>
+    `${i + 1}. ${p.name} | المخزون: ${p.stock} | مبيعات ٣٠ يوم: ${p.sold30d} | إيراد: ${p.revenue30d} ر.س | السعر: ${p.price}`
+  ).join("\n");
+
+  const prompt = `أنت محلل مخزون ومبيعات محترف لمتجر عطور سعودي. حلّل البيانات وأعطِ توصيات عملية بالعربية.
+
+إجمالي الإيرادات (٣٠ يوم): ${params.totalRevenue} ر.س
+عدد المنتجات: ${params.products.length}
+
+بيانات المنتجات:
+${productsList}
+
+أعد JSON فقط:
+{
+  "topMovers": [{"name":"اسم المنتج","insight":"سبب الأداء القوي"}],
+  "slowMovers": [{"name":"اسم المنتج","insight":"سبب البطء + اقتراح"}],
+  "restockUrgent": [{"name":"اسم المنتج","reason":"السبب","suggestedQty":50}],
+  "overallHealth": "تقييم عام بثلاث جمل عن صحة المخزون والمبيعات",
+  "recommendations": ["3-5 توصيات استراتيجية قصيرة وعملية"]
+}
+`;
+  return groqJSON(prompt, 1000, 0.4);
+}

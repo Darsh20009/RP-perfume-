@@ -11,6 +11,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { InstallmentSection } from "@/components/payment/InstallmentSection";
 import { SizeAdvisor } from "@/components/ai/SizeAdvisor";
 import { OutfitSuggestions } from "@/components/ai/OutfitSuggestions";
+import { ProductInsightsCard } from "@/components/ProductInsightsCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -595,6 +596,13 @@ export default function ProductDetails() {
         </div>
       </div>
 
+      {/* ── AI Insights Card ─────────────────────────────── */}
+      {id && (
+        <div className="max-w-4xl mx-auto px-4 md:px-8 lg:px-16 mb-10">
+          <ProductInsightsCard productId={id} />
+        </div>
+      )}
+
       {/* ── Reviews Section ─────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 md:px-8 lg:px-16 pb-20" dir={isAr ? "rtl" : "ltr"}>
         <div className="border-t border-black/5 pt-12">
@@ -617,6 +625,8 @@ export default function ProductDetails() {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Write a review */}
             {user ? (
+              <ReviewFormGate productId={id!} isAr={isAr}>
+              {(canReview, reason) => canReview ? (
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-black/50">{isAr ? "اكتب تقييمك" : "Write a Review"}</h3>
                 <div className="flex items-center gap-1">
@@ -679,7 +689,24 @@ export default function ProductDetails() {
                   {submitReview.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {isAr ? "إرسال التقييم" : "Submit Review"}
                 </button>
+                <p className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                  <Check className="w-3 h-3" /> {isAr ? "مشترٍ موثّق" : "Verified buyer"}
+                </p>
               </div>
+            ) : (
+              <div className="bg-slate-50 p-6 flex flex-col items-center justify-center text-center gap-3">
+                <Star className="w-8 h-8 text-slate-700" />
+                <p className="text-sm font-bold text-slate-800">
+                  {reason === "already-reviewed"
+                    ? (isAr ? "لقد قيّمت هذا المنتج مسبقاً" : "You've already reviewed this product")
+                    : (isAr ? "التقييم متاح فقط للعملاء الذين اشتروا هذا المنتج" : "Reviews are reserved for verified buyers")}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {isAr ? "اطلب المنتج وستتمكن من تقييمه بعد التسليم" : "Place an order to unlock reviewing this product"}
+                </p>
+              </div>
+              )}
+              </ReviewFormGate>
             ) : (
               <div className="bg-slate-50 p-6 flex flex-col items-center justify-center text-center gap-3">
                 <Star className="w-8 h-8 text-slate-700" />
@@ -760,4 +787,29 @@ export default function ProductDetails() {
       )}
     </Layout>
   );
+}
+
+function ReviewFormGate({
+  productId, isAr, children,
+}: {
+  productId: string; isAr: boolean;
+  children: (canReview: boolean, reason: string) => React.ReactNode;
+}) {
+  const { data, isLoading } = useQuery<{ canReview: boolean; reason: string }>({
+    queryKey: ["/api/products", productId, "can-review"],
+    queryFn: async () => {
+      const res = await fetch(`/api/products/${productId}/can-review`);
+      if (!res.ok) return { canReview: false, reason: "error" };
+      return res.json();
+    },
+    enabled: !!productId,
+  });
+  if (isLoading) {
+    return (
+      <div className="bg-slate-50 p-6 flex items-center justify-center" data-testid="review-gate-loading">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+  return <>{children(!!data?.canReview, data?.reason || "unknown")}</>;
 }

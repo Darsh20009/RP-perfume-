@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
+import * as LucideIcons from "lucide-react";
 import {
   ShoppingBag, Star, ShieldCheck, Truck, ChevronRight, ChevronLeft,
   Zap, Clock, RotateCcw, Headphones, Package, Tag, ArrowLeft, ArrowRight,
@@ -204,32 +205,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── TRUST STRIP ────────────────────────────────── */}
-      <section className="bg-[#f9f7f4] py-6 md:py-8 border-y border-[#e8e2d9]">
-        <div className="container px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: Truck, label: t('freeShippingTitle'), sub: t('freeShippingSub') },
-              { icon: ShieldCheck, label: t('original100'), sub: t('qualityGuaranteed') },
-              { icon: RotateCcw, label: t('freeReturns'), sub: t('within14Days') },
-              { icon: Headphones, label: t('support247'), sub: t('dedicatedTeam') },
-            ].map((badge, i) => {
-              const Icon = badge.icon;
-              return (
-                <div key={i} className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""}`}>
-                  <div className="w-10 h-10 rounded-full bg-[#c9a96e]/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-[#c9a96e]" />
-                  </div>
-                  <div>
-                    <p className="text-[#1a2744] text-xs font-bold">{badge.label}</p>
-                    <p className="text-gray-700 text-[10px]">{badge.sub}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* ── TRUST STRIP (admin-controlled with hardcoded fallback) ─────── */}
+      <PromoStripSection isRtl={isRtl} t={t} isAr={language === 'ar'} />
 
       {/* ── FLASH DEALS ────────────────────────────────── */}
       {flashDealProducts.length > 0 && (
@@ -620,5 +597,48 @@ export default function Home() {
         </div>
       </section>
     </Layout>
+  );
+}
+
+function PromoStripSection({ isRtl, t, isAr }: { isRtl: boolean; t: (k: string) => string; isAr: boolean }) {
+  const { data: items } = useQuery<any[]>({
+    queryKey: ["/api/promo-strip"],
+    staleTime: 5 * 60_000,
+  });
+
+  const fallback = [
+    { icon: "Truck", titleAr: t('freeShippingTitle'), titleEn: t('freeShippingTitle'), subtitleAr: t('freeShippingSub'), subtitleEn: t('freeShippingSub'), color: "#c9a96e", link: "" },
+    { icon: "ShieldCheck", titleAr: t('original100'), titleEn: t('original100'), subtitleAr: t('qualityGuaranteed'), subtitleEn: t('qualityGuaranteed'), color: "#c9a96e", link: "" },
+    { icon: "RotateCcw", titleAr: t('freeReturns'), titleEn: t('freeReturns'), subtitleAr: t('within14Days'), subtitleEn: t('within14Days'), color: "#c9a96e", link: "" },
+    { icon: "Headphones", titleAr: t('support247'), titleEn: t('support247'), subtitleAr: t('dedicatedTeam'), subtitleEn: t('dedicatedTeam'), color: "#c9a96e", link: "" },
+  ];
+
+  const list = (items && items.length > 0) ? items : fallback;
+  const cols = list.length === 1 ? "grid-cols-1" : list.length === 2 ? "grid-cols-2" : list.length === 3 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2 md:grid-cols-4";
+
+  return (
+    <section className="bg-[#f9f7f4] py-6 md:py-8 border-y border-[#e8e2d9]" data-testid="promo-strip">
+      <div className="container px-4">
+        <div className={`grid ${cols} gap-4`}>
+          {list.map((badge: any, i: number) => {
+            const Icon = (LucideIcons as any)[badge.icon] || Truck;
+            const inner = (
+              <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""} ${badge.link ? "cursor-pointer hover:scale-[1.02] transition-transform" : ""}`}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${badge.color || "#c9a96e"}1f` }}>
+                  <Icon className="w-5 h-5" style={{ color: badge.color || "#c9a96e" }} />
+                </div>
+                <div>
+                  <p className="text-[#1a2744] text-xs font-bold">{isAr ? (badge.titleAr || badge.titleEn) : (badge.titleEn || badge.titleAr)}</p>
+                  <p className="text-gray-700 text-[10px]">{isAr ? (badge.subtitleAr || badge.subtitleEn) : (badge.subtitleEn || badge.subtitleAr)}</p>
+                </div>
+              </div>
+            );
+            return badge.link
+              ? <Link key={i} href={badge.link}>{inner}</Link>
+              : <div key={i}>{inner}</div>;
+          })}
+        </div>
+      </div>
+    </section>
   );
 }

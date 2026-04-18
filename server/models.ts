@@ -172,6 +172,12 @@ const categorySchema = new Schema<Category>(
     description: { type: String },
     parentId: { type: String, default: null },
     sortOrder: { type: Number, default: 0 },
+    // Standalone landing page extensions
+    asPage: { type: Boolean, default: false },
+    showInNav: { type: Boolean, default: false },
+    pageHero: { type: String, default: "" },
+    pageContentAr: { type: String, default: "" },
+    pageContentEn: { type: String, default: "" },
   },
   { timestamps: false }
 );
@@ -382,6 +388,9 @@ const storeSettingsSchema = new Schema(
     },
     // Shipping settings
     freeShippingThreshold: { type: Number, default: 0 },
+    freeShippingEnabled: { type: Boolean, default: true },
+    freeShippingMessageAr: { type: String, default: "شحن مجاني للطلبات أكثر من" },
+    freeShippingMessageEn: { type: String, default: "Free shipping on orders over" },
     // Special section images (Sale / Best Sellers / New Arrivals icons)
     saleSectionImage: { type: String, default: "" },
     bestSellersSectionImage: { type: String, default: "" },
@@ -494,6 +503,68 @@ const marketingCampaignSchema = new Schema(
 );
 
 export const MarketingCampaignModel = mongoose.model("MarketingCampaign", marketingCampaignSchema);
+
+// ─── Promo Strip (admin-controlled trust badges on home) ─────────────────
+const promoStripItemSchema = new Schema(
+  {
+    icon: { type: String, default: "Truck" }, // lucide icon name
+    titleAr: { type: String, default: "" },
+    titleEn: { type: String, default: "" },
+    subtitleAr: { type: String, default: "" },
+    subtitleEn: { type: String, default: "" },
+    color: { type: String, default: "#c9a96e" },
+    link: { type: String, default: "" },
+    sortOrder: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+promoStripItemSchema.index({ isActive: 1, sortOrder: 1 });
+export const PromoStripItemModel = mongoose.model("PromoStripItem", promoStripItemSchema);
+
+// ─── Custom Pages (admin-managed marketing/info pages) ────────────────────
+const customPageSchema = new Schema(
+  {
+    slug: { type: String, required: true, unique: true },
+    titleAr: { type: String, default: "" },
+    titleEn: { type: String, default: "" },
+    excerptAr: { type: String, default: "" },
+    excerptEn: { type: String, default: "" },
+    heroImage: { type: String, default: "" },
+    heroOverlay: { type: String, default: "rgba(26,39,68,0.55)" },
+    contentAr: { type: String, default: "" }, // simple HTML / markdown-lite
+    contentEn: { type: String, default: "" },
+    sections: { type: [Schema.Types.Mixed], default: [] }, // future block editor
+    showInNav: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    sortOrder: { type: Number, default: 0 },
+    seoTitle: { type: String, default: "" },
+    seoDescription: { type: String, default: "" },
+  },
+  { timestamps: true }
+);
+customPageSchema.index({ isActive: 1, showInNav: 1, sortOrder: 1 });
+export const CustomPageModel = mongoose.model("CustomPage", customPageSchema);
+
+// ─── AI Product Insights (cached) ─────────────────────────────────────────
+const productInsightsSchema = new Schema(
+  {
+    productId: { type: String, required: true, unique: true },
+    summaryAr: { type: String, default: "" },
+    summaryEn: { type: String, default: "" },
+    scentNotes: { type: [String], default: [] }, // top scent profile from reviews
+    longevity: { type: String, default: "" },
+    sillage: { type: String, default: "" },
+    occasions: { type: [String], default: [] },
+    pros: { type: [String], default: [] },
+    cons: { type: [String], default: [] },
+    sentiment: { type: Number, default: 0 }, // -1..1
+    basedOnReviewCount: { type: Number, default: 0 },
+    generatedAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
+export const ProductInsightsModel = mongoose.model("ProductInsights", productInsightsSchema);
 
 // ─── Cart Session (abandoned cart tracking) ───────────────────────────────
 const cartSessionSchema = new Schema(

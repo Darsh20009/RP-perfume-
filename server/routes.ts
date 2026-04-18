@@ -1845,6 +1845,11 @@ export async function registerRoutes(
       const user = req.user as any;
       const existing = await storage.getUserReviewForProduct(user.id, req.params.id);
       if (existing) return res.status(409).json({ message: "لقد قمت بتقييم هذا المنتج مسبقاً" });
+      // Verified-buyer gate: only customers who actually paid for this product can review.
+      const purchased = await storage.hasUserPurchasedProduct(user.id, req.params.id);
+      if (!purchased) {
+        return res.status(403).json({ message: "يمكن للعملاء الذين اشتروا المنتج فقط إضافة تقييم" });
+      }
       // Note: race-condition safety — DB has unique index on { userId, productId }; duplicate-key handled in catch.
       // Denormalize product info for admin/home view
       const product = await storage.getProduct(req.params.id);
@@ -1925,6 +1930,214 @@ export async function registerRoutes(
       await storage.deleteReview(req.params.id);
       res.json({ ok: true });
     } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  // ─── Promo Strip (admin-controlled trust badges) ────────────────────────────
+  app.get("/api/promo-strip", async (_req, res) => {
+    try {
+      const items = await storage.getPromoStripItems(true);
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  app.get("/api/admin/promo-strip", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const items = await storage.getPromoStripItems(false);
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  app.post("/api/admin/promo-strip", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const item = await storage.createPromoStripItem(req.body);
+      res.status(201).json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.patch("/api/admin/promo-strip/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const item = await storage.updatePromoStripItem(req.params.id, req.body);
+      res.json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.delete("/api/admin/promo-strip/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      await storage.deletePromoStripItem(req.params.id);
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  // ─── Custom Pages ───────────────────────────────────────────────────────────
+  app.get("/api/pages", async (req, res) => {
+    try {
+      const navOnly = req.query.nav === "1";
+      const items = await storage.getCustomPages({ activeOnly: true, navOnly });
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  app.get("/api/pages/:slug", async (req, res) => {
+    try {
+      const page = await storage.getCustomPageBySlug(req.params.slug);
+      if (!page || !page.isActive) return res.status(404).json({ message: "Page not found" });
+      res.json(page);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.get("/api/admin/pages", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const items = await storage.getCustomPages({});
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  app.post("/api/admin/pages", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const DOMPurify = (await import("isomorphic-dompurify")).default;
+      const slug = String(req.body.slug || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+      if (!slug) return res.status(400).json({ message: "slug مطلوب" });
+      const exists = await storage.getCustomPageBySlug(slug);
+      if (exists) return res.status(409).json({ message: "هذا الـ slug مستخدم مسبقاً" });
+      const sanitized = {
+        ...req.body,
+        slug,
+        contentAr: DOMPurify.sanitize(String(req.body.contentAr || "")),
+        contentEn: DOMPurify.sanitize(String(req.body.contentEn || "")),
+      };
+      const item = await storage.createCustomPage(sanitized);
+      res.status(201).json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.patch("/api/admin/pages/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const DOMPurify = (await import("isomorphic-dompurify")).default;
+      const update: any = { ...req.body };
+      if (update.slug != null) {
+        update.slug = String(update.slug).trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+        if (!update.slug) return res.status(400).json({ message: "slug مطلوب" });
+        const existing = await storage.getCustomPageBySlug(update.slug);
+        if (existing && (existing.id || (existing as any)._id?.toString()) !== req.params.id) {
+          return res.status(409).json({ message: "هذا الـ slug مستخدم مسبقاً" });
+        }
+      }
+      if (update.contentAr != null) update.contentAr = DOMPurify.sanitize(String(update.contentAr));
+      if (update.contentEn != null) update.contentEn = DOMPurify.sanitize(String(update.contentEn));
+      const item = await storage.updateCustomPage(req.params.id, update);
+      res.json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.delete("/api/admin/pages/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      await storage.deleteCustomPage(req.params.id);
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  // ─── AI Product Insights ─────────────────────────────────────────────────────
+  app.get("/api/products/:id/insights", async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const cached = await storage.getProductInsights(productId);
+      const reviews = await storage.getProductReviews(productId);
+      const reviewsWithComments = reviews.filter((r: any) => r.comment && r.comment.length > 5);
+      // Refresh if stale: more than 24h old OR new reviews since last gen
+      const stale = !cached
+        || (reviewsWithComments.length - (cached.basedOnReviewCount || 0)) >= 2
+        || (Date.now() - new Date(cached.generatedAt || 0).getTime()) > 24 * 60 * 60 * 1000;
+      if (cached && !stale) return res.json(cached);
+      if (reviewsWithComments.length < 2) {
+        // Not enough data — return existing cached (if any) or null
+        return res.json(cached || null);
+      }
+      const product = await storage.getProduct(productId);
+      if (!product) return res.status(404).json({ message: "Product not found" });
+      try {
+        const { generateProductInsights } = await import("./ai");
+        const insights = await generateProductInsights({
+          productName: (product as any).name,
+          productCategory: "perfume",
+          reviews: reviewsWithComments.map((r: any) => ({ rating: r.rating, comment: r.comment })),
+        });
+        const saved = await storage.upsertProductInsights(productId, {
+          ...insights,
+          basedOnReviewCount: reviewsWithComments.length,
+        });
+        res.json(saved);
+      } catch (e: any) {
+        console.error("[product-insights] AI failed:", e?.message);
+        res.json(cached || null);
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ─── AI Inventory Insights ───────────────────────────────────────────────────
+  app.get("/api/admin/ai/inventory-insights", checkPermission("products.view"), async (_req, res) => {
+    try {
+      const [products, orders] = await Promise.all([storage.getProducts(), storage.getOrders()]);
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const sales: Record<string, { qty: number; revenue: number }> = {};
+      let totalRevenue = 0;
+      for (const o of orders) {
+        const created = new Date((o as any).createdAt || 0).getTime();
+        if (created < cutoff) continue;
+        if ((o as any).paymentStatus !== "paid") continue;
+        for (const it of (o as any).items || []) {
+          const pid = it.productId;
+          if (!pid) continue;
+          if (!sales[pid]) sales[pid] = { qty: 0, revenue: 0 };
+          sales[pid].qty += Number(it.quantity || 0);
+          sales[pid].revenue += Number(it.price || 0) * Number(it.quantity || 0);
+          totalRevenue += Number(it.price || 0) * Number(it.quantity || 0);
+        }
+      }
+      const productSummaries = products.map((p: any) => {
+        const totalStock = (p.variants || []).reduce((s: number, v: any) => s + Number(v.stock || 0), 0);
+        const s = sales[p.id || p._id] || { qty: 0, revenue: 0 };
+        return { name: p.name, stock: totalStock, sold30d: s.qty, revenue30d: s.revenue, price: Number(p.price || 0) };
+      });
+      try {
+        const { generateInventoryInsights } = await import("./ai");
+        const insights = await generateInventoryInsights({ products: productSummaries, totalRevenue });
+        res.json({ ...insights, generatedAt: new Date(), totalRevenue, productCount: products.length });
+      } catch (e: any) {
+        console.error("[inventory-insights] AI failed:", e?.message);
+        // Fallback: deterministic heuristic
+        const sorted = [...productSummaries].sort((a, b) => b.revenue30d - a.revenue30d);
+        const restockUrgent = productSummaries
+          .filter(p => p.stock <= 5 && p.sold30d > 0)
+          .map(p => ({ name: p.name, reason: `المخزون ${p.stock} ومبيعات ٣٠ يوم: ${p.sold30d}`, suggestedQty: Math.max(20, p.sold30d * 2) }));
+        res.json({
+          topMovers: sorted.slice(0, 3).map(p => ({ name: p.name, insight: `حقّق ${p.revenue30d.toFixed(0)} ر.س في ٣٠ يوم` })),
+          slowMovers: sorted.slice(-3).reverse().map(p => ({ name: p.name, insight: `مبيعات ضعيفة: ${p.sold30d} وحدات` })),
+          restockUrgent,
+          overallHealth: `إجمالي إيرادات ٣٠ يوم: ${totalRevenue.toFixed(0)} ر.س عبر ${products.length} منتج.`,
+          recommendations: ["فعّل حملة تسويقية للمنتجات الراكدة", "أعد تخزين المنتجات الأكثر مبيعاً", "راجع تسعير المنتجات بطيئة الحركة"],
+          generatedAt: new Date(),
+          totalRevenue,
+          productCount: products.length,
+          fallback: true,
+        });
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ─── Verified-buyer eligibility (for review prompt) ─────────────────────────
+  app.get("/api/products/:id/can-review", async (req, res) => {
+    if (!req.isAuthenticated()) return res.json({ canReview: false, reason: "auth" });
+    try {
+      const user = req.user as any;
+      const existing = await storage.getUserReviewForProduct(user.id, req.params.id);
+      if (existing) return res.json({ canReview: false, reason: "already-reviewed", review: existing });
+      const purchased = await storage.hasUserPurchasedProduct(user.id, req.params.id);
+      res.json({ canReview: purchased, reason: purchased ? "verified-buyer" : "not-purchased", verified: purchased });
+    } catch (err: any) { res.json({ canReview: false, reason: "error" }); }
   });
 
   // ─── Low Stock ───────────────────────────────────────────────────────────────

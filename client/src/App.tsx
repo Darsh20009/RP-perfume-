@@ -53,6 +53,7 @@ const CashDrawer = lazy(() => import("@/pages/CashDrawer"));
 const CashDrawerReport = lazy(() => import("@/pages/CashDrawerReport"));
 const AdminAbandonedCarts = lazy(() => import("@/pages/AdminAbandonedCarts"));
 const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPolicy"));
+const CustomPage = lazy(() => import("@/pages/CustomPage"));
 
 function LazyFallback() {
   return (
@@ -202,6 +203,7 @@ function Router() {
       <Route path="/payment/stc-checkout" component={STCCheckout} />
       <Route path="/paymob/result" component={PaymobResult} />
       <Route path="/terms" component={Terms} />
+      <Route path="/pages/:slug" component={CustomPage} />
       <Route path="/admin/stores">
         <ProtectedRoute component={VendorsList} permission="staff.manage" />
       </Route>
