@@ -4,17 +4,15 @@
  * All templates are Arabic RTL with RF Perfume branding
  */
 
+import { SITE, ASSETS } from "./site-config";
+
 // Use absolute HTTPS URLs for inline images. CID attachments cause many email
 // clients (Outlook, several Arabic webmails) to show the assets as separate
 // attachments at the bottom instead of inline within the template. Remote URLs
 // are universally supported by modern clients and remove that issue entirely.
-const ASSET_BASE = (
-  process.env.EMAIL_ASSET_BASE_URL ||
-  process.env.PUBLIC_SITE_URL ||
-  "https://e-commerce.rfperfume.sa"
-).replace(/\/+$/, "");
-const LOGO_URL   = `${ASSET_BASE}/icons/logo-square.png`;
-const BANNER_URL = `${ASSET_BASE}/icons/email-banner.gif`;
+const ASSET_BASE = SITE.URL;
+const LOGO_URL   = ASSETS.LOGO_SQUARE;
+const BANNER_URL = ASSETS.EMAIL_BANNER;
 
 const SMTP2GO_API = "https://api.smtp2go.com/v3/email/send";
 
@@ -103,18 +101,33 @@ function baseTemplate(title: string, content: string): string {
     <tr>
       <td align="center" style="padding:32px 16px;">
         <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" class="container" style="max-width:600px;background-color:#ffffff;border-radius:4px;overflow:hidden;">
-          <!-- Animated Banner (GIF — works in Gmail/Apple Mail/Yahoo; Outlook shows first frame) -->
+          <!-- Animated Banner (GIF) — wrapped in a styled <td> so that, if the image
+               is blocked by the client (Gmail/Outlook default-disable images), the
+               branded gold-on-navy background + alt text still appear beautifully. -->
           <tr>
-            <td align="center" style="background-color:#000000;padding:0;line-height:0;font-size:0;">
-              <img src="${BANNER_URL}" alt="RF Perfume" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;outline:none;" />
+            <td align="center" bgcolor="#0f1a2e" style="background:#0f1a2e;background-image:linear-gradient(135deg,#0f1a2e 0%,#1a2744 35%,#243154 65%,#1a2744 100%);padding:28px 20px;line-height:1;font-size:0;border-bottom:1px solid rgba(201,169,110,0.25);">
+              <!--[if mso]><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center"><tr><td align="center"><![endif]-->
+              <img src="${BANNER_URL}" alt="رفيف العود — RF Perfume Luxury Fragrances" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;margin:0 auto;" />
+              <!-- CSS-only fallback that always shows (becomes visible if image fails / is blocked) -->
+              <div style="color:#c9a96e;font-size:11px;font-weight:900;letter-spacing:0.4em;text-transform:uppercase;margin-top:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;line-height:1.2;">RF Perfume · Luxury Fragrances</div>
+              <!--[if mso]></td></tr></table><![endif]-->
             </td>
           </tr>
           <!-- Header -->
           <tr>
-            <td align="center" style="background:#1a2744;background-image:linear-gradient(135deg,#1a2744 0%,#243154 50%,#1a2744 100%);padding:24px 40px;border-bottom:3px solid #c9a96e;">
-              <img src="${LOGO_URL}" alt="رفيف العود" width="56" height="56" style="display:block;width:56px;height:56px;margin:0 auto 10px;border-radius:8px;background-color:#ffffff;padding:6px;" />
-              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.15em;line-height:1.2;margin-top:6px;">رفيف العود</div>
-              <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;">RF PERFUME &middot; LUXURY FRAGRANCES</div>
+            <td align="center" style="background:#1a2744;background-image:linear-gradient(135deg,#1a2744 0%,#243154 50%,#1a2744 100%);padding:28px 40px 24px;border-bottom:3px solid #c9a96e;">
+              <!-- Logo with bullet-proof bgcolor fallback — Gmail-blocked image still shows
+                   a styled gold "RF" monogram inside a white circle. -->
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 10px;">
+                <tr>
+                  <td align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:50%;width:56px;height:56px;text-align:center;vertical-align:middle;">
+                    <img src="${LOGO_URL}" alt="RF" width="40" height="40" style="display:inline-block;width:40px;height:40px;border:0;outline:none;vertical-align:middle;" />
+                    <!--[if !mso]><!--><span style="display:none;max-height:0;overflow:hidden;color:#1a2744;font-size:18px;font-weight:900;letter-spacing:0.05em;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">RF</span><!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+              <div style="color:#ffffff;font-size:22px;font-weight:900;letter-spacing:0.15em;line-height:1.2;margin-top:10px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">رفيف العود</div>
+              <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">RF Perfume &middot; ${SITE.DOMAIN}</div>
             </td>
           </tr>
           <!-- Body -->
@@ -130,13 +143,13 @@ function baseTemplate(title: string, content: string): string {
                 &copy; ${new Date().getFullYear()} رفيف العود &mdash; جميع الحقوق محفوظة
               </p>
               <p style="margin:0 0 16px;font-size:11px;line-height:1.6;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-                <a href="https://e-commerce.rfperfume.sa" style="color:#c9a96e;text-decoration:none;font-weight:700;">e-commerce.rfperfume.sa</a>
+                <a href="${SITE.URL}" style="color:#c9a96e;text-decoration:none;font-weight:700;">${SITE.DOMAIN}</a>
               </p>
               <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <td style="padding:0 10px;"><a href="https://e-commerce.rfperfume.sa" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">المتجر</a></td>
+                  <td style="padding:0 10px;"><a href="${SITE.URL}" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">المتجر</a></td>
                   <td style="padding:0 10px;color:rgba(255,255,255,0.2);">|</td>
-                  <td style="padding:0 10px;"><a href="https://e-commerce.rfperfume.sa/orders" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">طلباتي</a></td>
+                  <td style="padding:0 10px;"><a href="${SITE.URL}/orders" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">طلباتي</a></td>
                   <td style="padding:0 10px;color:rgba(255,255,255,0.2);">|</td>
                   <td style="padding:0 10px;"><a href="mailto:rf-purfume@outlook.com" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">الدعم</a></td>
                 </tr>
@@ -317,7 +330,7 @@ export async function sendOrderConfirmationEmail(params: {
       سيتم تجهيز طلبك والتواصل معك قريباً. يمكنك متابعة حالة طلبك من خلال حسابك في المتجر.
     </p>
 
-    ${ctaButton("https://e-commerce.rfperfume.sa/orders", "متابعة طلبي")}
+    ${ctaButton(`${SITE.URL}/orders`, "متابعة طلبي")}
 
     <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid rgba(0,0,0,0.06);font-size:12px;color:rgba(0,0,0,0.55);line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
       هل لديك استفسار؟ تواصل معنا على <a href="mailto:rf-purfume@outlook.com" style="color:#1a2744;font-weight:800;text-decoration:none;">rf-purfume@outlook.com</a>
@@ -331,7 +344,7 @@ export async function sendOrderConfirmationEmail(params: {
     <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Total:</b> ${params.total.toLocaleString("en-US")} SAR</p>
     <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Payment Method:</b> ${params.paymentMethod}</p>
     <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Delivery Address:</b> ${params.deliveryAddress}</p>
-    <p style="margin:16px 0 0;font-size:12px;color:rgba(0,0,0,0.6);line-height:1.7;">Your order is being prepared and we'll be in touch shortly. Track it anytime from your account at <a href="https://e-commerce.rfperfume.sa/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">e-commerce.rfperfume.sa/orders</a></p>
+    <p style="margin:16px 0 0;font-size:12px;color:rgba(0,0,0,0.6);line-height:1.7;">Your order is being prepared and we'll be in touch shortly. Track it anytime from your account at <a href="${SITE.URL}/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">${SITE.DOMAIN}/orders</a></p>
   `);
 
   return sendEmail({
@@ -448,7 +461,7 @@ export async function sendOrderStatusEmail(params: {
 
     ${safeMessage}
 
-    ${ctaButton("https://e-commerce.rfperfume.sa/orders", cfg.cta)}
+    ${ctaButton(`${SITE.URL}/orders`, cfg.cta)}
   `;
 
   const enLabels: Record<string, { title: string; subtitle: string; cta: string }> = {
@@ -464,7 +477,7 @@ export async function sendOrderStatusEmail(params: {
     <p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Order Number:</b> #${params.orderRef}</p>
     ${params.trackingNumber ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Tracking:</b> ${params.trackingNumber}${params.shippingProvider ? ` (${params.shippingProvider})` : ""}</p>` : ""}
     ${params.reason ? `<p style="margin:0 0 4px;font-size:12px;color:rgba(0,0,0,0.7);"><b>Reason:</b> ${params.reason}</p>` : ""}
-    <p style="margin:12px 0 0;font-size:12px;color:rgba(0,0,0,0.6);"><a href="https://e-commerce.rfperfume.sa/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">${enInfo.cta} →</a></p>
+    <p style="margin:12px 0 0;font-size:12px;color:rgba(0,0,0,0.6);"><a href="${SITE.URL}/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">${enInfo.cta} →</a></p>
   `);
 
   return sendEmail({
@@ -499,7 +512,7 @@ export async function sendWelcomeEmail(params: {
       infoRow("🔔 إشعارات فورية", "تتبع طلبك لحظة بلحظة", true)
     )}
 
-    ${ctaButton("https://e-commerce.rfperfume.sa/products", "ابدأ التسوق الآن")}
+    ${ctaButton(`${SITE.URL}/products`, "ابدأ التسوق الآن")}
 
     <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid rgba(0,0,0,0.06);font-size:11px;color:rgba(0,0,0,0.45);line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
       إذا لم تكن أنت من أنشأ هذا الحساب، يُرجى التواصل معنا فوراً.
@@ -516,7 +529,7 @@ export async function sendWelcomeEmail(params: {
       <li>💳 <b>Multiple payment options</b> — Mada, Visa, STC Pay, Apple Pay, Tamara, Tabby</li>
       <li>🔔 <b>Real-time notifications</b> — track your orders moment by moment</li>
     </ul>
-    <p style="margin:16px 0 0;font-size:12px;"><a href="https://e-commerce.rfperfume.sa/products" style="color:#1a2744;font-weight:800;text-decoration:none;">Start Shopping →</a></p>
+    <p style="margin:16px 0 0;font-size:12px;"><a href="${SITE.URL}/products" style="color:#1a2744;font-weight:800;text-decoration:none;">Start Shopping →</a></p>
   `);
 
   return sendEmail({
@@ -568,7 +581,7 @@ export async function sendPaymentConfirmationEmail(params: {
       احتفظ بهذا البريد كإيصال دفعك. إذا لم تتعرف على هذه العملية، تواصل معنا فوراً.
     </p>
 
-    ${ctaButton("https://e-commerce.rfperfume.sa/orders", "عرض طلباتي")}
+    ${ctaButton(`${SITE.URL}/orders`, "عرض طلباتي")}
   `;
 
   const enMirror = englishMirror(`
@@ -662,7 +675,7 @@ export async function sendAdminAlertEmail(params: {
 
     ${dataRows ? infoBox(dataRows) : ""}
 
-    ${ctaButton("https://e-commerce.rfperfume.sa/admin", "لوحة التحكم")}
+    ${ctaButton(`${SITE.URL}/admin`, "لوحة التحكم")}
   `;
 
   // Admin alerts can also include an English mirror by passing data with `_en_*` keys; otherwise just the original
