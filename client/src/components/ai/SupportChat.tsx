@@ -95,7 +95,7 @@ export function SupportChat() {
                   <h4 className="font-black text-sm text-gray-800">دعم رفيف العود</h4>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] text-gray-400 font-bold">متصل الآن</span>
+                    <span className="text-[10px] text-gray-700 font-bold">متصل الآن</span>
                   </div>
                 </div>
               </div>
@@ -103,7 +103,7 @@ export function SupportChat() {
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-4 w-4 text-gray-700" />
               </button>
             </div>
 
@@ -125,7 +125,7 @@ export function SupportChat() {
                 <div className="flex justify-end">
                   <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                    <span className="text-xs text-gray-400 font-bold">جاري الرد...</span>
+                    <span className="text-xs text-gray-700 font-bold">جاري الرد...</span>
                   </div>
                 </div>
               )}
@@ -152,7 +152,7 @@ export function SupportChat() {
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-[9px] text-gray-400 text-center mt-2 font-bold">
+              <p className="text-[9px] text-gray-700 text-center mt-2 font-bold">
                 دعم ذكي · رفيف العود
               </p>
             </div>

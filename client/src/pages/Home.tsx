@@ -221,7 +221,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-[#1a2744] text-xs font-bold">{isRtl ? badge.ar : badge.en}</p>
-                    <p className="text-gray-400 text-[10px]">{isRtl ? badge.sub_ar : badge.sub_en}</p>
+                    <p className="text-gray-700 text-[10px]">{isRtl ? badge.sub_ar : badge.sub_en}</p>
                   </div>
                 </div>
               );
@@ -249,7 +249,7 @@ export default function Home() {
                 </div>
               </div>
               <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                <span className="text-gray-700 text-xs font-bold uppercase tracking-widest">
                   {isRtl ? "تنتهي خلال" : "Ends in"}
                 </span>
                 <FlashCountdown endTime={flashEndTime} />
@@ -452,7 +452,7 @@ export default function Home() {
                 <span className="text-4xl md:text-5xl font-bold text-[#c9a96e] tracking-tighter">
                   {isRtl ? stat.num : stat.num_en}
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 mt-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-700 mt-2">
                   {isRtl ? stat.label_ar : stat.label_en}
                 </span>
               </motion.div>
@@ -469,7 +469,7 @@ export default function Home() {
               {isRtl ? "طرق الدفع المرنة" : "Flexible Payment"}
             </span>
             <h2 className="text-2xl md:text-4xl font-bold text-[#1a2744] leading-tight">
-              {isRtl ? (<>اشتري الآن <span className="text-gray-300">وادفع لاحقاً</span></>) : (<>Buy Now <span className="text-gray-300">Pay Later</span></>)}
+              {isRtl ? (<>اشتري الآن <span className="text-gray-700">وادفع لاحقاً</span></>) : (<>Buy Now <span className="text-gray-700">Pay Later</span></>)}
             </h2>
           </div>
 
@@ -490,14 +490,14 @@ export default function Home() {
                 <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
                   {isRtl ? "٤ أقساط بدون فوائد" : "4 Payments, Zero Interest"}
                 </h3>
-                <p className={`text-gray-400 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
+                <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
                   {isRtl ? "قسّم فاتورتك على ٤ دفعات" : "Split your bill into 4 payments"}
                 </p>
                 <div className="flex gap-2 mb-4" dir="ltr">
                   {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="flex-1 flex flex-col items-center gap-1">
                       <div className={`w-full h-1 rounded-full ${n === 1 ? "bg-emerald-500" : "bg-emerald-100"}`} />
-                      <span className={`text-[9px] font-bold ${n === 1 ? "text-emerald-600" : "text-gray-300"}`}>
+                      <span className={`text-[9px] font-bold ${n === 1 ? "text-emerald-600" : "text-gray-700"}`}>
                         {n === 1 ? (isRtl ? "الآن" : "Today") : `+${(n - 1) * 30}d`}
                       </span>
                     </div>
@@ -522,14 +522,14 @@ export default function Home() {
                 <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
                   {isRtl ? "٣ أقساط بدون فوائد" : "3 Payments, Zero Interest"}
                 </h3>
-                <p className={`text-gray-400 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
+                <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
                   {isRtl ? "قسّم طلبك على ٣ دفعات" : "Split your order into 3 payments"}
                 </p>
                 <div className="flex gap-2 mb-4" dir="ltr">
                   {[1, 2, 3].map((n) => (
                     <div key={n} className="flex-1 flex flex-col items-center gap-1">
                       <div className={`w-full h-1 rounded-full ${n === 1 ? "bg-purple-500" : "bg-purple-100"}`} />
-                      <span className={`text-[9px] font-bold ${n === 1 ? "text-purple-600" : "text-gray-300"}`}>
+                      <span className={`text-[9px] font-bold ${n === 1 ? "text-purple-600" : "text-gray-700"}`}>
                         {n === 1 ? (isRtl ? "الآن" : "Today") : `+${(n - 1) * 30}d`}
                       </span>
                     </div>
@@ -548,7 +548,7 @@ export default function Home() {
             ].map((item) => (
               <div key={item.ar} className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}>
                 <span className="text-base">{item.icon}</span>
-                <span className="text-gray-400 text-xs font-bold">{isRtl ? item.ar : item.en}</span>
+                <span className="text-gray-700 text-xs font-bold">{isRtl ? item.ar : item.en}</span>
               </div>
             ))}
           </div>

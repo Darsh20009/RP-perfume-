@@ -28,7 +28,7 @@ export default function PaymobResult() {
               <Loader2 className="h-10 w-10 text-[#c9a96e] animate-spin" />
             </div>
             <h2 className="text-xl font-black text-gray-800">جاري التحقق من الدفع...</h2>
-            <p className="text-sm text-gray-500 font-bold">يرجى الانتظار</p>
+            <p className="text-sm text-gray-800 font-bold">يرجى الانتظار</p>
           </>
         )}
 
@@ -38,11 +38,11 @@ export default function PaymobResult() {
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
             <h2 className="text-xl font-black text-green-800">تمت عملية الدفع بنجاح!</h2>
-            <p className="text-sm text-gray-500 font-bold">
+            <p className="text-sm text-gray-800 font-bold">
               شكراً لتسوقك من رفيف العود. سيتم تجهيز طلبك وشحنه قريباً.
             </p>
             {orderId && (
-              <p className="text-xs text-gray-400 font-bold">
+              <p className="text-xs text-gray-700 font-bold">
                 رقم الطلب: <span className="font-black text-gray-600">{orderId.slice(-8).toUpperCase()}</span>
               </p>
             )}
@@ -70,7 +70,7 @@ export default function PaymobResult() {
               <XCircle className="h-10 w-10 text-red-600" />
             </div>
             <h2 className="text-xl font-black text-red-800">فشلت عملية الدفع</h2>
-            <p className="text-sm text-gray-500 font-bold">
+            <p className="text-sm text-gray-800 font-bold">
               لم تتم عملية الدفع. يرجى المحاولة مرة أخرى أو اختيار طريقة دفع مختلفة.
             </p>
             <div className="space-y-3 pt-4">

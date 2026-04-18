@@ -100,7 +100,7 @@ export default function Register() {
             <img src={logoDarkImg} alt="رفيف العود" className="h-20 w-auto mx-auto mb-4 cursor-pointer object-contain" />
           </Link>
           <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto mb-4" />
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-800 text-sm">
             {isPrePopulated ? "تأكيد بيانات الموظف" : "أنشئ حسابك الجديد"}
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function Register() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="text-right">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]/60">الاسم الكامل</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1a2744]">الاسم الكامل</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="فلان الفلاني" 
@@ -138,13 +138,13 @@ export default function Register() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem className="text-right">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]/60">رقم الجوال</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1a2744]">رقم الجوال</FormLabel>
                     <FormControl>
                       <div dir="ltr" className="flex items-center gap-2 h-12 bg-[#faf8f5] border border-slate-200 rounded-xl px-4 focus-within:border-[#c9a96e] transition-colors">
-                        <span className="text-sm font-bold text-slate-400 border-r border-slate-200 pr-2">+966</span>
+                        <span className="text-sm font-bold text-slate-700 border-r border-slate-200 pr-2">+966</span>
                         <input
                           type="text"
-                          className="flex-1 h-full bg-transparent border-none focus:outline-none text-sm font-bold tracking-widest text-[#1a2744] placeholder:text-slate-300"
+                          className="flex-1 h-full bg-transparent border-none focus:outline-none text-sm font-bold tracking-widest text-[#1a2744] placeholder:text-slate-700"
                           placeholder="5x xxx xxxx"
                           maxLength={11}
                           value={field.value.replace(/(\d{2})(\d{3})(\d{4})/, "$1 $2 $3").trim()}
@@ -171,7 +171,7 @@ export default function Register() {
                 name="email"
                 render={({ field }) => (
                   <FormItem className="text-right">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]/60">البريد الإلكتروني</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1a2744]">البريد الإلكتروني</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="example@email.com" {...field} value={field.value || ""} className="h-12 bg-[#faf8f5] border-slate-200 rounded-xl focus-visible:ring-[#c9a96e]/40 text-[#1a2744]" />
                     </FormControl>
@@ -184,7 +184,7 @@ export default function Register() {
                 name="password"
                 render={({ field }) => (
                   <FormItem className="text-right">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]/60">كلمة المرور الجديدة</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1a2744]">كلمة المرور الجديدة</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} className="h-12 bg-[#faf8f5] border-slate-200 rounded-xl focus-visible:ring-[#c9a96e]/40 text-[#1a2744] pr-12" />
@@ -192,7 +192,7 @@ export default function Register() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-[#1a2744] no-default-hover-elevate"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-700 hover:text-[#1a2744] no-default-hover-elevate"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -210,7 +210,7 @@ export default function Register() {
             </form>
           </Form>
 
-          <div className="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-700">
             لديك حساب بالفعل؟{" "}
             <Link href="/login" className="text-[#c9a96e] hover:text-[#b8944f] mr-1 transition-colors">
               سجل دخولك

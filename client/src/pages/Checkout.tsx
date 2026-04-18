@@ -368,15 +368,15 @@ export default function Checkout() {
             ? "bg-green-500 text-white"
             : isActive
             ? "bg-primary text-white"
-            : "bg-gray-200 text-gray-500"
+            : "bg-gray-200 text-gray-800"
         }`}
       >
         {isCompleted ? <Check className="h-4 w-4" /> : step}
       </div>
       <div className="flex-1 text-right">
-        <p className={`font-black text-sm ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-400"}`}>{title}</p>
+        <p className={`font-black text-sm ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-700"}`}>{title}</p>
         {!isActive && summary && (
-          <p className="text-xs text-gray-500 mt-0.5 font-medium truncate">{summary}</p>
+          <p className="text-xs text-gray-800 mt-0.5 font-medium truncate">{summary}</p>
         )}
       </div>
       {isCompleted && !isActive && (
@@ -386,7 +386,7 @@ export default function Checkout() {
         </span>
       )}
       {!isActive && !isCompleted && (
-        <ChevronLeft className="h-4 w-4 text-gray-300 shrink-0 rotate-180" />
+        <ChevronLeft className="h-4 w-4 text-gray-700 shrink-0 rotate-180" />
       )}
     </button>
   );
@@ -399,11 +399,11 @@ export default function Checkout() {
           <Link href="/">
             <span className="font-black text-xl tracking-tighter cursor-pointer">RF PERFUME</span>
           </Link>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500 font-bold">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-gray-800 font-bold">
             <span className={activeStep >= 1 ? "text-primary font-black" : ""}>العنوان</span>
-            <ChevronLeft className="h-3 w-3 rotate-180 text-gray-300" />
+            <ChevronLeft className="h-3 w-3 rotate-180 text-gray-700" />
             <span className={activeStep >= 2 ? "text-primary font-black" : ""}>الشحن</span>
-            <ChevronLeft className="h-3 w-3 rotate-180 text-gray-300" />
+            <ChevronLeft className="h-3 w-3 rotate-180 text-gray-700" />
             <span className={activeStep >= 3 ? "text-primary font-black" : ""}>الدفع</span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] font-bold text-green-600">
@@ -452,14 +452,14 @@ export default function Checkout() {
                               </div>
                               <div>
                                 <p className="font-black text-sm">{addr.name}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{addr.street}, {addr.city}</p>
+                                <p className="text-xs text-gray-800 mt-0.5">{addr.street}, {addr.city}</p>
                               </div>
                             </div>
                           ))}
                         </div>
                         <button
                           onClick={() => { setShowAddAddressForm(true); setSelectedAddressId(null); }}
-                          className="w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm font-bold text-gray-800 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
                         >
                           <MapPin className="h-4 w-4" />
                           إضافة عنوان جديد
@@ -483,7 +483,7 @@ export default function Checkout() {
                             />
                             <button
                               onClick={() => setShowMapForm(true)}
-                              className="w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+                              className="w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm font-bold text-gray-800 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
                             >
                               <MapPin className="h-4 w-4" />
                               حدد الموقع من الخريطة
@@ -491,7 +491,7 @@ export default function Checkout() {
                             {showAddAddressForm && (
                               <button
                                 onClick={() => { setShowAddAddressForm(false); setSelectedAddressId(user?.addresses?.[0]?.id || null); }}
-                                className="w-full text-xs text-gray-400 hover:text-gray-600 font-bold py-2"
+                                className="w-full text-xs text-gray-700 hover:text-gray-600 font-bold py-2"
                               >
                                 إلغاء
                               </button>
@@ -508,7 +508,7 @@ export default function Checkout() {
                             />
                             <button
                               onClick={() => setShowMapForm(false)}
-                              className="w-full py-3 border border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                              className="w-full py-3 border border-gray-200 rounded-lg text-sm font-bold text-gray-800 hover:bg-gray-50 transition-colors"
                             >
                               إغلاق الخريطة
                             </button>
@@ -547,7 +547,7 @@ export default function Checkout() {
                 <div className="px-6 pb-6 border-t border-gray-100">
                   <div className="pt-5 space-y-4">
                     {shippingCompanies.length === 0 ? (
-                      <p className="text-sm text-gray-400 font-bold text-center py-4">لا توجد شركات شحن متاحة</p>
+                      <p className="text-sm text-gray-700 font-bold text-center py-4">لا توجد شركات شحن متاحة</p>
                     ) : (
                       <div className="space-y-3">
                         {shippingCompanies.map((company: any) => {
@@ -566,10 +566,10 @@ export default function Checkout() {
                               }`}>
                                 {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
                               </div>
-                              <Truck className={`h-5 w-5 shrink-0 ${isSelected ? "text-primary" : "text-gray-400"}`} />
+                              <Truck className={`h-5 w-5 shrink-0 ${isSelected ? "text-primary" : "text-gray-700"}`} />
                               <div className="flex-1">
                                 <p className="font-black text-sm">{company.name}</p>
-                                <p className="text-[10px] text-gray-400 font-bold mt-0.5">التوصيل خلال ٢-٤ أيام عمل</p>
+                                <p className="text-[10px] text-gray-700 font-bold mt-0.5">التوصيل خلال ٢-٤ أيام عمل</p>
                               </div>
                               <span className={`font-black text-sm ${isSelected ? "text-primary" : "text-gray-600"}`}>
                                 {company.price} ر.س
@@ -617,11 +617,11 @@ export default function Checkout() {
                         >
                           <RadioGroupItem value="wallet" id="pay-wallet" className="shrink-0" />
                           <div className={`p-1.5 rounded-md ${paymentMethod === "wallet" ? "bg-primary/10" : "bg-gray-100"}`}>
-                            <Wallet className={`h-5 w-5 ${paymentMethod === "wallet" ? "text-primary" : "text-gray-500"}`} />
+                            <Wallet className={`h-5 w-5 ${paymentMethod === "wallet" ? "text-primary" : "text-gray-800"}`} />
                           </div>
                           <div className="flex-1">
                             <p className="font-black text-sm">رصيد المحفظة</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">رصيدك: {user?.walletBalance} ر.س</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">رصيدك: {user?.walletBalance} ر.س</p>
                           </div>
                         </label>
                       )}
@@ -639,7 +639,7 @@ export default function Checkout() {
                             <CardBrandsLogo className="h-6" />
                             <div>
                               <p className="font-black text-sm">بطاقة بنكية</p>
-                              <p className="text-[10px] text-gray-400 font-bold mt-0.5">مدى / فيزا / ماستركارد</p>
+                              <p className="text-[10px] text-gray-700 font-bold mt-0.5">مدى / فيزا / ماستركارد</p>
                             </div>
                           </div>
                           {paymentMethod === "tap" && paymentConfirmed && (
@@ -663,7 +663,7 @@ export default function Checkout() {
                           <STCPayLogo className="h-6 shrink-0" />
                           <div className="flex-1">
                             <p className="font-black text-sm">STC Pay</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">محفظة STC الإلكترونية</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">محفظة STC الإلكترونية</p>
                           </div>
                           {paymentMethod === "stc_pay" && paymentConfirmed && (
                             <span className="text-[10px] text-green-600 font-black flex items-center gap-1">
@@ -686,7 +686,7 @@ export default function Checkout() {
                           <ApplePayLogo className="h-6 shrink-0" />
                           <div className="flex-1">
                             <p className="font-black text-sm">Apple Pay</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">Face ID / Touch ID</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">Face ID / Touch ID</p>
                           </div>
                           {paymentMethod === "apple_pay" && paymentConfirmed && (
                             <span className="text-[10px] text-green-600 font-black flex items-center gap-1">
@@ -709,7 +709,7 @@ export default function Checkout() {
                           <TabbyLogo className="h-7 shrink-0" />
                           <div className="flex-1">
                             <p className="font-black text-sm">Tabby</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">٤ دفعات بدون فوائد</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">٤ دفعات بدون فوائد</p>
                           </div>
                           <Badge className="text-[9px] bg-green-100 text-green-700 border-0 font-black">٤ أقساط</Badge>
                         </label>
@@ -727,7 +727,7 @@ export default function Checkout() {
                           <TamaraLogo className="h-7 shrink-0" />
                           <div className="flex-1">
                             <p className="font-black text-sm">Tamara</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">٣ دفعات بدون فوائد</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">٣ دفعات بدون فوائد</p>
                           </div>
                           <Badge className="text-[9px] bg-amber-100 text-amber-700 border-0 font-black">٣ أقساط</Badge>
                         </label>
@@ -744,11 +744,11 @@ export default function Checkout() {
                           <div className="flex items-center gap-3">
                             <RadioGroupItem value="bank_transfer" id="pay-bank" className="shrink-0" />
                             <div className={`p-1.5 rounded-md ${paymentMethod === "bank_transfer" ? "bg-primary/10" : "bg-gray-100"}`}>
-                              <Landmark className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-500"}`} />
+                              <Landmark className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-800"}`} />
                             </div>
                             <div>
                               <p className="font-black text-sm">تحويل بنكي</p>
-                              <p className="text-[10px] text-gray-400 font-bold mt-0.5">يتطلب رفع إيصال التحويل</p>
+                              <p className="text-[10px] text-gray-700 font-bold mt-0.5">يتطلب رفع إيصال التحويل</p>
                             </div>
                             <BankLogo bankName={storeSettings?.bankName} bankLogoUrl={storeSettings?.bankLogo} className="h-8 w-auto mr-auto" />
                           </div>
@@ -760,7 +760,7 @@ export default function Checkout() {
                                 <p className="font-mono text-gray-600 text-xs">IBAN: {storeSettings?.bankIBAN || "SA6280000501608016226411"}</p>
                               </div>
                               <div>
-                                <Label className="text-xs font-black text-gray-500 mb-2 block">
+                                <Label className="text-xs font-black text-gray-800 mb-2 block">
                                   رفع إيصال التحويل <span className="text-red-500">*</span>
                                 </Label>
                                 <Input type="file" onChange={handleReceiptUpload} accept="image/*" className="h-10 text-xs border-gray-200 rounded-lg" />
@@ -784,7 +784,7 @@ export default function Checkout() {
                           <p className="font-black text-sm text-gray-700">الدفع بالبطاقة</p>
                         </div>
                         <div className="space-y-2">
-                          <p className="text-xs text-gray-500 font-bold leading-relaxed">
+                          <p className="text-xs text-gray-800 font-bold leading-relaxed">
                             سيتم توجيهك إلى بوابة الدفع الآمنة (Paymob) لإدخال بيانات بطاقتك الائتمانية أو مدى.
                           </p>
                           <div className="flex items-center gap-3 pt-2">
@@ -795,7 +795,7 @@ export default function Checkout() {
                             </div>
                             <div className="bg-[#0a5aa5] text-white font-black text-[10px] px-2 py-0.5 rounded">مدى</div>
                           </div>
-                          <div className="flex items-center gap-2 pt-2 text-[10px] text-gray-400 font-bold">
+                          <div className="flex items-center gap-2 pt-2 text-[10px] text-gray-700 font-bold">
                             <Lock className="h-3 w-3" />
                             <span>دفع آمن ومشفر بالكامل عبر Paymob</span>
                           </div>
@@ -822,7 +822,7 @@ export default function Checkout() {
                     {/* Inline Apple Pay */}
                     {paymentMethod === "apple_pay" && !paymentConfirmed && (
                       <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 space-y-3">
-                        <p className="text-xs text-gray-500 font-bold text-center">
+                        <p className="text-xs text-gray-800 font-bold text-center">
                           اضغط للمصادقة عبر Face ID أو Touch ID
                         </p>
                         <button
@@ -844,7 +844,7 @@ export default function Checkout() {
                             </>
                           )}
                         </button>
-                        <p className="text-[10px] text-center text-gray-400 font-bold">
+                        <p className="text-[10px] text-center text-gray-700 font-bold">
                           المبلغ: <span className="font-black text-gray-600">{finalTotal.toLocaleString()} ر.س</span>
                         </p>
                       </div>
@@ -873,7 +873,7 @@ export default function Checkout() {
             <div className="sticky top-24 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <h3 className="font-black text-base">ملخص الطلب</h3>
-                <p className="text-xs text-gray-400 font-bold mt-0.5">{items.length} منتج</p>
+                <p className="text-xs text-gray-700 font-bold mt-0.5">{items.length} منتج</p>
               </div>
 
               {/* Product list */}
@@ -885,7 +885,7 @@ export default function Checkout() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-xs truncate">{item.title}</p>
-                      <p className="text-[10px] text-gray-400 font-bold mt-0.5">
+                      <p className="text-[10px] text-gray-700 font-bold mt-0.5">
                         {item.quantity}x · {item.color} · {item.size}
                       </p>
                     </div>
@@ -896,15 +896,15 @@ export default function Checkout() {
 
               {/* Totals */}
               <div className="p-5 space-y-3 border-b border-gray-100 text-sm">
-                <div className="flex justify-between text-gray-500 font-bold">
+                <div className="flex justify-between text-gray-800 font-bold">
                   <span>{subtotal.toLocaleString()} ر.س</span>
                   <span>المجموع الفرعي</span>
                 </div>
-                <div className="flex justify-between text-gray-500 font-bold">
+                <div className="flex justify-between text-gray-800 font-bold">
                   <span>{tax.toLocaleString()} ر.س</span>
                   <span>ضريبة ١٥٪</span>
                 </div>
-                <div className="flex justify-between text-gray-500 font-bold">
+                <div className="flex justify-between text-gray-800 font-bold">
                   <span>{shipping.toLocaleString()} ر.س</span>
                   <span>رسوم الشحن</span>
                 </div>
@@ -954,14 +954,14 @@ export default function Checkout() {
               <div className="p-5 space-y-3">
                 {activeStep < 3 ? (
                   <div className="w-full py-4 bg-gray-100 rounded-lg text-center">
-                    <p className="text-xs text-gray-400 font-bold">
+                    <p className="text-xs text-gray-700 font-bold">
                       أكمل الخطوات أعلاه للمتابعة
                     </p>
                   </div>
                 ) : ["stc_pay", "apple_pay"].includes(paymentMethod) && !paymentConfirmed ? (
                   <div className="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5">
-                    <Lock className="h-4 w-4 text-gray-400" />
-                    <p className="text-[10px] text-gray-400 font-black text-center">
+                    <Lock className="h-4 w-4 text-gray-700" />
+                    <p className="text-[10px] text-gray-700 font-black text-center">
                       {paymentMethod === "stc_pay"
                         ? "تحقق من STC Pay أولاً"
                         : "صادق عبر Apple Pay أولاً"}
@@ -981,7 +981,7 @@ export default function Checkout() {
                     ) : "تأكيد الطلب"}
                   </Button>
                 )}
-                <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-400 font-bold">
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-700 font-bold">
                   <Lock className="h-3 w-3" />
                   <span>دفع آمن ومشفر بالكامل</span>
                 </div>
@@ -999,13 +999,13 @@ export default function Checkout() {
               <Lock className="h-7 w-7 text-primary" />
             </div>
             <DialogTitle className="font-black text-2xl tracking-tight">تأكيد الهوية</DialogTitle>
-            <DialogDescription className="font-bold text-sm text-gray-400 leading-relaxed">
+            <DialogDescription className="font-bold text-sm text-gray-700 leading-relaxed">
               لحماية حسابك، يرجى إدخال كلمة المرور لتأكيد الطلب.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-5 py-5">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">كلمة المرور</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-gray-700">كلمة المرور</Label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -1017,7 +1017,7 @@ export default function Checkout() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 hover:text-primary transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

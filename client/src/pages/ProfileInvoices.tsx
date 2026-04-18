@@ -142,12 +142,12 @@ export default function ProfileInvoices() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">{isAr ? "فاتورة ضريبية" : "Tax Invoice"}</p>
+                  <p className="text-xs text-slate-700 uppercase tracking-widest font-bold">{isAr ? "فاتورة ضريبية" : "Tax Invoice"}</p>
                   <p className="font-black text-xl mt-1">رفيف العود</p>
                 </div>
                 <div className={isAr ? "text-left" : "text-right"}>
                   <p className="font-black text-lg">{viewing.invoiceNumber}</p>
-                  <p className="text-xs text-slate-400 mt-1">{format(new Date(viewing.issueDate), "yyyy-MM-dd")}</p>
+                  <p className="text-xs text-slate-700 mt-1">{format(new Date(viewing.issueDate), "yyyy-MM-dd")}</p>
                   <span className={`inline-block mt-2 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-none ${
                     viewing.status === "paid" ? "bg-emerald-100 text-emerald-700" :
                     (["pending","draft","issued"] as string[]).includes(viewing.status) ? "bg-amber-100 text-amber-700" :
@@ -161,7 +161,7 @@ export default function ProfileInvoices() {
 
               {viewing.items && (viewing.items as any[]).length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-2 mb-3">{isAr ? "البنود" : "Line Items"}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 border-b border-slate-100 pb-2 mb-3">{isAr ? "البنود" : "Line Items"}</p>
                   <div className="space-y-2">
                     {(viewing.items as any[]).map((item: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between text-sm" data-testid={`row-invoice-item-${idx}`}>
@@ -203,7 +203,7 @@ export default function ProfileInvoices() {
 
               {viewing.notes && (
                 <div className="bg-slate-50 p-3 rounded-none text-sm text-slate-600">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{isAr ? "ملاحظات" : "Notes"}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 mb-1">{isAr ? "ملاحظات" : "Notes"}</p>
                   {viewing.notes}
                 </div>
               )}
@@ -248,7 +248,7 @@ export default function ProfileInvoices() {
                 <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-none ${
                   invoice.status === "paid" ? "bg-emerald-100 text-emerald-700" :
                   (["pending","draft","issued"] as string[]).includes(invoice.status) ? "bg-amber-100 text-amber-700" :
-                  "bg-slate-100 text-slate-500"
+                  "bg-slate-100 text-slate-800"
                 }`}>
                   {invoice.status === "paid" ? (isAr ? "مدفوعة" : "Paid") :
                    (["pending","draft","issued"] as string[]).includes(invoice.status) ? (isAr ? "معلقة" : "Pending") : invoice.status}

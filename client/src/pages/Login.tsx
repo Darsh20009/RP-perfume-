@@ -106,7 +106,7 @@ export default function Login() {
             <img src={logoDarkImg} alt="رفيف العود" className="h-20 w-auto mx-auto mb-4 cursor-pointer object-contain" />
           </Link>
           <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto mb-4" />
-          <p className="text-slate-500 text-sm">سجل دخولك برقم الهاتف للمتابعة</p>
+          <p className="text-slate-800 text-sm">سجل دخولك برقم الهاتف للمتابعة</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-xl">
@@ -137,7 +137,7 @@ export default function Login() {
             </button>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">أو بالهاتف</span>
+              <span className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">أو بالهاتف</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
           </div>
@@ -149,13 +149,13 @@ export default function Login() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem className="text-right">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]/60">رقم الهاتف</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1a2744]">رقم الهاتف</FormLabel>
                     <FormControl>
                       <div dir="ltr" className="flex items-center gap-2 h-14 bg-[#faf8f5] border border-slate-200 rounded-xl px-4 focus-within:border-[#c9a96e] transition-colors">
-                        <span className="text-sm font-bold text-slate-400 border-r border-slate-200 pr-2">+966</span>
+                        <span className="text-sm font-bold text-slate-700 border-r border-slate-200 pr-2">+966</span>
                           <input
                             type="text"
-                            className="flex-1 h-full bg-transparent border-none focus:outline-none text-sm font-bold tracking-widest text-[#1a2744] placeholder:text-slate-300"
+                            className="flex-1 h-full bg-transparent border-none focus:outline-none text-sm font-bold tracking-widest text-[#1a2744] placeholder:text-slate-700"
                             placeholder="5x xxx xxxx"
                             maxLength={11}
                             value={field.value.replace(/(\d{2})(\d{3})(\d{4})/, "$1 $2 $3").trim()}
@@ -183,7 +183,7 @@ export default function Login() {
                   render={({ field }) => (
                     <FormItem className="text-right">
                       <div className="flex justify-between items-center mb-1">
-                        <Link href="/forgot-password" className="text-[10px] font-bold uppercase tracking-widest text-[#c9a96e]/40 hover:text-[#c9a96e]">نسيت كلمة المرور؟</Link>
+                        <Link href="/forgot-password" className="text-[10px] font-bold uppercase tracking-widest text-[#1a2744] hover:text-[#c9a96e]">نسيت كلمة المرور؟</Link>
                         <FormLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a96e]">كلمة المرور</FormLabel>
                       </div>
                       <FormControl>
@@ -193,7 +193,7 @@ export default function Login() {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-[#1a2744] no-default-hover-elevate"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-700 hover:text-[#1a2744] no-default-hover-elevate"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -212,7 +212,7 @@ export default function Login() {
             </form>
           </Form>
 
-          <div className="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-700">
             ليس لديك حساب؟{" "}
             <Link href="/register" className="text-[#c9a96e] hover:text-[#b8944f] mr-1 transition-colors">
               أنشئ حساب جديد
@@ -220,12 +220,12 @@ export default function Login() {
           </div>
           
           <div className="mt-4">
-            <Link href="/" className="text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-slate-500 flex items-center justify-center gap-2 transition-colors">
+            <Link href="/" className="text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:text-slate-800 flex items-center justify-center gap-2 transition-colors">
               <span>العودة للرئيسية</span>
             </Link>
           </div>
           <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-            <a href="https://api.whatsapp.com/send/?phone=966551329821" target="_blank" rel="noreferrer" className="text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-[#c9a96e] transition-colors">
+            <a href="https://api.whatsapp.com/send/?phone=966551329821" target="_blank" rel="noreferrer" className="text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:text-[#c9a96e] transition-colors">
               هل تواجه مشكلة؟ تواصل مع الدعم الفني
             </a>
           </div>

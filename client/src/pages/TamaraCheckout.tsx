@@ -141,7 +141,7 @@ export default function TamaraCheckout() {
               <CheckCircle2 className="h-12 w-12 text-white" />
             </div>
             <h2 className="text-2xl font-black mb-1" style={{ color: TAMARA_PURPLE }}>تمت الموافقة!</h2>
-            <p className="text-gray-500 text-sm">وافقت tamara على طلبك بنجاح</p>
+            <p className="text-gray-800 text-sm">وافقت tamara على طلبك بنجاح</p>
           </div>
 
           <div className="bg-white rounded-2xl p-5 shadow-sm" dir="rtl">
@@ -152,7 +152,7 @@ export default function TamaraCheckout() {
               </span>
             </div>
             <div className="border-t border-gray-100 pt-4 space-y-3">
-              <p className="text-xs font-bold text-gray-400 mb-3">جدول السداد — {selectedPlan} دفعات</p>
+              <p className="text-xs font-bold text-gray-700 mb-3">جدول السداد — {selectedPlan} دفعات</p>
               {dates.map((date, i) => (
                 <div
                   key={i}
@@ -170,7 +170,7 @@ export default function TamaraCheckout() {
                       {installmentAmount.toLocaleString()} ر.س
                     </span>
                   </div>
-                  <span className="text-xs text-gray-400 font-medium">{date}</span>
+                  <span className="text-xs text-gray-700 font-medium">{date}</span>
                 </div>
               ))}
             </div>
@@ -210,7 +210,7 @@ export default function TamaraCheckout() {
           onClick={() => setShowCancelDialog(true)}
           className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
-          <X className="h-5 w-5 text-gray-500" />
+          <X className="h-5 w-5 text-gray-800" />
         </button>
         <TamaraLogoSvg />
         <button
@@ -227,7 +227,7 @@ export default function TamaraCheckout() {
           }}
           className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
-          <ArrowRight className="h-5 w-5 text-gray-500" />
+          <ArrowRight className="h-5 w-5 text-gray-800" />
         </button>
       </div>
 
@@ -269,10 +269,10 @@ export default function TamaraCheckout() {
                 <Phone className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-2" style={{ color: TAMARA_PURPLE }}>رقم جوالك</h1>
-              <p className="text-gray-500 text-sm leading-relaxed">أدخل رقم جوالك المسجّل مع tamara للمتابعة</p>
+              <p className="text-gray-800 text-sm leading-relaxed">أدخل رقم جوالك المسجّل مع tamara للمتابعة</p>
             </div>
             <div className="mb-5">
-              <label className="text-xs font-bold text-gray-500 mb-2 block">رقم الجوال</label>
+              <label className="text-xs font-bold text-gray-800 mb-2 block">رقم الجوال</label>
               <div className="relative">
                 <input
                   type="tel"
@@ -293,7 +293,7 @@ export default function TamaraCheckout() {
               إرسال رمز التحقق
             </button>
             <div className="mt-auto pt-8 text-center">
-              <p className="text-xs text-gray-400 mb-2">رقم تجريبي للاختبار</p>
+              <p className="text-xs text-gray-700 mb-2">رقم تجريبي للاختبار</p>
               <button
                 onClick={() => setPhone(TEST_PHONE)}
                 className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-dashed hover:bg-white transition-colors shadow-sm"
@@ -313,7 +313,7 @@ export default function TamaraCheckout() {
                 <Smartphone className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-2" style={{ color: TAMARA_PURPLE }}>رمز التحقق</h1>
-              <p className="text-gray-500 text-sm">أرسلنا رمزاً مكوناً من 4 أرقام إلى</p>
+              <p className="text-gray-800 text-sm">أرسلنا رمزاً مكوناً من 4 أرقام إلى</p>
               <p className="font-black text-sm mt-1" style={{ color: TAMARA_PURPLE, direction: "ltr", textAlign: "right" }}>{phone}</p>
             </div>
             <div className="flex gap-3 justify-center mb-3" dir="ltr">
@@ -339,7 +339,7 @@ export default function TamaraCheckout() {
             )}
             <div className="text-center mb-5">
               {resendTimer > 0 ? (
-                <p className="text-gray-400 text-sm">إعادة الإرسال بعد <span className="font-bold">{resendTimer}s</span></p>
+                <p className="text-gray-700 text-sm">إعادة الإرسال بعد <span className="font-bold">{resendTimer}s</span></p>
               ) : (
                 <button
                   onClick={() => setResendTimer(59)}
@@ -359,7 +359,7 @@ export default function TamaraCheckout() {
               تحقق وتابع
             </button>
             <div className="mt-auto pt-8 text-center">
-              <p className="text-xs text-gray-400 mb-2">رمز تجريبي للاختبار</p>
+              <p className="text-xs text-gray-700 mb-2">رمز تجريبي للاختبار</p>
               <button
                 onClick={() => setOtpValues(TEST_OTP.split(""))}
                 className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-dashed hover:bg-white transition-colors shadow-sm"
@@ -379,7 +379,7 @@ export default function TamaraCheckout() {
                 <FileText className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-2" style={{ color: TAMARA_PURPLE }}>الموافقة على الشروط</h1>
-              <p className="text-gray-500 text-sm leading-relaxed">يرجى مراجعة والموافقة على الشروط التالية للمتابعة</p>
+              <p className="text-gray-800 text-sm leading-relaxed">يرجى مراجعة والموافقة على الشروط التالية للمتابعة</p>
             </div>
             <div className="space-y-3 flex-1">
               {[
@@ -432,7 +432,7 @@ export default function TamaraCheckout() {
                 <Shield className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-2" style={{ color: TAMARA_PURPLE }}>الهوية الوطنية</h1>
-              <p className="text-gray-500 text-sm leading-relaxed">أدخل رقم هويتك الوطنية أو رقم الإقامة</p>
+              <p className="text-gray-800 text-sm leading-relaxed">أدخل رقم هويتك الوطنية أو رقم الإقامة</p>
             </div>
             <div className="space-y-4 flex-1">
               <div>
@@ -462,7 +462,7 @@ export default function TamaraCheckout() {
                   </div>
                   <div>
                     <p className="text-xs font-bold mb-0.5" style={{ color: TAMARA_PURPLE }}>بياناتك آمنة تماماً</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">نستخدم تشفيراً عالي المستوى لحماية معلوماتك الشخصية</p>
+                    <p className="text-xs text-gray-800 leading-relaxed">نستخدم تشفيراً عالي المستوى لحماية معلوماتك الشخصية</p>
                   </div>
                 </div>
               </div>
@@ -479,7 +479,7 @@ export default function TamaraCheckout() {
               متابعة
             </button>
             <div className="mt-4 text-center">
-              <p className="text-xs text-gray-400 mb-2">رقم تجريبي</p>
+              <p className="text-xs text-gray-700 mb-2">رقم تجريبي</p>
               <button
                 onClick={() => setNationalId("1234567890")}
                 className="text-sm font-bold px-5 py-2 rounded-full border-2 border-dashed hover:bg-white transition-colors"
@@ -499,7 +499,7 @@ export default function TamaraCheckout() {
                 <CreditCard className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-1" style={{ color: TAMARA_PURPLE }}>اختر خطة الدفع</h1>
-              <p className="text-gray-500 text-sm">قسّط <span className="font-bold" style={{ color: TAMARA_PURPLE }}>{amount.toLocaleString()} ر.س</span> بدون فوائد</p>
+              <p className="text-gray-800 text-sm">قسّط <span className="font-bold" style={{ color: TAMARA_PURPLE }}>{amount.toLocaleString()} ر.س</span> بدون فوائد</p>
             </div>
             <div className="space-y-3 flex-1">
               {([2, 3, 4] as PlanOption[]).map(plan => {
@@ -538,7 +538,7 @@ export default function TamaraCheckout() {
                       <span className="text-3xl font-black" style={{ color: isSelected ? TAMARA_PURPLE : "#374151" }}>
                         {parseFloat(perInstallment).toLocaleString()}
                       </span>
-                      <span className="text-gray-500 text-sm font-bold">ر.س / شهر</span>
+                      <span className="text-gray-800 text-sm font-bold">ر.س / شهر</span>
                     </div>
                     <div className="flex items-center gap-1.5 mr-8">
                       {Array.from({ length: plan }).map((_, i) => (
@@ -557,12 +557,12 @@ export default function TamaraCheckout() {
             <div className="mt-5 space-y-3">
               <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500">الدفعة الأولى الآن</span>
+                  <span className="text-gray-800">الدفعة الأولى الآن</span>
                   <span className="font-black" style={{ color: TAMARA_PURPLE }}>
                     {(amount / selectedPlan).toFixed(2)} ر.س
                   </span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-400">
+                <div className="flex justify-between text-xs text-gray-700">
                   <span>الدفعات التالية</span>
                   <span>{selectedPlan - 1} × {(amount / selectedPlan).toFixed(2)} ر.س</span>
                 </div>
@@ -588,7 +588,7 @@ export default function TamaraCheckout() {
               <X className="h-7 w-7" style={{ color: TAMARA_PURPLE }} />
             </div>
             <h3 className="text-xl font-black text-center" style={{ color: TAMARA_PURPLE }}>إلغاء الدفع؟</h3>
-            <p className="text-gray-500 text-sm text-center leading-relaxed">
+            <p className="text-gray-800 text-sm text-center leading-relaxed">
               سيتم إلغاء عملية الدفع والعودة إلى السلة
             </p>
             <div className="space-y-2 pt-2">

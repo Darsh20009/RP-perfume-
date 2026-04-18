@@ -85,7 +85,7 @@ export function PerfumeAdvisor() {
                 </div>
                 <div>
                   <p className="font-bold text-sm text-gray-800">ما تعرف ايش ذوقك؟ 🤔</p>
-                  <p className="text-xs text-gray-500 mt-1">خلّي رفيف يساعدك تلاقي عطرك المثالي</p>
+                  <p className="text-xs text-gray-800 mt-1">خلّي رفيف يساعدك تلاقي عطرك المثالي</p>
                   <span className="inline-block mt-2 text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest group-hover:underline">
                     اضغط هنا للمزيد ←
                   </span>
@@ -130,7 +130,7 @@ export function PerfumeAdvisor() {
                   <h4 className="font-black text-sm text-gray-800">رفيف — مستشار العطور</h4>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] text-gray-400 font-bold">متصل الآن</span>
+                    <span className="text-[10px] text-gray-700 font-bold">متصل الآن</span>
                   </div>
                 </div>
               </div>
@@ -138,7 +138,7 @@ export function PerfumeAdvisor() {
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-4 w-4 text-gray-700" />
               </button>
             </div>
 
@@ -160,7 +160,7 @@ export function PerfumeAdvisor() {
                 <div className="flex justify-end">
                   <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 text-[#c9a96e] animate-spin" />
-                    <span className="text-xs text-gray-400 font-bold">رفيف يفكر...</span>
+                    <span className="text-xs text-gray-700 font-bold">رفيف يفكر...</span>
                   </div>
                 </div>
               )}
@@ -187,7 +187,7 @@ export function PerfumeAdvisor() {
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-[9px] text-gray-400 text-center mt-2 font-bold">
+              <p className="text-[9px] text-gray-700 text-center mt-2 font-bold">
                 مدعوم بالذكاء الاصطناعي · رفيف العود
               </p>
             </div>

@@ -171,7 +171,7 @@ export function ProductCard({ product }: ProductCardProps) {
                         />
                       ))}
                       {colors.length > 5 && (
-                        <span className="text-[9px] font-bold text-gray-500">+{colors.length - 5}</span>
+                        <span className="text-[9px] font-bold text-gray-800">+{colors.length - 5}</span>
                       )}
                     </div>
                   )}

@@ -125,10 +125,10 @@ export default function TabbyCheckout() {
           </div>
           <div>
             <h2 className="text-2xl font-bold" style={{ color: TABBY_PRIMARY }}>تمت الموافقة!</h2>
-            <p className="text-gray-500 text-sm mt-1">تابي وافقت على طلب التقسيط بنجاح</p>
+            <p className="text-gray-800 text-sm mt-1">تابي وافقت على طلب التقسيط بنجاح</p>
           </div>
           <div className="rounded-2xl p-5 space-y-3 text-right" style={{ background: "#f2f5f7" }}>
-            <p className="text-xs font-bold text-gray-500 mb-3">جدول السداد — {selectedPlan} دفعات</p>
+            <p className="text-xs font-bold text-gray-800 mb-3">جدول السداد — {selectedPlan} دفعات</p>
             {ds.map((date, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export default function TabbyCheckout() {
                     {ia.toLocaleString()} ر.س
                   </span>
                 </div>
-                <span className="text-xs text-gray-400">{date}</span>
+                <span className="text-xs text-gray-700">{date}</span>
               </div>
             ))}
           </div>
@@ -162,7 +162,7 @@ export default function TabbyCheckout() {
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
         <div className="w-16 h-16 rounded-full border-4 border-gray-100 border-t-transparent animate-spin"
           style={{ borderTopColor: TABBY_GREEN }} />
-        <p className="text-gray-500 font-medium text-sm">جاري معالجة طلبك...</p>
+        <p className="text-gray-800 font-medium text-sm">جاري معالجة طلبك...</p>
       </div>
     );
   }
@@ -199,7 +199,7 @@ export default function TabbyCheckout() {
           onClick={() => setShowCancelDialog(true)}
           className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
-          <X className="h-5 w-5 text-gray-500" />
+          <X className="h-5 w-5 text-gray-800" />
         </button>
       </div>
 
@@ -219,7 +219,7 @@ export default function TabbyCheckout() {
           <div className="flex-1 flex flex-col">
             <div className="mb-8">
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>رقم جوالك</h1>
-              <p className="text-gray-500 text-sm">أدخل رقم الجوال المرتبط بحساب tabby</p>
+              <p className="text-gray-800 text-sm">أدخل رقم الجوال المرتبط بحساب tabby</p>
             </div>
             <div className="mb-6">
               <input
@@ -240,7 +240,7 @@ export default function TabbyCheckout() {
               متابعة
             </button>
             <div className="mt-auto pt-8 text-center">
-              <p className="text-xs text-gray-400 mb-1">رقم تجريبي</p>
+              <p className="text-xs text-gray-700 mb-1">رقم تجريبي</p>
               <button
                 onClick={() => setPhone(TEST_PHONE)}
                 className="text-sm font-bold px-4 py-2 rounded-full border border-dashed border-gray-300 hover:bg-gray-50 transition-colors"
@@ -257,7 +257,7 @@ export default function TabbyCheckout() {
           <div className="flex-1 flex flex-col">
             <div className="mb-8">
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>رمز التحقق</h1>
-              <p className="text-gray-500 text-sm">أرسلنا رمز تحقق من 4 أرقام إلى</p>
+              <p className="text-gray-800 text-sm">أرسلنا رمز تحقق من 4 أرقام إلى</p>
               <p className="font-bold text-sm mt-1" style={{ color: TABBY_PRIMARY }}>{phone}</p>
             </div>
             <div className="flex gap-3 justify-center mb-2" dir="ltr">
@@ -283,7 +283,7 @@ export default function TabbyCheckout() {
             )}
             <div className="text-center mb-6">
               {resendTimer > 0 ? (
-                <p className="text-gray-400 text-sm">إعادة الإرسال بعد {resendTimer}s</p>
+                <p className="text-gray-700 text-sm">إعادة الإرسال بعد {resendTimer}s</p>
               ) : (
                 <button onClick={() => setResendTimer(59)} className="text-sm font-bold underline" style={{ color: TABBY_PRIMARY }}>
                   إعادة إرسال الرمز
@@ -299,7 +299,7 @@ export default function TabbyCheckout() {
               تحقق
             </button>
             <div className="mt-auto pt-8 text-center">
-              <p className="text-xs text-gray-400 mb-1">رمز تجريبي</p>
+              <p className="text-xs text-gray-700 mb-1">رمز تجريبي</p>
               <button
                 onClick={() => setOtpValues(TEST_OTP.split(""))}
                 className="text-sm font-bold px-4 py-2 rounded-full border border-dashed border-gray-300 hover:bg-gray-50 transition-colors"
@@ -319,7 +319,7 @@ export default function TabbyCheckout() {
                 <FileText className="h-6 w-6" style={{ color: TABBY_PRIMARY }} />
               </div>
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>الموافقة على الشروط</h1>
-              <p className="text-gray-500 text-sm">يرجى قراءة والموافقة على الشروط التالية للمتابعة</p>
+              <p className="text-gray-800 text-sm">يرجى قراءة والموافقة على الشروط التالية للمتابعة</p>
             </div>
             <div className="space-y-4 flex-1">
               {[
@@ -345,7 +345,7 @@ export default function TabbyCheckout() {
                   </div>
                   <div>
                     <p className="text-sm font-medium leading-relaxed" style={{ color: TABBY_PRIMARY }}>{term.label}</p>
-                    {term.sub && <p className="text-xs text-gray-400 mt-1 underline">{term.sub}</p>}
+                    {term.sub && <p className="text-xs text-gray-700 mt-1 underline">{term.sub}</p>}
                   </div>
                 </div>
               ))}
@@ -369,11 +369,11 @@ export default function TabbyCheckout() {
                 <Shield className="h-6 w-6" style={{ color: TABBY_PRIMARY }} />
               </div>
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>الهوية الوطنية</h1>
-              <p className="text-gray-500 text-sm">أدخل رقم هويتك الوطنية أو الإقامة (Iqama)</p>
+              <p className="text-gray-800 text-sm">أدخل رقم هويتك الوطنية أو الإقامة (Iqama)</p>
             </div>
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-2 block">رقم الهوية / الإقامة</label>
+                <label className="text-xs font-bold text-gray-800 mb-2 block">رقم الهوية / الإقامة</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -395,7 +395,7 @@ export default function TabbyCheckout() {
               <div className="rounded-xl p-4 text-sm" style={{ background: "#f2f5f7" }}>
                 <div className="flex gap-2 items-start">
                   <span className="text-lg">🔒</span>
-                  <p className="text-gray-500">معلوماتك محمية ومشفرة. لن يتم مشاركة بياناتك مع أطراف ثالثة.</p>
+                  <p className="text-gray-800">معلوماتك محمية ومشفرة. لن يتم مشاركة بياناتك مع أطراف ثالثة.</p>
                 </div>
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function TabbyCheckout() {
               متابعة
             </button>
             <div className="mt-auto pt-8 text-center">
-              <p className="text-xs text-gray-400 mb-1">رقم تجريبي</p>
+              <p className="text-xs text-gray-700 mb-1">رقم تجريبي</p>
               <button
                 onClick={() => setNationalId("1234567890")}
                 className="text-sm font-bold px-4 py-2 rounded-full border border-dashed border-gray-300 hover:bg-gray-50 transition-colors"
@@ -431,7 +431,7 @@ export default function TabbyCheckout() {
                 <CreditCard className="h-6 w-6" style={{ color: TABBY_PRIMARY }} />
               </div>
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>اختر خطة الدفع</h1>
-              <p className="text-gray-500 text-sm">قسّط {amount.toLocaleString()} ر.س بدون فوائد</p>
+              <p className="text-gray-800 text-sm">قسّط {amount.toLocaleString()} ر.س بدون فوائد</p>
             </div>
             <div className="space-y-3 flex-1">
               {([2, 4, 6] as PlanOption[]).map(plan => {
@@ -465,7 +465,7 @@ export default function TabbyCheckout() {
                       <span className="text-2xl font-bold" style={{ color: TABBY_PRIMARY }}>
                         {parseFloat(perInstallment).toLocaleString()}
                       </span>
-                      <span className="text-gray-500 text-sm">ر.س / شهرياً</span>
+                      <span className="text-gray-800 text-sm">ر.س / شهرياً</span>
                     </div>
                     <div className="flex gap-1.5 mt-3 mr-8">
                       {Array.from({ length: plan }).map((_, i) => (
@@ -500,7 +500,7 @@ export default function TabbyCheckout() {
               <X className="h-6 w-6 text-red-500" />
             </div>
             <h3 className="text-xl font-bold text-center" style={{ color: TABBY_PRIMARY }}>إلغاء الدفع؟</h3>
-            <p className="text-gray-500 text-sm text-center">إذا ألغيت الآن ستعود إلى السلة ولن يتم إتمام الطلب.</p>
+            <p className="text-gray-800 text-sm text-center">إذا ألغيت الآن ستعود إلى السلة ولن يتم إتمام الطلب.</p>
             <div className="space-y-2 pt-2">
               <button
                 onClick={handleCancel}

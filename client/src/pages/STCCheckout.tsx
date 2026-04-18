@@ -117,7 +117,7 @@ export default function STCCheckout() {
             </div>
             <div>
               <h2 className="font-black text-2xl text-[#1a2744]">تمت العملية بنجاح!</h2>
-              <p className="text-sm text-gray-500 font-bold mt-1">تم خصم {amount.toLocaleString()} ر.س من محفظة STC Pay</p>
+              <p className="text-sm text-gray-800 font-bold mt-1">تم خصم {amount.toLocaleString()} ر.س من محفظة STC Pay</p>
             </div>
             <div className="flex justify-center">
               <STCPayLogo className="h-10" />
@@ -159,20 +159,20 @@ export default function STCCheckout() {
             <div className="flex justify-center">
               <STCPayLogo className="h-14" />
             </div>
-            <p className="text-sm text-gray-500 font-bold">محفظة STC للدفع الإلكتروني</p>
+            <p className="text-sm text-gray-800 font-bold">محفظة STC للدفع الإلكتروني</p>
           </div>
 
           <div className="border border-purple-200 rounded-2xl p-6 text-center bg-gradient-to-br from-purple-50 to-purple-100/50">
             <div className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2">المبلغ المطلوب</div>
             <div className="text-5xl font-black text-[#1a2744] tracking-tighter">{amount.toLocaleString()}</div>
-            <div className="text-sm font-bold text-gray-500 mt-1">ريال سعودي</div>
+            <div className="text-sm font-bold text-gray-800 mt-1">ريال سعودي</div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-5 shadow-sm">
             {step === "phone" && (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">رقم جوال STC Pay</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-700">رقم جوال STC Pay</label>
                   <div className="relative">
                     <input
                       type="tel"
@@ -183,12 +183,12 @@ export default function STCCheckout() {
                       className="w-full h-14 bg-gray-50 border border-gray-200 rounded-xl text-[#1a2744] font-mono text-lg px-4 pr-12 text-right outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
                       dir="ltr"
                     />
-                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-700" />
                   </div>
                   {error && <p className="text-[11px] text-red-500 font-bold">{error}</p>}
                 </div>
 
-                <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-[10px] text-gray-500 font-bold">
+                <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-[10px] text-gray-800 font-bold">
                   للاختبار: أدخل أي رقم سعودي — رمز OTP التجريبي هو <span className="font-black text-purple-600">1234</span>
                 </div>
 
@@ -209,7 +209,7 @@ export default function STCCheckout() {
             {step === "otp" && (
               <div className="space-y-6">
                 <div className="text-center space-y-1">
-                  <p className="text-sm font-bold text-gray-500">تم إرسال رمز التحقق إلى</p>
+                  <p className="text-sm font-bold text-gray-800">تم إرسال رمز التحقق إلى</p>
                   <p className="font-black text-lg text-[#1a2744]" dir="ltr">{phone}</p>
                   <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                     <p className="text-[10px] text-amber-700 font-bold">رمز التحقق التجريبي: <span className="font-black text-amber-900">1234</span></p>
@@ -243,13 +243,13 @@ export default function STCCheckout() {
                 {isLoading && (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
-                    <span className="text-xs font-bold text-gray-400">جاري التحقق...</span>
+                    <span className="text-xs font-bold text-gray-700">جاري التحقق...</span>
                   </div>
                 )}
 
                 <div className="text-center">
                   {timeLeft > 0 ? (
-                    <p className="text-xs font-bold text-gray-400">
+                    <p className="text-xs font-bold text-gray-700">
                       ينتهي الرمز خلال{" "}
                       <span className={cn("font-black", timeLeft < 60 ? "text-red-500" : "text-purple-600")}>
                         {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
@@ -262,7 +262,7 @@ export default function STCCheckout() {
                   )}
                 </div>
 
-                <button onClick={() => { setStep("phone"); setOtp(["", "", "", ""]); }} className="w-full text-xs font-black text-gray-300 hover:text-gray-500 transition-colors">
+                <button onClick={() => { setStep("phone"); setOtp(["", "", "", ""]); }} className="w-full text-xs font-black text-gray-700 hover:text-gray-800 transition-colors">
                   تغيير رقم الجوال
                 </button>
               </div>
@@ -279,12 +279,12 @@ export default function STCCheckout() {
                 <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center mx-auto bg-white shadow-sm">
                   <b.icon className="h-4 w-4 text-purple-500" />
                 </div>
-                <span className="text-[9px] font-black text-gray-400">{b.label}</span>
+                <span className="text-[9px] font-black text-gray-700">{b.label}</span>
               </div>
             ))}
           </div>
 
-          <p className="text-[9px] text-center text-gray-400 font-bold">
+          <p className="text-[9px] text-center text-gray-700 font-bold">
             هذه محاكاة لتجربة STC Pay الحقيقية • لا يوجد خصم فعلي
           </p>
         </div>

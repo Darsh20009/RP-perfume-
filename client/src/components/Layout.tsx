@@ -454,7 +454,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link href="/" className="flex items-center">
               <img src={logoImg} alt="رفيف العود" className="h-14 w-auto object-contain" />
             </Link>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm text-gray-700 leading-relaxed">
               {language === 'ar' 
                 ? "عطور فاخرة تُلهم الحواس. اكتشف أرقى العطور الشرقية والغربية مع رفيف العود."
                 : "Luxury fragrances that inspire the senses. Discover the finest oriental and western perfumes with RF Perfume."}
@@ -462,19 +462,19 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('categories')}</h3>
-            <ul className="space-y-3 text-sm text-gray-500">
+            <ul className="space-y-3 text-sm text-gray-800">
               <li><Link href="/products" className="hover:text-[#c9a96e] transition-colors">{t('allProducts')}</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('help')}</h3>
-            <ul className="space-y-3 text-sm text-gray-500">
+            <ul className="space-y-3 text-sm text-gray-800">
               <li><Link href="/terms" className="hover:text-[#c9a96e] transition-colors">{t('terms')}</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('contactUs')}</h3>
-            <div className="space-y-4 text-sm text-gray-500">
+            <div className="space-y-4 text-sm text-gray-800">
               <a 
                 href="tel:+966551329821" 
                 target="_blank" 
@@ -483,7 +483,7 @@ export function Layout({ children }: { children: ReactNode }) {
               >
                 <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e] group-hover:bg-[#c9a96e] group-hover:text-white transition-colors"><Phone className="h-4 w-4" /></span>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-400 font-medium">{t('callUs')}</span>
+                  <span className="text-[10px] text-gray-700 font-medium">{t('callUs')}</span>
                   <span dir="ltr" className="font-bold text-gray-600">966 55 132 9821</span>
                 </div>
               </a>
@@ -495,21 +495,21 @@ export function Layout({ children }: { children: ReactNode }) {
               >
                 <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e] group-hover:bg-[#c9a96e] group-hover:text-white transition-colors"><Mail className="h-4 w-4" /></span>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-400 font-medium">{t('email')}</span>
+                  <span className="text-[10px] text-gray-700 font-medium">{t('email')}</span>
                   <span dir="ltr" className="font-bold text-gray-600">rf-purfume@outlook.com</span>
                 </div>
               </a>
               <div className="flex items-center gap-3 p-2">
                 <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e]"><SiWhatsapp className="h-4 w-4" /></span>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-400 font-medium">{t('whatsapp')}</span>
+                  <span className="text-[10px] text-gray-700 font-medium">{t('whatsapp')}</span>
                   <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" dir="ltr" className="font-bold text-gray-600 hover:text-[#c9a96e] transition-colors">966 55 132 9821</a>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="container mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-400 px-4">
+        <div className="container mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-700 px-4">
           <div className="flex justify-center flex-wrap gap-4 mt-8">
             <a href="https://www.instagram.com/rfperfume.sa" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white rounded-full hover:scale-105 transition-transform shadow-lg">
               <Instagram className="h-4 w-4" />
@@ -531,7 +531,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Payment Methods */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-5">{language === 'ar' ? 'طرق الدفع المتاحة' : 'Available Payment Methods'}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-700 mb-5">{language === 'ar' ? 'طرق الدفع المتاحة' : 'Available Payment Methods'}</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
               <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="Mada / Visa / Mastercard / Amex">
                 <img src="/uploads/card-brands-logo.png" alt="Card Brands" className="h-7 w-auto object-contain" />
@@ -569,7 +569,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   alt="السجل التجاري" 
                   className="h-12 w-auto object-contain" 
                 />
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                   {language === 'ar' ? 'سجل تجاري' : 'Commercial Registration'}
                 </div>
                 <div className="text-xs text-[#c9a96e] font-black group-hover:underline">1010978041</div>
@@ -578,7 +578,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <div className="w-12 h-12 rounded-full bg-[#c9a96e]/10 flex items-center justify-center">
                   <Shield className="h-6 w-6 text-[#c9a96e]" />
                 </div>
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                   {language === 'ar' ? 'الرقم الضريبي' : 'Tax Number'}
                 </div>
                 <div className="text-xs text-[#c9a96e] font-black">312037024200003</div>
@@ -588,8 +588,8 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-gray-400">© 2026 رفيف العود | RF Perfume. {t('allRightsReserved')}.</p>
-            <p className="mt-2 text-xs text-gray-300">
+            <p className="text-gray-700">© 2026 رفيف العود | RF Perfume. {t('allRightsReserved')}.</p>
+            <p className="mt-2 text-xs text-gray-700">
               rfperfume.sa
             </p>
           </div>

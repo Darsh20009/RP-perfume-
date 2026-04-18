@@ -595,7 +595,7 @@ export default function ProductDetails() {
                       className="p-0.5 transition-transform hover:scale-110"
                       data-testid={`button-star-${s}`}
                     >
-                      <Star className={`w-7 h-7 transition-colors ${s <= (hoverRating || reviewRating) ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} />
+                      <Star className={`w-7 h-7 transition-colors ${s <= (hoverRating || reviewRating) ? "fill-amber-400 text-amber-400" : "text-slate-700"}`} />
                     </button>
                   ))}
                 </div>
@@ -619,15 +619,15 @@ export default function ProductDetails() {
               </div>
             ) : (
               <div className="bg-slate-50 p-6 flex flex-col items-center justify-center text-center gap-3">
-                <Star className="w-8 h-8 text-slate-300" />
-                <p className="text-sm font-bold text-slate-500">{isAr ? "سجّل دخولك لكتابة تقييم" : "Sign in to write a review"}</p>
+                <Star className="w-8 h-8 text-slate-700" />
+                <p className="text-sm font-bold text-slate-800">{isAr ? "سجّل دخولك لكتابة تقييم" : "Sign in to write a review"}</p>
               </div>
             )}
 
             {/* Existing reviews */}
             <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar">
               {reviews.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
+                <div className="text-center py-8 text-slate-700">
                   <p className="text-sm font-bold">{isAr ? "لا توجد تقييمات بعد" : "No reviews yet"}</p>
                   <p className="text-xs mt-1">{isAr ? "كن أول من يقيّم هذا المنتج" : "Be the first to review this product"}</p>
                 </div>
@@ -643,7 +643,7 @@ export default function ProductDetails() {
                       </div>
                     </div>
                     {review.comment && <p className="text-sm text-slate-600 leading-relaxed">{review.comment}</p>}
-                    <p className="text-[10px] text-slate-400 mt-2">{new Date(review.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US")}</p>
+                    <p className="text-[10px] text-slate-700 mt-2">{new Date(review.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US")}</p>
                   </div>
                 ))
               )}

@@ -207,13 +207,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
         <div className="flex mx-6 bg-[#faf8f5] rounded-xl p-1 mb-4">
           <button
             onClick={() => setTab("login")}
-            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "login" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-400"}`}
+            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "login" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
           >
             تسجيل الدخول
           </button>
           <button
             onClick={() => setTab("register")}
-            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "register" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-400"}`}
+            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "register" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
           >
             حساب جديد
           </button>
@@ -259,7 +259,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
           <div className="flex items-center gap-3 my-1">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">أو بالهاتف</span>
+            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">أو بالهاتف</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
         </div>
@@ -281,7 +281,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           <div>
             <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">رقم الهاتف</label>
             <div dir="ltr" className="flex items-center h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 focus-within:border-[#c9a96e] focus-within:ring-2 focus-within:ring-[#c9a96e]/20 transition-all">
-              <span className="text-sm font-bold text-gray-400 border-r border-gray-200 pr-2 ml-2">+966</span>
+              <span className="text-sm font-bold text-gray-700 border-r border-gray-200 pr-2 ml-2">+966</span>
               <input
                 type="tel"
                 value={displayPhone(phone)}
@@ -289,14 +289,14 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 onKeyDown={e => { if (e.key === "Enter" && tab === "login") handlePhoneLogin(); }}
                 placeholder="5x xxx xxxx"
                 maxLength={11}
-                className="flex-1 h-full bg-transparent border-none outline-none text-sm font-bold tracking-wider text-[#1a2744] placeholder:text-gray-300"
+                className="flex-1 h-full bg-transparent border-none outline-none text-sm font-bold tracking-wider text-[#1a2744] placeholder:text-gray-700"
               />
             </div>
           </div>
 
           {tab === "register" && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">البريد الإلكتروني <span className="text-gray-300">(اختياري)</span></label>
+              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">البريد الإلكتروني <span className="text-gray-700">(اختياري)</span></label>
               <input
                 type="email"
                 value={email}
@@ -328,7 +328,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1a2744] transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#1a2744] transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -346,7 +346,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             ) : tab === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}
           </button>
 
-          <p className="text-center text-[10px] text-gray-400 pt-1">
+          <p className="text-center text-[10px] text-gray-700 pt-1">
             {tab === "login" ? (
               <>ليس لديك حساب؟ <button onClick={() => setTab("register")} className="text-[#c9a96e] font-bold hover:underline">أنشئ حساب جديد</button></>
             ) : (

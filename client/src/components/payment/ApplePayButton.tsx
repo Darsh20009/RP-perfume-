@@ -44,13 +44,13 @@ export function ApplePayButton({ orderId, amount, onSuccess, onError }: ApplePay
             <div className="flex justify-center">
               <ApplePayLogo className="h-10 object-contain" />
             </div>
-            <p className="text-sm text-gray-500">رفيف العود</p>
+            <p className="text-sm text-gray-800">رفيف العود</p>
           </div>
           <div className="bg-gray-50 rounded-2xl p-4 flex justify-between items-center">
-            <span className="text-gray-500 text-sm">المبلغ</span>
+            <span className="text-gray-800 text-sm">المبلغ</span>
             <span className="font-black text-lg">SAR {amount.toLocaleString()}</span>
           </div>
-          <div className="bg-gray-50 rounded-2xl p-4 flex justify-between items-center text-sm text-gray-500">
+          <div className="bg-gray-50 rounded-2xl p-4 flex justify-between items-center text-sm text-gray-800">
             <span>Visa ••••0010</span>
             <div className="flex gap-1">
               <div className="w-4 h-4 rounded-full bg-[#EB001B]" />

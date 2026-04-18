@@ -41,7 +41,7 @@ export default function ProfileWishlist() {
         <Heart className="w-6 h-6 text-red-500 fill-red-500" />
         <h2 className="text-2xl font-bold font-display">{isAr ? "قائمة الأمنيات" : "My Wishlist"}</h2>
         {products.length > 0 && (
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full">
             {products.length}
           </span>
         )}
@@ -50,7 +50,7 @@ export default function ProfileWishlist() {
       {products.length === 0 ? (
         <div className="text-center py-20">
           <Heart className="w-16 h-16 mx-auto mb-4 text-slate-200" />
-          <p className="font-bold text-slate-400 text-sm mb-6">
+          <p className="font-bold text-slate-700 text-sm mb-6">
             {isAr ? "قائمتك فارغة — ابدأ بإضافة منتجات تعجبك" : "Your wishlist is empty — start adding items you love"}
           </p>
           <Link href="/products">
@@ -73,14 +73,14 @@ export default function ProfileWishlist() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                    <div className="w-full h-full flex items-center justify-center text-slate-700">
                       <ShoppingBag className="w-12 h-12" />
                     </div>
                   )}
                 </div>
                 <div className="p-3">
                   <p className="font-black text-sm text-slate-900 truncate">{product.name}</p>
-                  <p className="text-xs font-bold text-slate-500 mt-1">
+                  <p className="text-xs font-bold text-slate-800 mt-1">
                     {Number(product.price).toLocaleString()} {isAr ? "ر.س" : "SAR"}
                   </p>
                 </div>
