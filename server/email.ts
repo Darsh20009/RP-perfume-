@@ -7,30 +7,43 @@
 import fs from "fs";
 import path from "path";
 
-// Inline logo as CID attachment — bulletproof for Gmail/Outlook/Apple Mail
-const LOGO_CID = "rfperfume-logo";
-const LOGO_URL = `cid:${LOGO_CID}`;
+// Inline assets as CID attachments — bulletproof for Gmail/Outlook/Apple Mail
+// SMTP2GO uses the filename as the CID, so HTML must reference cid:<filename>
+const LOGO_FILENAME = "logo.png";
+const BANNER_FILENAME = "banner.gif";
+const LOGO_URL = `cid:${LOGO_FILENAME}`;
+const BANNER_URL = `cid:${BANNER_FILENAME}`;
 
-let _logoBlob: string | null = null;
-function getLogoBlob(): string | null {
-  if (_logoBlob !== null) return _logoBlob || null;
+const _blobCache: Record<string, string | null> = {};
+function loadAsset(...candidates: string[]): string | null {
+  const key = candidates.join("|");
+  if (key in _blobCache) return _blobCache[key];
   try {
-    const candidates = [
-      path.resolve(process.cwd(), "client/public/icons/logo-square.png"),
-      path.resolve(process.cwd(), "client/public/icons/logo.png"),
-      path.resolve(process.cwd(), "client/public/images/logos/logo-master.png"),
-    ];
     for (const p of candidates) {
       if (fs.existsSync(p)) {
-        _logoBlob = fs.readFileSync(p).toString("base64");
-        return _logoBlob;
+        _blobCache[key] = fs.readFileSync(p).toString("base64");
+        return _blobCache[key];
       }
     }
   } catch (e: any) {
-    console.error("[Email] Could not load logo:", e?.message);
+    console.error("[Email] Could not load asset:", e?.message);
   }
-  _logoBlob = "";
+  _blobCache[key] = null;
   return null;
+}
+
+function getLogoBlob(): string | null {
+  return loadAsset(
+    path.resolve(process.cwd(), "client/public/icons/logo-square.png"),
+    path.resolve(process.cwd(), "client/public/icons/logo.png"),
+    path.resolve(process.cwd(), "client/public/images/logos/logo-master.png"),
+  );
+}
+
+function getBannerBlob(): string | null {
+  return loadAsset(
+    path.resolve(process.cwd(), "client/public/icons/email-banner.gif"),
+  );
 }
 
 const SMTP2GO_API = "https://api.smtp2go.com/v3/email/send";
@@ -56,17 +69,13 @@ async function sendEmail(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const { apiKey, sender, senderName } = getCredentials();
 
-  // Inline-attach logo so it shows reliably across all email clients
+  // Inline-attach logo + banner so they show reliably across all email clients
+  // SMTP2GO uses filename as the CID; HTML must reference cid:<filename>
   const logoBlob = getLogoBlob();
-  const inlines = logoBlob
-    ? [{
-        filename: "logo.png",
-        fileblob: logoBlob,
-        mimetype: "image/png",
-        disposition: "inline",
-        cid: LOGO_CID,
-      }]
-    : undefined;
+  const bannerBlob = getBannerBlob();
+  const inlines: Array<{ filename: string; fileblob: string; mimetype: string }> = [];
+  if (logoBlob) inlines.push({ filename: LOGO_FILENAME, fileblob: logoBlob, mimetype: "image/png" });
+  if (bannerBlob) inlines.push({ filename: BANNER_FILENAME, fileblob: bannerBlob, mimetype: "image/gif" });
 
   try {
     const res = await fetch(SMTP2GO_API, {
@@ -79,7 +88,7 @@ async function sendEmail(params: {
         subject: params.subject,
         html_body: params.html,
         text_body: params.text || "",
-        ...(inlines ? { inlines } : {}),
+        ...(inlines.length ? { inlines } : {}),
       }),
     });
 
@@ -130,11 +139,17 @@ function baseTemplate(title: string, content: string): string {
     <tr>
       <td align="center" style="padding:32px 16px;">
         <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" class="container" style="max-width:600px;background-color:#ffffff;border-radius:4px;overflow:hidden;">
+          <!-- Animated Banner (GIF — works in Gmail/Apple Mail/Yahoo; Outlook shows first frame) -->
+          <tr>
+            <td align="center" style="background-color:#000000;padding:0;line-height:0;font-size:0;">
+              <img src="${BANNER_URL}" alt="RF Perfume" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;outline:none;" />
+            </td>
+          </tr>
           <!-- Header -->
           <tr>
-            <td align="center" style="background:#1a2744;background-image:linear-gradient(135deg,#1a2744 0%,#243154 50%,#1a2744 100%);padding:32px 40px;border-bottom:3px solid #c9a96e;">
-              <img src="${LOGO_URL}" alt="رفيف العود" width="64" height="64" style="display:block;width:64px;height:64px;margin:0 auto 12px;border-radius:8px;background-color:#ffffff;padding:6px;" />
-              <div style="color:#ffffff;font-size:22px;font-weight:900;letter-spacing:0.15em;line-height:1.2;margin-top:8px;">رفيف العود</div>
+            <td align="center" style="background:#1a2744;background-image:linear-gradient(135deg,#1a2744 0%,#243154 50%,#1a2744 100%);padding:24px 40px;border-bottom:3px solid #c9a96e;">
+              <img src="${LOGO_URL}" alt="رفيف العود" width="56" height="56" style="display:block;width:56px;height:56px;margin:0 auto 10px;border-radius:8px;background-color:#ffffff;padding:6px;" />
+              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.15em;line-height:1.2;margin-top:6px;">رفيف العود</div>
               <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;">RF PERFUME &middot; LUXURY FRAGRANCES</div>
             </td>
           </tr>
