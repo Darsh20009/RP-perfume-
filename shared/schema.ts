@@ -178,8 +178,8 @@ export const insertOrderSchema = z.object({
   subtotal: z.string(),
   vatAmount: z.string(),
   shippingCost: z.string(),
-  tapCommission: z.string(),
-  netProfit: z.string(),
+  tapCommission: z.string().optional().default("0"),
+  netProfit: z.string().optional().default("0"),
   couponCode: z.string().optional(),
   discountAmount: z.string().default("0"),
   items: z.array(z.object({
