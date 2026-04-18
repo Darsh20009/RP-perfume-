@@ -25,6 +25,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DescriptionGenerator } from "@/components/ai/DescriptionGenerator";
 import AdminEmail from "@/pages/admin/AdminEmail";
+import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
 import {
@@ -4275,6 +4276,7 @@ export default function Admin() {
           </div>
         </div>
       </main>
+      <EmployeeAssistant />
     </div>
   );
 }

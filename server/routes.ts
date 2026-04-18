@@ -59,10 +59,13 @@ const upload = multer({
   }
 });
 
+import { registerEmployeeAssistant } from "./employee-assistant";
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  registerEmployeeAssistant(app);
   // Public endpoint: check if phone belongs to a staff member (returns minimal info only)
   app.get("/api/auth/check-role/:phone", async (req, res) => {
     try {
