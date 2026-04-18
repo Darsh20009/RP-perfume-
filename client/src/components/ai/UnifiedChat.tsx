@@ -273,14 +273,26 @@ export const UnifiedChat = memo(function UnifiedChat() {
       {/* ── Chat panel ──────────────────────────────────────── */}
       <AnimatePresence>
         {view === "chat" && (
+          <>
+            {/* Mobile-only backdrop */}
+            <motion.div
+              key="chat-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setView("closed")}
+              className="sm:hidden fixed inset-0 bg-[#1a2744]/40 backdrop-blur-sm z-40"
+              aria-hidden="true"
+            />
           <motion.div
             key="chat"
-            initial={{ opacity: 0, x: -30, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -30, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="sm:ml-3 w-screen sm:w-[400px] sm:max-w-[calc(100vw-1.5rem)] bg-white sm:rounded-3xl shadow-[0_20px_60px_rgba(26,39,68,0.18)] sm:border sm:border-[#c9a96e]/15 overflow-hidden flex flex-col fixed sm:relative inset-0 sm:inset-auto"
-            style={{ height: "100dvh" }}
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.98 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            className="sm:ml-3 w-full sm:w-[400px] sm:max-w-[calc(100vw-1.5rem)] bg-white rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(26,39,68,0.15)] sm:shadow-[0_20px_60px_rgba(26,39,68,0.18)] sm:border sm:border-[#c9a96e]/15 overflow-hidden flex flex-col fixed sm:relative inset-x-0 bottom-0 sm:inset-auto z-50"
+            style={{ height: "min(92dvh, 720px)", paddingBottom: "env(safe-area-inset-bottom)" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100" style={{ background: `linear-gradient(135deg, ${accentColor}12, transparent)` }}>
@@ -478,6 +490,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
               </p>
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
