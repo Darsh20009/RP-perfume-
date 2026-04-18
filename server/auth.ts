@@ -43,32 +43,42 @@ export function setupAuth(app: Express) {
 
   const mongoUri = process.env.MONGODB_URI;
 
+  // Detect if running behind HTTPS proxy (Replit dev preview, deployments).
+  // In an iframe (Replit preview, embedded apps) the cookie is cross-site,
+  // so it MUST be SameSite=None + Secure to be sent at all.
+  const isReplit = !!(process.env.REPL_ID || process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS);
+  const isProd = process.env.NODE_ENV === "production";
+  const useCrossSiteCookie = isReplit || isProd;
+
   const sessionSettings: session.SessionOptions = {
+    name: "rf.sid",
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    rolling: true,
+    rolling: true, // refresh expiry on every request — keeps active users signed in
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === "production",
-      path: '/'
+      sameSite: useCrossSiteCookie ? "none" : "lax",
+      secure: useCrossSiteCookie, // required when sameSite=None
+      path: "/",
     },
     store: mongoUri
       ? MongoStore.create({
           mongoUrl: mongoUri,
           dbName: "rfperfume",
           collectionName: "sessions",
-          ttl: 30 * 24 * 60 * 60, // 30 days in seconds
+          ttl: 30 * 24 * 60 * 60, // 30 days
           autoRemove: "native",
+          touchAfter: 60, // throttle write-on-read so rolling sessions don't hammer Mongo
+          stringify: false,
         })
       : undefined,
   };
 
-  if (app.get("env") === "production") {
+  // Always trust the proxy on Replit / production so secure cookies actually flow
+  if (useCrossSiteCookie) {
     app.set("trust proxy", 1);
-    sessionSettings.cookie!.secure = true;
   }
 
   app.use(session(sessionSettings));
