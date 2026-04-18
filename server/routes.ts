@@ -227,13 +227,20 @@ export async function registerRoutes(
         UM.countDocuments({ role: "customer" }),
       ]);
 
+      // Exclude cancelled & refunded orders from revenue calculations
+      const EXCLUDED_STATUSES = new Set(["cancelled", "refunded", "failed"]);
+      const isRevenueOrder = (o: any) => !EXCLUDED_STATUSES.has(o.status);
+      const revenueOrders = allOrders.filter(isRevenueOrder);
+      const dailyRevenueOrders = dailyOrders.filter(isRevenueOrder);
+      const monthlyRevenueOrders = monthlyOrders.filter(isRevenueOrder);
+
       const sumField = (orders: any[], field: string) =>
         orders.reduce((acc, o) => acc + Number(o[field] || 0), 0);
 
-      const totalSales = sumField(allOrders, "total");
-      const netProfit = sumField(allOrders, "netProfit");
-      const dailySales = sumField(dailyOrders, "total");
-      const monthlySales = sumField(monthlyOrders, "total");
+      const totalSales = sumField(revenueOrders, "total");
+      const netProfit = sumField(revenueOrders, "netProfit");
+      const dailySales = sumField(dailyRevenueOrders, "total");
+      const monthlySales = sumField(monthlyRevenueOrders, "total");
       const totalOrders = allOrders.length;
 
       // Top selling products

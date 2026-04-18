@@ -4,10 +4,34 @@
  * All templates are Arabic RTL with RF Perfume branding
  */
 
-import { LOGO_BASE64 } from "./_logo";
+import fs from "fs";
+import path from "path";
 
-// Public URL for logo — base64 is blocked by Gmail/Outlook, hosted URL works everywhere
-const LOGO_URL = process.env.EMAIL_LOGO_URL || "https://e-commerce.rfperfume.sa/icons/logo-square.png";
+// Inline logo as CID attachment — bulletproof for Gmail/Outlook/Apple Mail
+const LOGO_CID = "rfperfume-logo";
+const LOGO_URL = `cid:${LOGO_CID}`;
+
+let _logoBlob: string | null = null;
+function getLogoBlob(): string | null {
+  if (_logoBlob !== null) return _logoBlob || null;
+  try {
+    const candidates = [
+      path.resolve(process.cwd(), "client/public/icons/logo-square.png"),
+      path.resolve(process.cwd(), "client/public/icons/logo.png"),
+      path.resolve(process.cwd(), "client/public/images/logos/logo-master.png"),
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        _logoBlob = fs.readFileSync(p).toString("base64");
+        return _logoBlob;
+      }
+    }
+  } catch (e: any) {
+    console.error("[Email] Could not load logo:", e?.message);
+  }
+  _logoBlob = "";
+  return null;
+}
 
 const SMTP2GO_API = "https://api.smtp2go.com/v3/email/send";
 
@@ -32,6 +56,18 @@ async function sendEmail(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const { apiKey, sender, senderName } = getCredentials();
 
+  // Inline-attach logo so it shows reliably across all email clients
+  const logoBlob = getLogoBlob();
+  const inlines = logoBlob
+    ? [{
+        filename: "logo.png",
+        fileblob: logoBlob,
+        mimetype: "image/png",
+        disposition: "inline",
+        cid: LOGO_CID,
+      }]
+    : undefined;
+
   try {
     const res = await fetch(SMTP2GO_API, {
       method: "POST",
@@ -43,6 +79,7 @@ async function sendEmail(params: {
         subject: params.subject,
         html_body: params.html,
         text_body: params.text || "",
+        ...(inlines ? { inlines } : {}),
       }),
     });
 
