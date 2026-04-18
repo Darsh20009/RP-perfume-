@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff, X } from "lucide-react";
 import { useLocation } from "wouter";
@@ -23,6 +24,8 @@ interface AuthModalProps {
 export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModalProps) {
   const [tab, setTab] = useState<"login" | "register">(defaultTab);
   const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const { t, tx, language } = useLanguage();
+  const isAr = language === "ar";
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -302,8 +305,8 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 rounded-2xl border-0 shadow-2xl overflow-hidden bg-white" dir="rtl">
-        <DialogTitle className="sr-only">تسجيل الدخول</DialogTitle>
+      <DialogContent className="max-w-md p-0 rounded-2xl border-0 shadow-2xl overflow-hidden bg-white" dir={isAr ? "rtl" : "ltr"}>
+        <DialogTitle className="sr-only">{t("signIn")}</DialogTitle>
 
         <div className="px-6 pt-6 pb-2 text-center">
           <img src={logoImg} alt="رفيف العود" className="h-14 w-auto mx-auto mb-3 object-contain" />
@@ -319,15 +322,16 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 className="text-[11px] font-bold text-gray-500 hover:text-[#1a2744]"
                 data-testid="button-forgot-back"
               >
-                ← رجوع
+                {isAr ? "← " : "← "}{t("back")}
               </button>
-              <h3 className="text-sm font-black text-[#1a2744]">استعادة كلمة المرور</h3>
+              <h3 className="text-sm font-black text-[#1a2744]">{t("passwordRecovery")}</h3>
             </div>
 
             {forgotStep === "otp" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  أرسلنا كوداً مكوّناً من ٦ أرقام إلى بريدك <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. أدخله أدناه:
+                  {isAr ? <>أرسلنا كوداً مكوّناً من ٦ أرقام إلى بريدك <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. أدخله أدناه:</>
+                       : <>We sent a 6-digit code to your email <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. Enter it below:</>}
                 </p>
                 <input
                   type="text"
@@ -345,15 +349,15 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-verify-otp"
                 >
-                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "تحقق من الكود"}
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("verifyCode")}
                 </button>
                 <div className="flex items-center justify-between text-[11px]">
                   <button onClick={startForgot} disabled={forgotLoading} className="text-[#c9a96e] font-bold hover:underline">
-                    إعادة إرسال الكود
+                    {t("resendCode")}
                   </button>
                   {forgotAllowVerifyToo && (
                     <button onClick={() => setForgotStep("verify")} className="text-gray-600 font-bold hover:underline">
-                      التحقق بطريقة أخرى
+                      {t("verifyAnotherWay")}
                     </button>
                   )}
                 </div>
@@ -363,31 +367,31 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             {forgotStep === "verify" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  لاستعادة حسابك، أكّد هويتك بإحدى الطريقتين:
+                  {tx("لاستعادة حسابك، أكّد هويتك بإحدى الطريقتين:", "To recover your account, verify your identity using one of these methods:")}
                 </p>
                 <div>
-                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">الاسم الكامل (كما في الحساب)</label>
+                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("fullNameAsAccount")}</label>
                   <input
                     type="text"
                     value={forgotName}
                     onChange={e => setForgotName(e.target.value)}
-                    placeholder="فلان الفلاني"
+                    placeholder={t("fullNamePlaceholder")}
                     className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
                     data-testid="input-forgot-name"
                   />
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-[10px] font-bold text-gray-500">أو</span>
+                  <span className="text-[10px] font-bold text-gray-500">{t("or")}</span>
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">رقم طلب سابق</label>
+                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("previousOrderNumber")}</label>
                   <input
                     type="text"
                     value={forgotOrder}
                     onChange={e => setForgotOrder(e.target.value)}
-                    placeholder="مثال: 123456"
+                    placeholder={tx("مثال: 123456", "e.g. 123456")}
                     className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
                     data-testid="input-forgot-order"
                   />
@@ -401,7 +405,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-verify-identity"
                 >
-                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "تحقق وتابع"}
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("verifyAndContinue")}
                 </button>
               </div>
             )}
@@ -409,7 +413,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             {forgotStep === "reset" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  تم التحقق بنجاح. اختر كلمة مرور جديدة (٦ أحرف على الأقل):
+                  {tx("تم التحقق بنجاح. اختر كلمة مرور جديدة (٦ أحرف على الأقل):", "Verified successfully. Choose a new password (at least 6 characters):")}
                 </p>
                 <div className="relative">
                   <input
@@ -435,7 +439,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-save"
                 >
-                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "حفظ كلمة المرور الجديدة"}
+                  {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("saveNewPassword")}
                 </button>
               </div>
             )}
@@ -450,13 +454,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             onClick={() => setTab("login")}
             className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "login" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
           >
-            تسجيل الدخول
+            {t("signIn")}
           </button>
           <button
             onClick={() => setTab("register")}
             className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "register" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
           >
-            حساب جديد
+            {t("newAccount")}
           </button>
         </div>
 
@@ -473,7 +477,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 <svg viewBox="0 0 20 24" className="h-5 w-auto fill-white">
                   <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z"/>
                 </svg>
-                المتابعة مع Apple
+                {t("continueWithApple")}
               </>
             )}
           </button>
@@ -493,14 +497,14 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                   <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                 </svg>
-                المتابعة مع Google
+                {t("continueWithGoogle")}
               </>
             )}
           </button>
 
           <div className="flex items-center gap-3 my-1">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">أو بالهاتف</span>
+            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">{t("orWithPhone")}</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
         </div>
@@ -508,19 +512,19 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
         <div className="px-6 pb-6 space-y-3">
           {tab === "register" && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">الاسم الكامل</label>
+              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("fullName")}</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="فلان الفلاني"
+                placeholder={t("fullNamePlaceholder")}
                 className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none transition-all"
               />
             </div>
           )}
 
           <div>
-            <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">رقم الهاتف</label>
+            <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("phoneNumber")}</label>
             <div dir="ltr" className="flex items-center h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 focus-within:border-[#c9a96e] focus-within:ring-2 focus-within:ring-[#c9a96e]/20 transition-all">
               <span className="text-sm font-bold text-gray-700 border-r border-gray-200 pr-2 ml-2">+966</span>
               <input
@@ -537,7 +541,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
           {tab === "register" && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">البريد الإلكتروني <span className="text-gray-700">(اختياري)</span></label>
+              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("email")} <span className="text-gray-700">({t("optional")})</span></label>
               <input
                 type="email"
                 value={email}
@@ -551,7 +555,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
           {(isStaff || tab === "register") && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">كلمة المرور</label>
+              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("password")}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -584,7 +588,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           >
             {(isLoggingIn || isRegistering) ? (
               <Loader2 className="h-5 w-5 animate-spin" />
-            ) : tab === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}
+            ) : tab === "login" ? t("signIn") : t("createAccount")}
           </button>
 
           {tab === "login" && (
@@ -594,15 +598,15 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
               className="w-full text-center text-[11px] font-bold text-[#c9a96e] hover:underline pt-1 disabled:opacity-50"
               data-testid="button-forgot-password"
             >
-              نسيت كلمة المرور؟
+              {t("forgotPassword")}
             </button>
           )}
 
           <p className="text-center text-[10px] text-gray-700 pt-1">
             {tab === "login" ? (
-              <>ليس لديك حساب؟ <button onClick={() => setTab("register")} className="text-[#c9a96e] font-bold hover:underline">أنشئ حساب جديد</button></>
+              <>{t("noAccountYet")} <button onClick={() => setTab("register")} className="text-[#c9a96e] font-bold hover:underline">{t("createNewAccount")}</button></>
             ) : (
-              <>لديك حساب؟ <button onClick={() => setTab("login")} className="text-[#c9a96e] font-bold hover:underline">سجّل دخولك</button></>
+              <>{t("haveAccount")} <button onClick={() => setTab("login")} className="text-[#c9a96e] font-bold hover:underline">{t("signInShort")}</button></>
             )}
           </p>
         </div>
