@@ -4,47 +4,17 @@
  * All templates are Arabic RTL with RF Perfume branding
  */
 
-import fs from "fs";
-import path from "path";
-
-// Inline assets as CID attachments — bulletproof for Gmail/Outlook/Apple Mail
-// SMTP2GO uses the filename as the CID, so HTML must reference cid:<filename>
-const LOGO_FILENAME = "logo.png";
-const BANNER_FILENAME = "banner.gif";
-const LOGO_URL = `cid:${LOGO_FILENAME}`;
-const BANNER_URL = `cid:${BANNER_FILENAME}`;
-
-const _blobCache: Record<string, string | null> = {};
-function loadAsset(...candidates: string[]): string | null {
-  const key = candidates.join("|");
-  if (key in _blobCache) return _blobCache[key];
-  try {
-    for (const p of candidates) {
-      if (fs.existsSync(p)) {
-        _blobCache[key] = fs.readFileSync(p).toString("base64");
-        return _blobCache[key];
-      }
-    }
-  } catch (e: any) {
-    console.error("[Email] Could not load asset:", e?.message);
-  }
-  _blobCache[key] = null;
-  return null;
-}
-
-function getLogoBlob(): string | null {
-  return loadAsset(
-    path.resolve(process.cwd(), "client/public/icons/logo-square.png"),
-    path.resolve(process.cwd(), "client/public/icons/logo.png"),
-    path.resolve(process.cwd(), "client/public/images/logos/logo-master.png"),
-  );
-}
-
-function getBannerBlob(): string | null {
-  return loadAsset(
-    path.resolve(process.cwd(), "client/public/icons/email-banner.gif"),
-  );
-}
+// Use absolute HTTPS URLs for inline images. CID attachments cause many email
+// clients (Outlook, several Arabic webmails) to show the assets as separate
+// attachments at the bottom instead of inline within the template. Remote URLs
+// are universally supported by modern clients and remove that issue entirely.
+const ASSET_BASE = (
+  process.env.EMAIL_ASSET_BASE_URL ||
+  process.env.PUBLIC_SITE_URL ||
+  "https://e-commerce.rfperfume.sa"
+).replace(/\/+$/, "");
+const LOGO_URL   = `${ASSET_BASE}/icons/logo-square.png`;
+const BANNER_URL = `${ASSET_BASE}/icons/email-banner.gif`;
 
 const SMTP2GO_API = "https://api.smtp2go.com/v3/email/send";
 
@@ -69,14 +39,9 @@ async function sendEmail(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const { apiKey, sender, senderName } = getCredentials();
 
-  // Inline-attach logo + banner so they show reliably across all email clients
-  // SMTP2GO uses filename as the CID; HTML must reference cid:<filename>
-  const logoBlob = getLogoBlob();
-  const bannerBlob = getBannerBlob();
-  const inlines: Array<{ filename: string; fileblob: string; mimetype: string }> = [];
-  if (logoBlob) inlines.push({ filename: LOGO_FILENAME, fileblob: logoBlob, mimetype: "image/png" });
-  if (bannerBlob) inlines.push({ filename: BANNER_FILENAME, fileblob: bannerBlob, mimetype: "image/gif" });
-
+  // Images are referenced via absolute HTTPS URLs in the HTML (see ASSET_BASE)
+  // — no attachments are sent, so nothing appears as a "file attachment" below
+  // the email body in Gmail/Outlook/Apple Mail.
   try {
     const res = await fetch(SMTP2GO_API, {
       method: "POST",
@@ -88,7 +53,6 @@ async function sendEmail(params: {
         subject: params.subject,
         html_body: params.html,
         text_body: params.text || "",
-        ...(inlines.length ? { inlines } : {}),
       }),
     });
 
