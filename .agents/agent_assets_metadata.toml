@@ -11,3 +11,9 @@ id = "SEzCs3lbu0EY2VSqg4tde"
 uri = "file://client/public/og-cover.png"
 type = "image"
 title = "صورة معاينة الرابط للواتس وسناب"
+
+[[outputs]]
+id = "vnD3T-9WwOACzzxe_v_Ue"
+uri = "file://client/public/icons/icon-512x512.png"
+type = "image"
+title = "الأيقونة الجديدة (لوجو ملوّن)"
