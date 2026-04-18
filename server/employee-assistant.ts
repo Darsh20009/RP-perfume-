@@ -1,10 +1,6 @@
 /**
  * AI Employee Assistant — tool-calling agent for staff
- * Lets employees say things like:
- *   "أنشئ منتج جديد اسمه عود ملكي بسعر 350"
- *   "ابحث عن طلبات قيد الشحن"
- *   "أرسل بريد للعميل أحمد بأن طلبه جاهز"
- *   "غيّر حالة الطلب #ABC إلى مكتمل"
+ * "Lamsa" 🌸 — bilingual (AR/EN), 16 tools, deep system prompt with workflow patterns.
  */
 
 import type { Express } from "express";
@@ -13,6 +9,7 @@ import { storage } from "./storage";
 import { ProductModel, OrderModel, UserModel, CategoryModel } from "./models";
 import { sendEmail } from "./email";
 import { sendPushToUser, pushToUser } from "./notifications";
+import { detectLang } from "./groq";
 
 const GROQ_KEYS = [
   process.env.GROQ_API_KEY_1,
@@ -29,23 +26,62 @@ function getNextKey(): string {
   return key;
 }
 
-// ─── Tool Definitions (OpenAI function calling format) ──────────────────────
+// ─── Tool Definitions ───────────────────────────────────────────────────────
 
-// Accept both number and string for numeric params — some LLMs emit numbers as strings,
-// and strict tool validation in Groq rejects mismatches.
 const NUM = { type: ["number", "string"] as any };
 
 const TOOLS = [
   {
     type: "function",
     function: {
-      name: "search_products",
-      description: "البحث عن منتجات بالاسم أو إرجاع كل المنتجات. استخدمها قبل تعديل أو الإشارة لمنتج.",
+      name: "get_dashboard_stats",
+      description: "Get high-level store stats (orders count, revenue, pending count) for a period. Call this FIRST when the employee asks 'how is the store doing?' or 'show me today's numbers'.",
       parameters: {
         type: "object",
         properties: {
-          query: { type: "string", description: "كلمة بحث في اسم المنتج (اختياري)" },
-          limit: { ...NUM, description: "أقصى عدد نتائج (افتراضي 10)" },
+          periodDays: { ...NUM, description: "Number of days back from today (default 7, use 1 for today, 30 for month)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_top_selling_products",
+      description: "Return the best-selling products ranked by units sold. Use when asked about bestsellers, top products, or what to restock.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { ...NUM, description: "How many top products to return (default 5)" },
+          periodDays: { ...NUM, description: "Period in days (default 30)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_low_stock_products",
+      description: "List products whose total stock is below a threshold. Use when asked about restocking, low inventory, or out-of-stock items.",
+      parameters: {
+        type: "object",
+        properties: {
+          threshold: { ...NUM, description: "Stock threshold (default 5)" },
+          limit: { ...NUM, description: "Max items (default 20)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_products",
+      description: "Search products by name (partial match) or list all. Always call this BEFORE updating/referencing a product to get its ID.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Name keyword (optional)" },
+          limit: { ...NUM, description: "Max results (default 10)" },
         },
       },
     },
@@ -54,17 +90,17 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_product",
-      description: "إنشاء منتج عطر جديد. استخدم اسم المنتج بالعربي.",
+      description: "Create a new perfume product. Use the Arabic name as the primary name.",
       parameters: {
         type: "object",
         properties: {
-          name: { type: "string", description: "اسم المنتج" },
-          description: { type: "string", description: "وصف العطر (نوتاته، شخصيته)" },
-          price: { ...NUM, description: "السعر بالريال السعودي" },
-          cost: { ...NUM, description: "سعر التكلفة بالريال (اختياري)" },
-          categoryName: { type: "string", description: "اسم التصنيف (مثلاً: عطور رجالية، عود ودخون)" },
-          stock: { ...NUM, description: "الكمية المتوفرة (افتراضي 10)" },
-          variantSize: { type: "string", description: "الحجم مثل 50ml (اختياري)" },
+          name: { type: "string" },
+          description: { type: "string", description: "Perfume description (notes, character)" },
+          price: { ...NUM, description: "Price in SAR" },
+          cost: { ...NUM, description: "Cost in SAR (optional)" },
+          categoryName: { type: "string", description: "Category name (e.g. عطور رجالية)" },
+          stock: { ...NUM, description: "Initial stock (default 10)" },
+          variantSize: { type: "string", description: "Size like 50ml (optional)" },
         },
         required: ["name", "price"],
       },
@@ -73,14 +109,33 @@ const TOOLS = [
   {
     type: "function",
     function: {
-      name: "update_product_stock",
-      description: "تحديث مخزون منتج معيّن (للزيادة أو النقصان).",
+      name: "update_product",
+      description: "Update an existing product's name, description, price, cost or featured status. Pass only the fields you want to change.",
       parameters: {
         type: "object",
         properties: {
-          productId: { type: "string", description: "معرف المنتج (من search_products)" },
-          variantSku: { type: "string", description: "SKU للنسخة (اختياري — أول نسخة افتراضياً)" },
-          newStock: { ...NUM, description: "الكمية الجديدة" },
+          productId: { type: "string", description: "Product _id (from search_products)" },
+          name: { type: "string" },
+          description: { type: "string" },
+          price: { ...NUM },
+          cost: { ...NUM },
+          isFeatured: { type: "boolean" },
+        },
+        required: ["productId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_product_stock",
+      description: "Set the stock of a specific variant of a product (used to restock or correct counts).",
+      parameters: {
+        type: "object",
+        properties: {
+          productId: { type: "string" },
+          variantSku: { type: "string", description: "Variant SKU (optional — defaults to first variant)" },
+          newStock: { ...NUM },
         },
         required: ["productId", "newStock"],
       },
@@ -90,17 +145,16 @@ const TOOLS = [
     type: "function",
     function: {
       name: "search_orders",
-      description: "البحث عن طلبات حسب الحالة أو رقم الهاتف.",
+      description: "Search orders by status and/or customer phone.",
       parameters: {
         type: "object",
         properties: {
           status: {
             type: "string",
             enum: ["new", "processing", "shipped", "completed", "cancelled", "pending_payment"],
-            description: "حالة الطلب",
           },
-          customerPhone: { type: "string", description: "رقم هاتف العميل" },
-          limit: { ...NUM, description: "أقصى عدد (افتراضي 10)" },
+          customerPhone: { type: "string" },
+          limit: { ...NUM, description: "Default 10, max 25" },
         },
       },
     },
@@ -108,17 +162,31 @@ const TOOLS = [
   {
     type: "function",
     function: {
-      name: "update_order_status",
-      description: "تغيير حالة طلب (شحن، إكمال، إلغاء، إلخ).",
+      name: "get_order_details",
+      description: "Get the FULL details of one order: items, customer, shipping address, payment, totals. Use when investigating a specific order.",
       parameters: {
         type: "object",
         properties: {
-          orderId: { type: "string", description: "معرف الطلب الكامل" },
+          orderId: { type: "string", description: "Order _id (full id, not the short ref)" },
+        },
+        required: ["orderId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_order_status",
+      description: "Change an order's status (processing, shipped, completed, cancelled). Customer is auto-notified.",
+      parameters: {
+        type: "object",
+        properties: {
+          orderId: { type: "string" },
           status: {
             type: "string",
             enum: ["new", "processing", "shipped", "completed", "cancelled"],
           },
-          reason: { type: "string", description: "سبب التغيير (للإلغاء)" },
+          reason: { type: "string", description: "Cancellation reason (required for cancellation)" },
         },
         required: ["orderId", "status"],
       },
@@ -128,11 +196,11 @@ const TOOLS = [
     type: "function",
     function: {
       name: "search_customers",
-      description: "البحث عن عميل بالاسم أو رقم الهاتف.",
+      description: "Find customers by name, phone, or email.",
       parameters: {
         type: "object",
         properties: {
-          query: { type: "string", description: "اسم أو رقم هاتف" },
+          query: { type: "string" },
           limit: { ...NUM },
         },
         required: ["query"],
@@ -142,17 +210,52 @@ const TOOLS = [
   {
     type: "function",
     function: {
-      name: "send_email_to_customer",
-      description: "إرسال بريد إلكتروني مخصص لعميل (مثلاً: تنبيه، رد، عرض). يُغلَّف بقالب رفيف العود الفاخر تلقائياً.",
+      name: "get_customer_orders",
+      description: "Get all orders of a specific customer (by user _id) — useful when investigating a customer complaint.",
       parameters: {
         type: "object",
         properties: {
-          to: { type: "string", description: "البريد الإلكتروني للعميل" },
-          subject: { type: "string", description: "موضوع البريد" },
-          messageHtml: {
-            type: "string",
-            description: "محتوى البريد بـ HTML بسيط (سيُغلَّف داخل قالب رفيف العود)",
-          },
+          userId: { type: "string" },
+          limit: { ...NUM, description: "Default 10" },
+        },
+        required: ["userId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_categories",
+      description: "List all product categories. Call before create_category to avoid duplicates.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_category",
+      description: "Create a new product category.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Arabic name" },
+          nameEn: { type: "string", description: "English name (optional)" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "send_email_to_customer",
+      description: "Send a personalised email to a customer (auto-wrapped in the RF Perfume luxury template).",
+      parameters: {
+        type: "object",
+        properties: {
+          to: { type: "string", description: "Customer email" },
+          subject: { type: "string" },
+          messageHtml: { type: "string", description: "Body HTML (will be wrapped in the brand template)" },
         },
         required: ["to", "subject", "messageHtml"],
       },
@@ -162,14 +265,14 @@ const TOOLS = [
     type: "function",
     function: {
       name: "send_push_notification",
-      description: "إرسال إشعار push للعميل في تطبيقه (يصل حتى لو التطبيق مغلق).",
+      description: "Send a push notification to a customer's device (works even if app closed).",
       parameters: {
         type: "object",
         properties: {
-          userId: { type: "string", description: "معرف العميل (من search_customers)" },
+          userId: { type: "string" },
           title: { type: "string" },
           body: { type: "string" },
-          url: { type: "string", description: "رابط لفتحه عند الضغط (اختياري)" },
+          url: { type: "string", description: "URL to open on tap (optional)" },
         },
         required: ["userId", "title", "body"],
       },
@@ -179,7 +282,6 @@ const TOOLS = [
 
 // ─── Tool Implementations ───────────────────────────────────────────────────
 
-// Coerce numeric fields that may arrive as strings from the LLM
 function toNum(v: any): number | undefined {
   if (v === undefined || v === null || v === "") return undefined;
   const n = typeof v === "number" ? v : parseFloat(String(v));
@@ -187,8 +289,7 @@ function toNum(v: any): number | undefined {
 }
 
 async function execTool(name: string, args: any, _user: any): Promise<any> {
-  // Normalize all numeric-ish fields once
-  for (const k of ["limit", "price", "cost", "stock", "newStock"]) {
+  for (const k of ["limit", "price", "cost", "stock", "newStock", "threshold", "periodDays"]) {
     if (k in args) {
       const n = toNum(args[k]);
       if (n !== undefined) args[k] = n;
@@ -197,29 +298,84 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
   }
   try {
     switch (name) {
+      case "get_dashboard_stats": {
+        const days = args.periodDays || 7;
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        const orders = await OrderModel.find({ createdAt: { $gte: since } }).lean();
+        const totalRevenue = orders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
+        const byStatus: Record<string, number> = {};
+        for (const o of orders as any[]) byStatus[o.status] = (byStatus[o.status] || 0) + 1;
+        const productsCount = await ProductModel.countDocuments();
+        const customersCount = await UserModel.countDocuments({ role: { $in: ["customer", null, undefined] } });
+        return {
+          ok: true,
+          periodDays: days,
+          ordersCount: orders.length,
+          totalRevenueSAR: Math.round(totalRevenue),
+          ordersByStatus: byStatus,
+          totalProducts: productsCount,
+          totalCustomers: customersCount,
+          averageOrderValue: orders.length ? Math.round(totalRevenue / orders.length) : 0,
+        };
+      }
+
+      case "get_top_selling_products": {
+        const limit = Math.min(args.limit || 5, 20);
+        const days = args.periodDays || 30;
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        const orders = await OrderModel.find({
+          createdAt: { $gte: since },
+          status: { $nin: ["cancelled"] },
+        }).lean();
+        const counts: Record<string, { name: string; units: number; revenue: number }> = {};
+        for (const o of orders as any[]) {
+          for (const it of o.items || []) {
+            const key = String(it.productId || it.name);
+            if (!counts[key]) counts[key] = { name: it.name || "?", units: 0, revenue: 0 };
+            counts[key].units += Number(it.quantity) || 1;
+            counts[key].revenue += (Number(it.price) || 0) * (Number(it.quantity) || 1);
+          }
+        }
+        const top = Object.entries(counts)
+          .map(([id, v]) => ({ productId: id, ...v }))
+          .sort((a, b) => b.units - a.units)
+          .slice(0, limit);
+        return { ok: true, periodDays: days, top };
+      }
+
+      case "get_low_stock_products": {
+        const threshold = args.threshold ?? 5;
+        const limit = Math.min(args.limit || 20, 50);
+        const products = await ProductModel.find().lean();
+        const low = (products as any[])
+          .map((p) => ({
+            id: p._id.toString(),
+            name: p.name,
+            totalStock: (p.variants || []).reduce((s: number, v: any) => s + (v.stock || 0), 0),
+            variants: (p.variants || []).map((v: any) => ({ sku: v.sku, size: v.size, stock: v.stock })),
+          }))
+          .filter((p) => p.totalStock <= threshold)
+          .sort((a, b) => a.totalStock - b.totalStock)
+          .slice(0, limit);
+        return { ok: true, threshold, count: low.length, products: low };
+      }
+
       case "search_products": {
         const query = (args.query || "").trim();
         const limit = Math.min(args.limit || 10, 25);
-        const filter = query
-          ? { name: { $regex: query, $options: "i" } }
-          : {};
+        const filter = query ? { name: { $regex: query, $options: "i" } } : {};
         const products = await ProductModel.find(filter).limit(limit).lean();
         return {
           ok: true,
           count: products.length,
-          products: products.map((p: any) => ({
+          products: (products as any[]).map((p) => ({
             id: p._id.toString(),
             name: p.name,
             price: p.price,
-            stock: (p.variants || []).reduce(
-              (s: number, v: any) => s + (v.stock || 0),
-              0
-            ),
+            stock: (p.variants || []).reduce((s: number, v: any) => s + (v.stock || 0), 0),
+            isFeatured: p.isFeatured,
             variants: (p.variants || []).map((v: any) => ({
-              sku: v.sku,
-              size: v.size,
-              color: v.color,
-              stock: v.stock,
+              sku: v.sku, size: v.size, color: v.color, stock: v.stock,
             })),
           })),
         };
@@ -240,10 +396,7 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
           const firstCat = await CategoryModel.findOne().lean();
           categoryId = firstCat ? (firstCat as any)._id.toString() : undefined;
         }
-        if (!categoryId) {
-          return { ok: false, error: "لا توجد تصنيفات. أنشئ تصنيف أولاً." };
-        }
-
+        if (!categoryId) return { ok: false, error: "No categories exist. Create a category first via create_category." };
         const product = await ProductModel.create({
           name: args.name,
           description: args.description || "",
@@ -252,30 +405,42 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
           images: [],
           categoryId,
           categoryIds: [categoryId],
-          variants: [
-            {
-              color: args.variantSize || "افتراضي",
-              size: args.variantSize || "50ml",
-              sku: `SKU-${Date.now()}`,
-              stock: args.stock || 10,
-              cost: 0,
-              image: "",
-            },
-          ],
+          variants: [{
+            color: args.variantSize || "افتراضي",
+            size: args.variantSize || "50ml",
+            sku: `SKU-${Date.now()}`,
+            stock: args.stock || 10,
+            cost: 0,
+            image: "",
+          }],
           isFeatured: false,
         });
         return {
           ok: true,
           productId: product._id.toString(),
-          message: `تم إنشاء المنتج "${args.name}" بنجاح. ينقصه صور — اطلب من الموظف رفعها.`,
+          message: `Product "${args.name}" created successfully. It still needs images — ask the employee to upload them.`,
         };
+      }
+
+      case "update_product": {
+        const product = await ProductModel.findById(args.productId);
+        if (!product) return { ok: false, error: "Product not found" };
+        const changes: string[] = [];
+        if (args.name !== undefined) { (product as any).name = args.name; changes.push("name"); }
+        if (args.description !== undefined) { (product as any).description = args.description; changes.push("description"); }
+        if (args.price !== undefined) { (product as any).price = String(args.price); changes.push("price"); }
+        if (args.cost !== undefined) { (product as any).cost = String(args.cost); changes.push("cost"); }
+        if (args.isFeatured !== undefined) { (product as any).isFeatured = !!args.isFeatured; changes.push("isFeatured"); }
+        if (changes.length === 0) return { ok: false, error: "No fields to update" };
+        await product.save();
+        return { ok: true, productId: args.productId, updated: changes, message: `Updated: ${changes.join(", ")}` };
       }
 
       case "update_product_stock": {
         const product = await ProductModel.findById(args.productId);
-        if (!product) return { ok: false, error: "المنتج غير موجود" };
+        if (!product) return { ok: false, error: "Product not found" };
         const variants = (product as any).variants || [];
-        if (variants.length === 0) return { ok: false, error: "لا توجد نسخ" };
+        if (variants.length === 0) return { ok: false, error: "No variants" };
         let target = args.variantSku
           ? variants.find((v: any) => v.sku === args.variantSku)
           : variants[0];
@@ -283,10 +448,7 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
         const oldStock = target.stock;
         target.stock = args.newStock;
         await product.save();
-        return {
-          ok: true,
-          message: `تم تحديث مخزون "${(product as any).name}" من ${oldStock} إلى ${args.newStock}`,
-        };
+        return { ok: true, message: `Stock of "${(product as any).name}" updated from ${oldStock} to ${args.newStock}` };
       }
 
       case "search_orders": {
@@ -297,14 +459,11 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
           if (u) filter.userId = (u as any)._id.toString();
         }
         const limit = Math.min(args.limit || 10, 25);
-        const orders = await OrderModel.find(filter)
-          .sort({ createdAt: -1 })
-          .limit(limit)
-          .lean();
+        const orders = await OrderModel.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
         return {
           ok: true,
           count: orders.length,
-          orders: orders.map((o: any) => ({
+          orders: (orders as any[]).map((o) => ({
             id: o._id.toString(),
             ref: String(o._id).slice(-6).toUpperCase(),
             status: o.status,
@@ -317,14 +476,44 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
         };
       }
 
+      case "get_order_details": {
+        const order = await OrderModel.findById(args.orderId).lean();
+        if (!order) return { ok: false, error: "Order not found" };
+        const o: any = order;
+        return {
+          ok: true,
+          id: o._id.toString(),
+          ref: String(o._id).slice(-6).toUpperCase(),
+          status: o.status,
+          paymentStatus: o.paymentStatus,
+          paymentMethod: o.paymentMethod,
+          subtotal: o.subtotal,
+          shipping: o.shippingCost,
+          discount: o.discount,
+          total: o.total,
+          createdAt: o.createdAt,
+          updatedAt: o.updatedAt,
+          shippingAddress: o.shippingAddress,
+          trackingNumber: o.trackingNumber,
+          items: (o.items || []).map((it: any) => ({
+            productId: it.productId,
+            name: it.name,
+            sku: it.sku,
+            quantity: it.quantity,
+            price: it.price,
+          })),
+          notes: o.notes,
+          cancelReason: o.cancelReason,
+        };
+      }
+
       case "update_order_status": {
         const order = await OrderModel.findById(args.orderId);
-        if (!order) return { ok: false, error: "الطلب غير موجود" };
+        if (!order) return { ok: false, error: "Order not found" };
         const oldStatus = (order as any).status;
         (order as any).status = args.status;
         if (args.reason) (order as any).cancelReason = args.reason;
         await order.save();
-        // Notify customer
         try {
           const userId = (order as any).userId;
           if (userId) {
@@ -339,16 +528,12 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
               body: `طلبك #${String(order._id).slice(-6).toUpperCase()}: ${statusLabels[args.status] || args.status}`,
               url: "/orders",
             });
-            pushToUser(String(userId), {
-              type: "order_status",
-              orderId: String(order._id),
-              status: args.status,
-            });
+            pushToUser(String(userId), { type: "order_status", orderId: String(order._id), status: args.status });
           }
         } catch {}
         return {
           ok: true,
-          message: `تم تغيير حالة الطلب #${String(order._id).slice(-6).toUpperCase()} من ${oldStatus} إلى ${args.status}`,
+          message: `Order #${String(order._id).slice(-6).toUpperCase()} status changed from ${oldStatus} → ${args.status}. Customer notified.`,
         };
       }
 
@@ -361,13 +546,11 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
             { name: { $regex: q, $options: "i" } },
             { email: { $regex: q, $options: "i" } },
           ],
-        })
-          .limit(limit)
-          .lean();
+        }).limit(limit).lean();
         return {
           ok: true,
           count: users.length,
-          customers: users.map((u: any) => ({
+          customers: (users as any[]).map((u) => ({
             id: u._id.toString(),
             name: u.name,
             phone: u.phone,
@@ -375,6 +558,50 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
             role: u.role,
           })),
         };
+      }
+
+      case "get_customer_orders": {
+        const limit = Math.min(args.limit || 10, 25);
+        const orders = await OrderModel.find({ userId: args.userId })
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .lean();
+        const totalSpent = (orders as any[]).reduce((s, o) => s + (Number(o.total) || 0), 0);
+        return {
+          ok: true,
+          count: orders.length,
+          totalSpentSAR: Math.round(totalSpent),
+          orders: (orders as any[]).map((o) => ({
+            id: o._id.toString(),
+            ref: String(o._id).slice(-6).toUpperCase(),
+            status: o.status,
+            total: o.total,
+            createdAt: o.createdAt,
+            itemCount: (o.items || []).length,
+          })),
+        };
+      }
+
+      case "list_categories": {
+        const cats = await CategoryModel.find().lean();
+        return {
+          ok: true,
+          count: cats.length,
+          categories: (cats as any[]).map((c) => ({
+            id: c._id.toString(),
+            name: c.nameAr || c.name,
+            nameEn: c.nameEn || c.name,
+          })),
+        };
+      }
+
+      case "create_category": {
+        const cat = await CategoryModel.create({
+          name: args.nameEn || args.name,
+          nameAr: args.name,
+          nameEn: args.nameEn || args.name,
+        });
+        return { ok: true, categoryId: cat._id.toString(), message: `Category "${args.name}" created.` };
       }
 
       case "send_email_to_customer": {
@@ -393,35 +620,102 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
 <div class="footer">© ${new Date().getFullYear()} رفيف العود — جميع الحقوق محفوظة</div>
 </div></body></html>`;
         await sendEmail({ to: args.to, subject: args.subject, html: wrapped });
-        return { ok: true, message: `تم إرسال البريد إلى ${args.to}` };
+        return { ok: true, message: `Email sent to ${args.to}` };
       }
 
       case "send_push_notification": {
-        await sendPushToUser(args.userId, {
-          title: args.title,
-          body: args.body,
-          url: args.url || "/",
-        });
-        pushToUser(args.userId, {
-          type: "custom",
-          title: args.title,
-          body: args.body,
-        });
-        return { ok: true, message: `تم إرسال الإشعار للعميل` };
+        await sendPushToUser(args.userId, { title: args.title, body: args.body, url: args.url || "/" });
+        pushToUser(args.userId, { type: "custom", title: args.title, body: args.body });
+        return { ok: true, message: `Notification sent to customer` };
       }
 
       default:
-        return { ok: false, error: `أداة غير معروفة: ${name}` };
+        return { ok: false, error: `Unknown tool: ${name}` };
     }
   } catch (err: any) {
     console.error(`[Assistant Tool ${name}] error:`, err);
-    return { ok: false, error: err.message || "خطأ غير معروف" };
+    return { ok: false, error: err.message || "Unknown error" };
   }
 }
 
+// ─── System Prompts (bilingual) ─────────────────────────────────────────────
+
+const SYSTEM_PROMPT_AR = (today: string, role: string, name: string) => `أنت "لمسة" 🌸 — مساعدة موظفي رفيف العود الذكية والذكية جداً.
+
+🎯 **هويتك ومهمتك:**
+- اسمك "لمسة"، خبيرة تشغيل متجر عطور فاخر، عملية وسريعة وذكية
+- تنفّذين مهام الموظف عبر أدواتك بدلاً من إعطاء نصائح مجردة
+- تتحدثين بأسلوب مهني ودود، بدون إطناب
+- التاريخ اليوم: ${today} | دور المستخدم: ${role} | الموظف: ${name}
+
+🛠️ **قواعد استخدام الأدوات (حاسمة):**
+1. **اقرأي قبل ما تكتبي**: أي تعديل (منتج/طلب/عميل) لازم يسبقه بحث للحصول على المعرّف الصحيح
+2. **استخدمي عدة أدوات بالتوازي** إذا كانت مستقلة (مثلاً: get_dashboard_stats + get_low_stock_products معاً)
+3. **لا تخمّني** المعرّفات أو الأسعار أو الأسماء — استدعي الأداة المناسبة
+4. **لا تطلبي إذناً غير ضروري** للإجراءات البسيطة (تحديث مخزون، تغيير حالة طلب) — نفّذي مباشرة
+5. **اطلبي تأكيداً صريحاً** فقط للإجراءات الحساسة: إلغاء طلب، حذف، إرسال بريد جماعي، تخفيض سعر >٢٠٪
+6. **بعد كل إجراء**: أعطي ملخصاً موجزاً (سطر أو سطرين) بما تم — بدون تكرار التفاصيل التقنية
+
+🧠 **أنماط التفكير الذكية:**
+
+▸ **"كيف المتجر اليوم؟"** → get_dashboard_stats(periodDays:1) ثم لخّصي: عدد طلبات + إيرادات + أكثر حالة شائعة
+▸ **"أنشئ منتج..."** → list_categories أولاً (لتأكيد التصنيف الصحيح) → create_product
+▸ **"أرسل تنبيه للعميل أحمد..."** → search_customers("أحمد") → عرض النتائج للموظف لاختيار العميل المقصود → send_push_notification
+▸ **"الطلب #ABC وش وضعه؟"** → search_orders ثم get_order_details(الـid الكامل) → اعرضي الملخص
+▸ **"المنتجات اللي خلصت"** → get_low_stock_products(threshold:0) → عرض القائمة + اقتراح أن تعيد التخزين
+▸ **"أفضل منتجاتنا"** → get_top_selling_products(limit:5)
+▸ **"غيّر سعر عطر كذا إلى ٢٥٠"** → search_products("كذا") → update_product(productId, price:250)
+▸ **"كل طلبات أحمد"** → search_customers("أحمد") → get_customer_orders(userId)
+
+⚠️ **أخطاء شائعة لتفاديها:**
+- لا تستخدمي رقم الطلب القصير (٦ خانات) كـ orderId — استدعي search_orders أولاً للحصول على الـ_id الكامل
+- لا تنسي أن السعر سلسلة نصية في النموذج (نحفظها كسلسلة لكن أنتِ مرّريها كرقم)
+- إذا فشلت أداة، حلّلي الخطأ وحاولي بأسلوب مختلف بدلاً من الاستسلام
+- لا تخترعي معرّفات منتجات أو طلبات — دائماً ابحثي
+
+✨ **شخصيتك:** ذكية، مبادِرة، تقترحين تحسينات صغيرة ("ألاحظ أن مخزون عود ملكي منخفض، تبي أنبّه المدير؟")، لكن لا تنفّذي ما لم يطلبه الموظف صراحة.
+
+عند الانتهاء من المهمة: ردّ مختصر ومفيد بالعربية يلخّص ما فعلتِه — بدون تعداد مفرط للجداول.`;
+
+const SYSTEM_PROMPT_EN = (today: string, role: string, name: string) => `You are "Lamsa" 🌸 — the smart, capable AI assistant for RF Perfume staff.
+
+🎯 **Identity & mission:**
+- You're "Lamsa", an expert luxury-perfume store operator — practical, fast, and smart
+- You EXECUTE tasks via your tools instead of giving abstract advice
+- Professional, friendly tone without verbosity
+- Today: ${today} | User role: ${role} | Staff: ${name}
+
+🛠️ **Tool-use rules (critical):**
+1. **Read before you write**: any edit (product/order/customer) MUST be preceded by a search to get the correct id
+2. **Call multiple tools in parallel** if they're independent (e.g. get_dashboard_stats + get_low_stock_products together)
+3. **Never guess** ids, prices, or names — call the right tool
+4. **Don't ask unnecessary permission** for simple actions (stock updates, order status changes) — just do them
+5. **Ask for explicit confirmation** ONLY for sensitive actions: cancellations, deletes, mass emails, price drops >20%
+6. **After each action**: give a concise summary (1–2 lines) of what was done — don't repeat raw technical details
+
+🧠 **Smart workflow patterns:**
+
+▸ **"How is the store today?"** → get_dashboard_stats(periodDays:1), then summarise: orders + revenue + most common status
+▸ **"Create a product..."** → list_categories first (to pick the right category) → create_product
+▸ **"Notify customer Ahmed..."** → search_customers("Ahmed") → show results to staff to pick → send_push_notification
+▸ **"What's order #ABC?"** → search_orders, then get_order_details(full _id) → present a summary
+▸ **"Out-of-stock items"** → get_low_stock_products(threshold:0) → list + suggest restocking
+▸ **"Top products"** → get_top_selling_products(limit:5)
+▸ **"Change the price of perfume X to 250"** → search_products("X") → update_product(productId, price:250)
+▸ **"All of Ahmed's orders"** → search_customers("Ahmed") → get_customer_orders(userId)
+
+⚠️ **Common pitfalls to avoid:**
+- Don't use the short 6-char order ref as orderId — call search_orders first to get the full _id
+- If a tool fails, analyze the error and try a different approach — don't give up
+- Never invent product or order ids — always search
+
+✨ **Personality:** smart, proactive, suggesting small improvements ("I notice 'Royal Oud' stock is low, want me to alert the manager?"), but don't take unrequested actions.
+
+When done: a concise English reply summarising what you did — no excessive table dumps.`;
+
 // ─── Assistant Loop ─────────────────────────────────────────────────────────
 
-async function groqWithTools(messages: any[], maxIterations = 5): Promise<any> {
+async function groqWithTools(messages: any[], maxIterations = 8): Promise<any> {
   const allMessages = [...messages];
   const actions: Array<{ tool: string; args: any; result: any }> = [];
 
@@ -438,14 +732,46 @@ async function groqWithTools(messages: any[], maxIterations = 5): Promise<any> {
         messages: allMessages,
         tools: TOOLS,
         tool_choice: "auto",
-        temperature: 0.3,
-        max_tokens: 1500,
+        temperature: 0.2,
+        max_tokens: 1800,
       }),
     });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("[Assistant Groq]", res.status, text.slice(0, 200));
+      console.error("[Assistant Groq]", res.status, text.slice(0, 300));
+      // On 429, retry once with a different key
+      if (res.status === 429) {
+        const fbKey = getNextKey();
+        const retry = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${fbKey}` },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: allMessages,
+            tools: TOOLS,
+            tool_choice: "auto",
+            temperature: 0.2,
+            max_tokens: 1800,
+          }),
+        });
+        if (!retry.ok) throw new Error(`Groq error ${retry.status}`);
+        const data = await retry.json();
+        const message = data.choices?.[0]?.message;
+        if (!message) throw new Error("No response from model");
+        allMessages.push(message);
+        const tc = message.tool_calls;
+        if (!tc || tc.length === 0) return { reply: message.content || "", actions };
+        const results = await Promise.all(tc.map(async (call: any) => {
+          let parsedArgs: any = {};
+          try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch {}
+          const result = await execTool(call.function.name, parsedArgs, null);
+          actions.push({ tool: call.function.name, args: parsedArgs, result });
+          return { tool_call_id: call.id, role: "tool" as const, name: call.function.name, content: JSON.stringify(result) };
+        }));
+        allMessages.push(...results);
+        continue;
+      }
       throw new Error(`Groq error ${res.status}`);
     }
 
@@ -460,14 +786,11 @@ async function groqWithTools(messages: any[], maxIterations = 5): Promise<any> {
       return { reply: message.content || "", actions };
     }
 
-    // Execute tools in parallel
     const results = await Promise.all(
       toolCalls.map(async (call: any) => {
         const fnName = call.function.name;
         let parsedArgs: any = {};
-        try {
-          parsedArgs = JSON.parse(call.function.arguments || "{}");
-        } catch {}
+        try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch {}
         const result = await execTool(fnName, parsedArgs, null);
         actions.push({ tool: fnName, args: parsedArgs, result });
         return {
@@ -483,7 +806,7 @@ async function groqWithTools(messages: any[], maxIterations = 5): Promise<any> {
   }
 
   return {
-    reply: "وصلت للحد الأقصى من الخطوات. الإجراءات المنفذة تظهر أعلاه.",
+    reply: "تم تنفيذ عدة خطوات، لكنني وصلت للحد الأقصى من التكرار. الإجراءات المنفذة موجودة أعلاه — أخبرني إن أردت متابعة المهمة.",
     actions,
   };
 }
@@ -496,13 +819,8 @@ export function registerEmployeeAssistant(app: Express) {
       if (!req.isAuthenticated()) return res.sendStatus(401);
       const user = req.user as any;
       const allowedRoles = [
-        "admin",
-        "assistant_manager",
-        "tech_support",
-        "accountant",
-        "employee",
-        "cashier",
-        "support",
+        "admin", "assistant_manager", "tech_support",
+        "accountant", "employee", "cashier", "support",
       ];
       if (!allowedRoles.includes(user.role)) {
         return res.status(403).json({ message: "ليس لديك صلاحية" });
@@ -515,21 +833,14 @@ export function registerEmployeeAssistant(app: Express) {
       const { messages = [] } = req.body;
       const userMessages = Array.isArray(messages) ? messages.slice(-12) : [];
 
+      // Detect language from the most recent user message
+      const lastUserMsg = [...userMessages].reverse().find((m: any) => m.role === "user");
+      const lang = lastUserMsg?.content ? detectLang(String(lastUserMsg.content)) : "ar";
+
       const today = new Date().toISOString().slice(0, 10);
-      const systemPrompt = `أنت "لمسة" 🌸 — مساعدة موظفي رفيف العود الذكية.
-أنت تتحدثين باللغة العربية الفصحى المهذبة، ودودة وسريعة.
-
-دورك:
-- تنفيذ مهام الموظف بأدواتك المتاحة (إنشاء منتجات، تعديل طلبات، إرسال بريد، إشعارات، إلخ)
-- استخدمي الأدوات بحكمة — ابحثي قبل أن تعدّلي
-- تأكدي قبل تنفيذ إجراءات حساسة (إلغاء طلبات، إرسال بريد للعملاء)
-- أعطي ملخص واضح بعد كل إجراء
-
-التاريخ اليوم: ${today}
-دور المستخدم: ${user.role}
-الموظف: ${user.name || user.phone}
-
-حين تنتهين من المهمة، أعطي ردًا مختصرًا واضحًا بالعربية يلخّص ما فعلتِه.`;
+      const systemPrompt = lang === "ar"
+        ? SYSTEM_PROMPT_AR(today, user.role, user.name || user.phone)
+        : SYSTEM_PROMPT_EN(today, user.role, user.name || user.phone);
 
       const result = await groqWithTools([
         { role: "system", content: systemPrompt },
