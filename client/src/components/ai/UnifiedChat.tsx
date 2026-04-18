@@ -83,13 +83,13 @@ export const UnifiedChat = memo(function UnifiedChat() {
     if (tab === "advisor" && advisorMessages.length === 0) {
       setAdvisorMessages([{
         role: "assistant",
-        content: "أهلاً بك في رفيف العود. أنا رفيف، مستشارك الشخصي للعطور — أخبرني عن ذوقك أو المناسبة وسأقترح لك العطر المثالي."
+        content: "أهلاً بك في رفيف العود. أنا رفيف، مستشارك الشخصي للعطور — أخبرني عن ذوقك أو المناسبة وسأقترح لك العطر المثالي.\n\nWelcome to RF Perfume. I'm Rafeef, your personal fragrance advisor — tell me your taste or the occasion (in Arabic or English) and I'll suggest the perfect scent."
       }]);
     }
     if (tab === "support" && supportMessages.length === 0) {
       setSupportMessages([{
         role: "assistant",
-        content: "مرحباً بك في الدعم الفني لرفيف العود. كيف يمكنني خدمتك؟\n\n• تتبع طلبك\n• معلومات المنتجات\n• سياسة الاسترجاع\n• استفسارات أخرى"
+        content: "مرحباً بك في الدعم الفني لرفيف العود. كيف يمكنني خدمتك؟\n• تتبع طلبك  • معلومات المنتجات  • سياسة الاسترجاع  • استفسارات أخرى\n\nHi! Welcome to RF Perfume support. How can I help?\n• Track your order  • Product info  • Return policy  • Other questions\n\n(You can write in Arabic or English — I'll reply in the same language.)"
       }]);
     }
   }, [advisorMessages.length, supportMessages.length]);
@@ -120,11 +120,11 @@ export const UnifiedChat = memo(function UnifiedChat() {
       const data = await res.json();
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: data.response || "عذراً، لم أستلم رداً.",
+        content: data.response || "عذراً، لم أستلم رداً. / Sorry, no reply received.",
         products: Array.isArray(data.products) ? data.products : undefined,
       }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "عذراً، حدث خطأ في الاتصال. حاول مرة أخرى." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "عذراً، حدث خطأ في الاتصال. حاول مرة أخرى. / Connection error — please try again." }]);
     } finally {
       setIsLoading(false);
     }
@@ -471,7 +471,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={isAdvisor ? "اسأل رفيف عن العطور..." : "اكتب رسالتك..."}
+                  placeholder={isAdvisor ? "اسأل رفيف عن العطور… / Ask about fragrances…" : "اكتب رسالتك… / Type your message…"}
                   className="flex-1 h-11 px-4 rounded-full bg-[#faf8f5] border border-gray-200 text-sm font-medium focus:outline-none focus:border-[#c9a96e] transition-all"
                   disabled={isLoading}
                 />
