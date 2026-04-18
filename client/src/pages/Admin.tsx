@@ -83,7 +83,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
     return () => clearInterval(t);
   }, []);
 
-  const bottles = ["/hero-banner-1.png", "/hero-banner-2.png", "/hero-banner-3.png", "/hero-banner-4.png", "/hero-banner-5.png"];
+  const bottles: string[] = [];
   const hour = now.getHours();
   const greetingAr = hour < 5 ? "مساء النور" : hour < 12 ? "صباح العطر 🌅" : hour < 17 ? "نهارك معطّر ☀️" : hour < 21 ? "مساء الورد 🌙" : "ليلة هادئة ✨";
   const greetingEn = hour < 5 ? "Good Evening" : hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : hour < 21 ? "Good Evening" : "Good Night";

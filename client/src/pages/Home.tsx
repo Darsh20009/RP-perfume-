@@ -19,11 +19,6 @@ import { useQuery } from "@tanstack/react-query";
 
 const heroSlides = [
   { img: "/images/banners/banner-1.png" },
-  { img: "/images/banners/banner-2.png" },
-  { img: "/images/banners/banner-3.png" },
-  { img: "/images/banners/banner-4.png" },
-  { img: "/images/banners/banner-5.png" },
-  { img: "/images/banners/banner-7.png" },
 ];
 
 function FlashCountdown({ endTime }: { endTime?: string }) {
@@ -376,9 +371,10 @@ export default function Home() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-gradient-to-br from-[#1a2744] via-[#2a3856] to-[#1a2744]"
             >
-              <img src="/images/banners/banner-6.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, #c9a96e 0%, transparent 40%), radial-gradient(circle at 80% 70%, #c9a96e 0%, transparent 40%)" }} />
+              <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-40 h-40 object-contain opacity-10 rotate-12" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
@@ -393,9 +389,10 @@ export default function Home() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-gradient-to-br from-[#3d2817] via-[#5a3a22] to-[#c9a96e]"
             >
-              <img src="/images/banners/banner-8.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 70% 30%, #fff 0%, transparent 35%), radial-gradient(circle at 30% 80%, #fff 0%, transparent 35%)" }} />
+              <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-40 h-40 object-contain opacity-10 -rotate-12" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
@@ -538,9 +535,8 @@ export default function Home() {
 
       {/* ── BRAND CTA ──────────────────────────────────── */}
       <section className="relative py-24 md:py-36 overflow-hidden bg-[#1a2744]">
-        <div className="absolute inset-0">
-          <img src="/images/banners/banner-8.png" alt="" className="w-full h-full object-cover opacity-15" />
-        </div>
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 15% 25%, #c9a96e 0%, transparent 35%), radial-gradient(circle at 85% 75%, #c9a96e 0%, transparent 35%), linear-gradient(135deg, #1a2744 0%, #2a3856 50%, #1a2744 100%)" }} />
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("${logoImg}")`, backgroundRepeat: "repeat", backgroundSize: "120px" }} />
         <div className="container px-4 relative z-10 text-center max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}

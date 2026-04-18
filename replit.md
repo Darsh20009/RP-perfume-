@@ -18,7 +18,7 @@ A full-stack Arabic luxury perfume e-commerce platform. Built with React + Expre
 - **CSS Theme:** Light-mode only (dark mode removed). White bg (#fff), navy text (#1a2744), beige accents (#c9a96e, #f9f7f4, #f5f0eb). Gold palette (HSL `38 45% 60%` primary).
 - **Logos:** `/images/logos/logo-light.png` (light bg), `/images/logos/logo-dark.png` (dark bg)
 - **Splash:** `/videos/splash.mp4` on white bg with logo fallback + gold shimmer line
-- **Banners:** 8 professional banners at `/images/banners/banner-1.png` through `banner-8.png` — these contain embedded text, logos, and CTAs (displayed full-bleed, no overlay text)
+- **Banner:** RF-branded hero banner at `/images/banners/banner-1.png` (single, full-bleed). Decorative sections elsewhere on the homepage use pure CSS gradients + the RF logo (no third-party imagery).
 - **PWA Icons:** Generated from logo at `/icons/` (192x192, 512x512, 180x180 apple-touch, 32x32 favicon)
 - **PWA Manifest:** background_color `#ffffff`, theme_color `#ffffff`
 - **Login/Register:** White luxury theme (ivory #faf8f5 bg, gold accents, white card)
