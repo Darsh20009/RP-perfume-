@@ -70,6 +70,205 @@ function PulseRing({ color }: { color: string }) {
 
 const PIE_COLORS = ['#f39c12', '#00a878', '#ef4444', '#6366f1', '#8b5cf6', '#ec4899'];
 
+// ─── Creative Dashboard Hero Banner ─────────────────────────────────────────
+const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrders: number; totalRevenue: number }) => {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const bottles = ["/hero-banner-1.png", "/hero-banner-2.png", "/hero-banner-3.png", "/hero-banner-4.png", "/hero-banner-5.png"];
+  const hour = now.getHours();
+  const greetingAr = hour < 5 ? "مساء النور" : hour < 12 ? "صباح العطر 🌅" : hour < 17 ? "نهارك معطّر ☀️" : hour < 21 ? "مساء الورد 🌙" : "ليلة هادئة ✨";
+  const greetingEn = hour < 5 ? "Good Evening" : hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : hour < 21 ? "Good Evening" : "Good Night";
+  const dateAr = now.toLocaleDateString("ar-SA-u-ca-islamic", { weekday: "long", day: "numeric", month: "long" });
+  const timeAr = now.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
+      className="relative overflow-hidden rounded-[2.5rem] shadow-2xl"
+      style={{
+        background:
+          "radial-gradient(ellipse at top right, rgba(201,169,110,0.25), transparent 60%), radial-gradient(ellipse at bottom left, rgba(70,90,140,0.4), transparent 60%), linear-gradient(135deg, #0f1729 0%, #1a2744 50%, #243556 100%)",
+      }}
+    >
+      {/* Animated background orbs */}
+      <motion.div
+        animate={{ x: [0, 30, 0], y: [0, -20, 0], scale: [1, 1.1, 1] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(201,169,110,0.45), transparent 70%)" }}
+      />
+      <motion.div
+        animate={{ x: [0, -25, 0], y: [0, 25, 0], scale: [1, 1.15, 1] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(120,150,210,0.35), transparent 70%)" }}
+      />
+
+      {/* Decorative golden ring */}
+      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-[#c9a96e]/10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-[#c9a96e]/5 pointer-events-none" />
+
+      {/* Floating perfume bottles — desktop only */}
+      <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
+        {bottles.slice(0, 4).map((src, i) => (
+          <motion.img
+            key={src}
+            src={src}
+            alt=""
+            loading="lazy"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{
+              y: [0, -12, 0],
+              opacity: [0.55, 0.85, 0.55],
+              rotate: [-3, 3, -3],
+            }}
+            transition={{
+              duration: 5 + i,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.4,
+              opacity: { duration: 1, delay: i * 0.2 },
+            }}
+            className="absolute object-contain drop-shadow-[0_15px_40px_rgba(201,169,110,0.3)]"
+            style={{
+              width: ["110px", "130px", "100px", "120px"][i],
+              right: ["3%", "16%", "30%", "44%"][i],
+              top: ["18%", "8%", "22%", "12%"][i],
+              filter: "brightness(1.05) saturate(1.1)",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Sparkle particles */}
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 rounded-full bg-[#c9a96e] pointer-events-none"
+          style={{
+            top: `${15 + (i * 11) % 70}%`,
+            left: `${10 + (i * 17) % 80}%`,
+          }}
+          animate={{
+            opacity: [0, 1, 0],
+            scale: [0, 1.5, 0],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            delay: i * 0.4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
+
+      {/* Content */}
+      <div className="relative z-10 px-6 md:px-10 py-8 md:py-10 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        {/* Right (RTL primary) — branding */}
+        <div className="space-y-4 text-right">
+          <div className="flex items-center gap-3 justify-end">
+            <div className="flex flex-col items-end leading-tight">
+              <span className="text-[10px] font-bold tracking-[0.3em] text-[#c9a96e] uppercase">{greetingAr}</span>
+              <span className="text-[9px] font-semibold tracking-widest text-white/40 uppercase" dir="ltr">{greetingEn}</span>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 rounded-2xl bg-[#c9a96e]/30 blur-xl" />
+              <img src="/brand-logo.png" alt="رفيف العود" className="relative w-14 h-14 object-contain drop-shadow-[0_4px_12px_rgba(201,169,110,0.5)]" />
+            </div>
+          </div>
+
+          <div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">
+              <span className="bg-gradient-to-l from-[#c9a96e] via-[#e8d4a3] to-[#c9a96e] bg-clip-text text-transparent">
+                لوحة تحكم رفيف العود
+              </span>
+            </h1>
+            <p className="mt-2 text-xs md:text-sm font-semibold text-white/60 tracking-wide" dir="ltr">
+              RF Perfume — Control Center
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 justify-end flex-wrap">
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+              <Clock className="w-3.5 h-3.5 text-[#c9a96e]" />
+              <span className="text-xs font-bold text-white/90" dir="ltr">{timeAr}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+              <CalendarClock className="w-3.5 h-3.5 text-[#c9a96e]" />
+              <span className="text-xs font-bold text-white/90">{dateAr}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-emerald-500/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-400/20">
+              <PulseRing color="bg-emerald-400" />
+              <span className="text-xs font-bold text-emerald-300">النظام يعمل بكامل طاقته</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Left — quick stats pill stack */}
+        <div className="grid grid-cols-2 gap-3 md:max-w-sm md:ml-auto">
+          <motion.div
+            whileHover={{ scale: 1.04, y: -2 }}
+            className="relative overflow-hidden bg-gradient-to-br from-[#c9a96e]/20 to-[#c9a96e]/5 backdrop-blur-xl rounded-2xl p-4 border border-[#c9a96e]/30"
+          >
+            <div className="absolute -top-4 -right-4 opacity-10">
+              <ShoppingCart className="w-20 h-20 text-[#c9a96e]" />
+            </div>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-[#c9a96e]/80 mb-1">إجمالي الطلبات</p>
+            <p className="text-2xl md:text-3xl font-black text-white leading-none">{totalOrders.toLocaleString("ar-SA")}</p>
+            <p className="text-[9px] font-semibold text-white/40 mt-1" dir="ltr">Total Orders</p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.04, y: -2 }}
+            className="relative overflow-hidden bg-gradient-to-br from-emerald-400/20 to-emerald-400/5 backdrop-blur-xl rounded-2xl p-4 border border-emerald-400/30"
+          >
+            <div className="absolute -top-4 -right-4 opacity-10">
+              <DollarSign className="w-20 h-20 text-emerald-300" />
+            </div>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-emerald-300/80 mb-1">المبيعات الكلية</p>
+            <p className="text-xl md:text-2xl font-black text-white leading-none">
+              {Number(totalRevenue).toLocaleString("ar-SA", { maximumFractionDigits: 0 })}
+              <span className="text-[10px] font-semibold text-white/50 mr-1">ر.س</span>
+            </p>
+            <p className="text-[9px] font-semibold text-white/40 mt-1" dir="ltr">Total Revenue</p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Bottom credit bar — Powered by Qirox */}
+      <div className="relative z-10 border-t border-white/5 bg-black/20 backdrop-blur-md px-6 md:px-10 py-3 flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 tracking-wider">
+          <Shield className="w-3 h-3 text-[#c9a96e]/60" />
+          <span>محمي بأعلى معايير الأمان</span>
+          <span className="text-white/20">•</span>
+          <span dir="ltr">Enterprise-grade Security</span>
+        </div>
+
+        <a
+          href="https://qirox.com"
+          target="_blank"
+          rel="noopener"
+          className="group flex items-center gap-2 bg-gradient-to-r from-[#c9a96e]/10 to-transparent px-3 py-1.5 rounded-full border border-[#c9a96e]/20 hover:border-[#c9a96e]/40 transition-all"
+        >
+          <span className="text-[10px] font-bold text-white/50 tracking-widest uppercase">Powered by</span>
+          <img src="/qirox-logo-new.png" alt="Qirox" className="h-4 object-contain opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/qirox-logo.png"; }} />
+          <span className="text-[10px] font-black text-[#c9a96e]">Qirox</span>
+        </a>
+      </div>
+    </motion.div>
+  );
+});
+CreativeDashboardBanner.displayName = "CreativeDashboardBanner";
+
 const OverviewPanel = memo(() => {
   const { data: stats, isLoading } = useQuery({ 
     queryKey: ["/api/admin/stats"],
@@ -129,6 +328,9 @@ const OverviewPanel = memo(() => {
 
   return (
     <div className="space-y-6" dir="rtl">
+      {/* ─── Creative Hero Banner ─────────────────────────────────────────── */}
+      <CreativeDashboardBanner totalOrders={displayStats.totalOrders} totalRevenue={displayStats.allTime.totalRevenue} />
+
       {/* Main Revenue Card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="border-none shadow-xl bg-gradient-to-br from-[#1a2744] to-[#243556] text-white relative overflow-hidden group rounded-[2rem]">
