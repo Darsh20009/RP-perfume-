@@ -307,19 +307,38 @@ export class MongoDBStorage implements IStorage {
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    // 1. Deduct stock from products
+    // 1. ATOMIC stock deduction with overselling prevention.
+    //    Each $inc is gated by `stock >= quantity`, so two concurrent buyers
+    //    cannot both win the last unit. Items already reserved are rolled
+    //    back if any later item is out of stock.
+    const reserved: Array<{ productId: string; variantSku: string; quantity: number }> = [];
     for (const item of insertOrder.items) {
-      try {
-        await ProductModel.findOneAndUpdate(
-          { _id: item.productId, "variants.sku": item.variantSku },
-          { $inc: { "variants.$.stock": -item.quantity } }
-        );
-      } catch (err) {
-        console.error(`[STOCK] Failed to deduct stock:`, err);
+      if (!item.variantSku) continue; // legacy items without SKU — skip stock check
+      const updated = await ProductModel.findOneAndUpdate(
+        {
+          _id: item.productId,
+          variants: { $elemMatch: { sku: item.variantSku, stock: { $gte: item.quantity } } },
+        },
+        { $inc: { "variants.$.stock": -item.quantity } },
+        { new: true },
+      );
+      if (!updated) {
+        // Roll back everything we have already deducted in this attempt
+        for (const r of reserved) {
+          await ProductModel.findOneAndUpdate(
+            { _id: r.productId, "variants.sku": r.variantSku },
+            { $inc: { "variants.$.stock": r.quantity } },
+          ).catch(e => console.error(`[STOCK] rollback failed for ${r.variantSku}:`, e?.message));
+        }
+        const err: any = new Error(`OUT_OF_STOCK:${item.variantSku}`);
+        err.code = "OUT_OF_STOCK";
+        err.variantSku = item.variantSku;
+        throw err;
       }
+      reserved.push({ productId: item.productId, variantSku: item.variantSku, quantity: item.quantity });
     }
 
-    // 2. Handle Loyalty
+    // 2. Handle Loyalty (atomic $inc — safe under load)
     if (insertOrder.userId) {
       try {
         const orderTotal = Number(insertOrder.total);

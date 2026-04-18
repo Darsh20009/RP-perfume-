@@ -11,6 +11,7 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
+import { createHash } from "crypto";
 
 type Entry = {
   body: any;
@@ -108,24 +109,37 @@ export function cacheClear() {
 }
 
 /**
- * Express middleware factory — caches the JSON response of GET requests.
+ * Express middleware — server-side cache + smart SWR client/CDN headers.
+ *
+ * Sends:
+ *   • Cache-Control: public, max-age=N, s-maxage=2N, stale-while-revalidate=10N
+ *   • ETag (sha1 of body) → 304 Not Modified on If-None-Match match
+ *   • X-Cache: HIT|MISS|STALE for observability
+ *
  *   app.get("/api/products", cacheMiddleware({ ttlMs: 30_000, tags: ["products"] }), handler);
  */
-export function cacheMiddleware(opts: { ttlMs?: number; tags?: string[]; keyFn?: (req: Request) => string } = {}) {
+export function cacheMiddleware(opts: { ttlMs?: number; tags?: string[]; keyFn?: (req: Request) => string; swr?: boolean } = {}) {
   const tags = opts.tags || [];
+  const useSwr = opts.swr !== false;
   return function (req: Request, res: Response, next: NextFunction) {
     if (req.method !== "GET" || !enabled) return next();
     const key = opts.keyFn ? opts.keyFn(req) : `${req.originalUrl}`;
+    const ttlSec = Math.max(1, Math.round((opts.ttlMs ?? defaultTtlMs) / 1000));
+
+    if (useSwr) {
+      res.setHeader("Cache-Control", `public, max-age=${ttlSec}, s-maxage=${ttlSec * 2}, stale-while-revalidate=${ttlSec * 10}`);
+      res.setHeader("Vary", "Accept-Encoding, Accept-Language, Cookie");
+    }
+
     const hit = cacheGet(key);
     if (hit !== null) {
       res.setHeader("X-Cache", "HIT");
+      // Express auto-sets ETag on res.json and returns 304 if req.fresh
       return res.json(hit);
     }
     res.setHeader("X-Cache", "MISS");
-    // Hijack res.json to capture body before sending
     const origJson = res.json.bind(res);
     res.json = ((body: any) => {
-      // only cache success responses
       if (res.statusCode >= 200 && res.statusCode < 300) {
         cacheSet(key, body, opts.ttlMs, tags);
       }

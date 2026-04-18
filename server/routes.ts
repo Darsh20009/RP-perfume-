@@ -65,6 +65,7 @@ import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } fr
 import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
 import { buildZatcaQrDataUrl } from "./zatca";
 import rateLimit from "express-rate-limit";
+import { enqueueJob, getQueueStats, resetQueueStats } from "./job-queue";
 import {
   cacheMiddleware, invalidateTags, getStats as getCacheStats, resetStats as resetCacheStats,
   setCacheEnabled, isCacheEnabled, setDefaultTtlMs, getDefaultTtlMs, cacheClear,
@@ -173,9 +174,10 @@ export async function registerRoutes(
   // AI Employee Assistant — must be registered AFTER setupAuth so req.isAuthenticated() exists
   registerEmployeeAssistant(app);
 
-  // Serve uploaded files statically
-  const express = await import("express");
-  app.use("/uploads", express.static(uploadDir));
+  // Serve uploaded files — local disk fast-path, Object Storage fallback.
+  // Same `/uploads/<filename>` URLs work in both modes so frontend is unchanged.
+  const { serveUpload } = await import("./uploads");
+  app.get("/uploads/:key", serveUpload);
 
   // Apple domain association (Sign in with Apple / Apple Pay verification)
   const path = await import("path");
@@ -197,15 +199,22 @@ export async function registerRoutes(
     }
   });
 
-  // Image Upload Endpoint
-  app.post("/api/upload", upload.any(), (req, res) => {
+  // Image Upload Endpoint — persists to Object Storage if configured,
+  // else local disk. Both produce the same /uploads/<filename> URL.
+  app.post("/api/upload", upload.any(), async (req, res) => {
     const files = req.files as Express.Multer.File[];
     const file = files?.[0] || (req as any).file;
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const url = `/uploads/${file.filename}`;
-    res.json({ url });
+    try {
+      const { persistUpload } = await import("./uploads");
+      const result = await persistUpload(file.path, file.filename);
+      res.json({ url: result.url, storage: result.storage, bytes: result.bytes });
+    } catch (e: any) {
+      console.error("[upload] persist failed:", e?.message);
+      res.json({ url: `/uploads/${file.filename}`, storage: "local" });
+    }
   });
 
   // Bank Transfer Receipt Upload
@@ -649,63 +658,79 @@ export async function registerRoutes(
         }
       }
       const user = req.user as any;
-      const order = await storage.createOrder({
-        ...parsed.data,
-        type: parsed.data.type || "online",
-        branchId: parsed.data.branchId || user.branchId,
-        cashierId: parsed.data.cashierId || user.id,
-      });
-
-      // Notify admins of new order
+      let order;
       try {
+        order = await storage.createOrder({
+          ...parsed.data,
+          type: parsed.data.type || "online",
+          branchId: parsed.data.branchId || user.branchId,
+          cashierId: parsed.data.cashierId || user.id,
+        });
+      } catch (e: any) {
+        if (e?.code === "OUT_OF_STOCK") {
+          // Refund the wallet if we already debited it above
+          if (parsed.data.paymentMethod === "wallet" && parsed.data.userId) {
+            try {
+              const u = await storage.getUser(parsed.data.userId);
+              if (u) {
+                const restored = (Number(u.walletBalance || 0) + Number(parsed.data.total)).toString();
+                await storage.updateUserWallet(u.id, restored);
+              }
+            } catch {}
+          }
+          return res.status(409).json({ message: "نفدت كمية أحد المنتجات قبل إتمام الطلب", variantSku: e.variantSku, code: "OUT_OF_STOCK" });
+        }
+        throw e;
+      }
+
+      // ── Defer slow side-effects to the background queue so the response
+      //    returns immediately. Critical for handling 100k orders/hour.
+      const orderRef = order.id.slice(-8).toUpperCase();
+
+      enqueueJob("notify-admins-new-order", async () => {
         await fireNotifyAdmins(
           "🛒 طلب جديد",
           `طلب جديد بقيمة ${order.total} ر.س — ${order.paymentMethod}`,
           { type: "info", link: "/admin", icon: "🛒", webPush: true }
         );
-        // Notify customer that order was received
+      });
+
+      enqueueJob("notify-customer-order-received", async () => {
         await fireNotify(
           order.userId,
           "✅ تم استلام طلبك",
           `طلبك رقم #${order.id.slice(-6).toUpperCase()} بقيمة ${order.total} ر.س في انتظار المراجعة.`,
           { type: "success", link: "/orders", icon: "✅", webPush: true }
         );
-      } catch (notifErr) {
-        console.error("[NOTIFY] Failed to send order notifications:", notifErr);
-      }
+      });
 
-      // Send order confirmation email
-      try {
+      enqueueJob("email-order-confirmation", async () => {
         const customer = await storage.getUser(order.userId);
-        if (customer?.email) {
-          const orderRef = order.id.slice(-8).toUpperCase();
-          await sendOrderConfirmationEmail({
-            to: customer.email,
-            customerName: customer.name || "عزيزي العميل",
-            orderId: order.id,
-            orderRef,
-            items: (order.items || []).map((item: any) => ({
-              title: item.title || "",
-              quantity: item.quantity || 1,
-              price: item.price || 0,
-              color: item.color,
-              size: item.size,
-            })),
-            subtotal: Number(order.subtotal) || 0,
-            vatAmount: Number(order.vatAmount) || 0,
-            shippingCost: Number(order.shippingCost) || 0,
-            discountAmount: Number(order.discountAmount) || 0,
-            total: Number(order.total) || 0,
-            paymentMethod: order.paymentMethod || "unknown",
-            deliveryAddress: order.deliveryAddress || "",
-            shippingCompany: order.shippingCompany,
-          });
-        }
-      } catch (emailErr: any) {
-        console.error("[EMAIL] Order confirmation error:", emailErr?.message);
-      }
+        if (!customer?.email) return;
+        await sendOrderConfirmationEmail({
+          to: customer.email,
+          customerName: customer.name || "عزيزي العميل",
+          orderId: order.id,
+          orderRef,
+          items: (order.items || []).map((item: any) => ({
+            title: item.title || "",
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            color: item.color,
+            size: item.size,
+          })),
+          subtotal: Number(order.subtotal) || 0,
+          vatAmount: Number(order.vatAmount) || 0,
+          shippingCost: Number(order.shippingCost) || 0,
+          discountAmount: Number(order.discountAmount) || 0,
+          total: Number(order.total) || 0,
+          paymentMethod: order.paymentMethod || "unknown",
+          deliveryAddress: order.deliveryAddress || "",
+          shippingCompany: order.shippingCompany,
+        });
+      }, { critical: true, maxAttempts: 5 });
 
-      try {
+      enqueueJob("auto-generate-invoice", async () => {
         await storage.createInvoice({
           userId: order.userId,
           orderId: order.id,
@@ -725,12 +750,14 @@ export async function registerRoutes(
           total: Number(order.total),
           notes: `فاتورة مرتبطة بالطلب #${order.id.slice(-6).toUpperCase()}`
         });
-      } catch (invErr) {
-        console.error("[INVOICE] Failed to auto-generate invoice:", invErr);
-      }
+      }, { critical: true });
 
-      // Mark this user's pending cart as converted (stops abandoned-cart reminders)
-      try { await markCartConverted(order.userId, order.id); } catch {}
+      enqueueJob("mark-cart-converted", async () => {
+        await markCartConverted(order.userId, order.id);
+      });
+
+      // Invalidate product cache so updated stock is visible immediately
+      try { invalidateTags(["products"]); } catch {}
 
       res.status(201).json(order);
     } catch (err: any) {
@@ -3375,6 +3402,7 @@ export async function registerRoutes(
       const mem = process.memoryUsage();
       res.json({
         cache: getCacheStats(),
+        jobQueue: getQueueStats(),
         rateLimits: {
           global: { windowMin: 15, max: 500 },
           auth:   { windowMin: 15, max: 20 },
