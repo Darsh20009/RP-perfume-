@@ -31,6 +31,10 @@ function getNextKey(): string {
 
 // ─── Tool Definitions (OpenAI function calling format) ──────────────────────
 
+// Accept both number and string for numeric params — some LLMs emit numbers as strings,
+// and strict tool validation in Groq rejects mismatches.
+const NUM = { type: ["number", "string"] as any };
+
 const TOOLS = [
   {
     type: "function",
@@ -41,7 +45,7 @@ const TOOLS = [
         type: "object",
         properties: {
           query: { type: "string", description: "كلمة بحث في اسم المنتج (اختياري)" },
-          limit: { type: "number", description: "أقصى عدد نتائج (افتراضي 10)" },
+          limit: { ...NUM, description: "أقصى عدد نتائج (افتراضي 10)" },
         },
       },
     },
@@ -56,10 +60,10 @@ const TOOLS = [
         properties: {
           name: { type: "string", description: "اسم المنتج" },
           description: { type: "string", description: "وصف العطر (نوتاته، شخصيته)" },
-          price: { type: "number", description: "السعر بالريال السعودي" },
-          cost: { type: "number", description: "سعر التكلفة بالريال (اختياري)" },
+          price: { ...NUM, description: "السعر بالريال السعودي" },
+          cost: { ...NUM, description: "سعر التكلفة بالريال (اختياري)" },
           categoryName: { type: "string", description: "اسم التصنيف (مثلاً: عطور رجالية، عود ودخون)" },
-          stock: { type: "number", description: "الكمية المتوفرة (افتراضي 10)" },
+          stock: { ...NUM, description: "الكمية المتوفرة (افتراضي 10)" },
           variantSize: { type: "string", description: "الحجم مثل 50ml (اختياري)" },
         },
         required: ["name", "price"],
@@ -76,7 +80,7 @@ const TOOLS = [
         properties: {
           productId: { type: "string", description: "معرف المنتج (من search_products)" },
           variantSku: { type: "string", description: "SKU للنسخة (اختياري — أول نسخة افتراضياً)" },
-          newStock: { type: "number", description: "الكمية الجديدة" },
+          newStock: { ...NUM, description: "الكمية الجديدة" },
         },
         required: ["productId", "newStock"],
       },
@@ -96,7 +100,7 @@ const TOOLS = [
             description: "حالة الطلب",
           },
           customerPhone: { type: "string", description: "رقم هاتف العميل" },
-          limit: { type: "number", description: "أقصى عدد (افتراضي 10)" },
+          limit: { ...NUM, description: "أقصى عدد (افتراضي 10)" },
         },
       },
     },
@@ -129,7 +133,7 @@ const TOOLS = [
         type: "object",
         properties: {
           query: { type: "string", description: "اسم أو رقم هاتف" },
-          limit: { type: "number" },
+          limit: { ...NUM },
         },
         required: ["query"],
       },
@@ -175,7 +179,22 @@ const TOOLS = [
 
 // ─── Tool Implementations ───────────────────────────────────────────────────
 
+// Coerce numeric fields that may arrive as strings from the LLM
+function toNum(v: any): number | undefined {
+  if (v === undefined || v === null || v === "") return undefined;
+  const n = typeof v === "number" ? v : parseFloat(String(v));
+  return isNaN(n) ? undefined : n;
+}
+
 async function execTool(name: string, args: any, _user: any): Promise<any> {
+  // Normalize all numeric-ish fields once
+  for (const k of ["limit", "price", "cost", "stock", "newStock"]) {
+    if (k in args) {
+      const n = toNum(args[k]);
+      if (n !== undefined) args[k] = n;
+      else delete args[k];
+    }
+  }
   try {
     switch (name) {
       case "search_products": {

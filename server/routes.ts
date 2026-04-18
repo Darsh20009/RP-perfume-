@@ -65,7 +65,6 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  registerEmployeeAssistant(app);
   // Public endpoint: check if phone belongs to a staff member (returns minimal info only)
   app.get("/api/auth/check-role/:phone", async (req, res) => {
     try {
@@ -139,7 +138,10 @@ export async function registerRoutes(
 
   // Auth setup
   setupAuth(app);
-  
+
+  // AI Employee Assistant — must be registered AFTER setupAuth so req.isAuthenticated() exists
+  registerEmployeeAssistant(app);
+
   // Serve uploaded files statically
   const express = await import("express");
   app.use("/uploads", express.static(uploadDir));
