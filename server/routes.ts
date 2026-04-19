@@ -286,11 +286,14 @@ export async function registerRoutes(
       const { OrderModel, ProductModel, UserModel: UM } = await import("./models");
       const now = new Date();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(startOfDay);
+      startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const [allOrders, dailyOrders, monthlyOrders, totalProducts, totalCustomers] = await Promise.all([
+      const [allOrders, dailyOrders, weeklyOrders, monthlyOrders, totalProducts, totalCustomers] = await Promise.all([
         OrderModel.find({}).lean(),
         OrderModel.find({ createdAt: { $gte: startOfDay } }).lean(),
+        OrderModel.find({ createdAt: { $gte: startOfWeek } }).lean(),
         OrderModel.find({ createdAt: { $gte: startOfMonth } }).lean(),
         ProductModel.countDocuments(),
         UM.countDocuments({ role: "customer" }),
@@ -301,6 +304,7 @@ export async function registerRoutes(
       const isRevenueOrder = (o: any) => !EXCLUDED_STATUSES.has(o.status);
       const revenueOrders = allOrders.filter(isRevenueOrder);
       const dailyRevenueOrders = dailyOrders.filter(isRevenueOrder);
+      const weeklyRevenueOrders = weeklyOrders.filter(isRevenueOrder);
       const monthlyRevenueOrders = monthlyOrders.filter(isRevenueOrder);
 
       const sumField = (orders: any[], field: string) =>
@@ -309,7 +313,10 @@ export async function registerRoutes(
       const totalSales = sumField(revenueOrders, "total");
       const netProfit = sumField(revenueOrders, "netProfit");
       const dailySales = sumField(dailyRevenueOrders, "total");
+      const weeklySales = sumField(weeklyRevenueOrders, "total");
+      const weeklyNetProfit = sumField(weeklyRevenueOrders, "netProfit");
       const monthlySales = sumField(monthlyRevenueOrders, "total");
+      const monthlyNetProfit = sumField(monthlyRevenueOrders, "netProfit");
       const totalOrders = allOrders.length;
 
       // Top selling products
@@ -428,10 +435,14 @@ export async function registerRoutes(
         pendingReturns,
         activeVendors,
         pendingVendors,
-        allTime: { totalRevenue: totalSales },
+        allTime: { totalRevenue: totalSales, netProfit },
         today: { totalRevenue: todaySales },
-        thisMonth: { totalRevenue: monthlySales },
+        thisWeek: { totalRevenue: weeklySales, netProfit: weeklyNetProfit, orders: weeklyOrders.length },
+        thisMonth: { totalRevenue: monthlySales, netProfit: monthlyNetProfit, orders: monthlyOrders.length },
         dailyOrders: dailyOrders.length,
+        weeklySales,
+        weeklyNetProfit,
+        monthlyNetProfit,
       });
     } catch (err: any) {
       console.error("[API] admin.stats error:", err?.message);

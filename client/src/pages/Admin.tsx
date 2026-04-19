@@ -304,12 +304,13 @@ const OverviewPanel = memo(() => {
   );
 
   const displayStats = {
-    allTime: { totalRevenue: stats?.allTime?.totalRevenue || stats?.totalRevenue || stats?.totalSales || 0 },
+    allTime: { totalRevenue: stats?.allTime?.totalRevenue || stats?.totalRevenue || stats?.totalSales || 0, netProfit: stats?.allTime?.netProfit || stats?.netProfit || 0 },
     today: { totalRevenue: stats?.today?.totalRevenue || stats?.todayRevenue || stats?.dailySales || 0 },
-    thisMonth: { totalRevenue: stats?.thisMonth?.totalRevenue || stats?.monthRevenue || stats?.monthlySales || 0 },
+    thisWeek: { totalRevenue: stats?.thisWeek?.totalRevenue || stats?.weeklySales || 0, netProfit: stats?.thisWeek?.netProfit || stats?.weeklyNetProfit || 0, orders: stats?.thisWeek?.orders || 0 },
+    thisMonth: { totalRevenue: stats?.thisMonth?.totalRevenue || stats?.monthRevenue || stats?.monthlySales || 0, netProfit: stats?.thisMonth?.netProfit || stats?.monthlyNetProfit || 0, orders: stats?.thisMonth?.orders || 0 },
     totalOrders: stats?.totalOrders || 0,
     dailyOrders: stats?.dailyOrders || 0,
-    netProfit: stats?.netProfit || 0,
+    netProfit: stats?.allTime?.netProfit || stats?.netProfit || 0,
     totalCustomers: stats?.totalUsers || stats?.totalCustomers || 0,
     completedOrdersCount: stats?.orderStatusCounts?.completed || stats?.completedOrders || 0,
     processingOrdersCount: (stats?.orderStatusCounts?.processing || 0) + (stats?.orderStatusCounts?.new || 0),
@@ -355,14 +356,24 @@ const OverviewPanel = memo(() => {
               </div>
               <div className="text-[#c9a96e] font-bold text-sm">ريال سعودي</div>
             </div>
-            <div className="grid grid-cols-3 gap-4 w-full max-w-lg mt-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl mt-2">
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">اليوم</p>
-                <p className="text-lg font-black">{Number(displayStats.today.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                <p className="text-lg font-black">{Number(displayStats.today.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
+                <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">الأسبوع</p>
+                <p className="text-lg font-black">{Number(displayStats.thisWeek.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                {Number(displayStats.thisWeek.netProfit) > 0 && (
+                  <p className="text-[9px] text-emerald-400 mt-0.5">ربح: {Number(displayStats.thisWeek.netProfit).toFixed(0)}</p>
+                )}
               </div>
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">الشهر</p>
-                <p className="text-lg font-black">{Number(displayStats.thisMonth.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                <p className="text-lg font-black">{Number(displayStats.thisMonth.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                {Number(displayStats.thisMonth.netProfit) > 0 && (
+                  <p className="text-[9px] text-emerald-400 mt-0.5">ربح: {Number(displayStats.thisMonth.netProfit).toFixed(0)}</p>
+                )}
               </div>
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">الطلبات</p>
