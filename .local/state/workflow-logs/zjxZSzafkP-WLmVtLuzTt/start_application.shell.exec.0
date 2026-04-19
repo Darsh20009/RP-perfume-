@@ -1,0 +1,427 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development node_modules/.bin/tsx server/index.ts
+
+[1G[0KConnected to MongoDB successfully
+Seeding رفيف العود admin user...
+Admin user created with phone 567891011 and password 123456
+[AbandonedCarts] worker started (idle≥300s, tick=60s)
+[WS] WebSocket server ready on /ws
+3:36:07 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+3:36:37 PM [express] GET /api/marketing/active 200 in 3ms :: []
+3:36:37 PM [express] GET /api/promo-strip 200 in 28ms :: []
+3:36:37 PM [express] GET /api/reviews/featured 200 in 33ms :: []
+3:36:37 PM [express] GET /api/user 401 in 3ms
+3:36:37 PM [express] GET /api/products 200 in 23ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T12:25:09.490Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+3:36:37 PM [express] GET /api/store/settings 200 in 38ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:36:37 PM [express] GET /api/pages 200 in 25ms :: []
+3:36:37 PM [express] GET /api/categories 200 in 23ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+3:36:38 PM [express] GET /api/flash-deals 200 in 23ms :: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:50:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:50:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x2)[39m
+3:50:58 PM [express] GET /api/marketing/active 200 in 2ms :: []
+3:50:58 PM [express] GET /api/user 401 in 1ms
+3:50:58 PM [express] GET /api/products 200 in 25ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+3:50:58 PM [express] GET /api/store/settings 200 in 26ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:50:58 PM [express] GET /api/reviews/featured 200 in 32ms :: []
+3:50:58 PM [express] GET /api/promo-strip 200 in 36ms :: []
+3:50:58 PM [express] GET /api/pages 200 in 28ms :: []
+3:50:58 PM [express] GET /api/flash-deals 200 in 21ms :: []
+3:50:58 PM [express] GET /api/categories 200 in 180ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+3:51:34 PM [express] GET /api/products/69e237673ca845bd867fbd20 200 in 24ms :: {"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}
+3:51:34 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 200 in 21ms :: []
+3:51:34 PM [express] GET /api/store/settings 304 in 21ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:51:34 PM [express] GET /api/pages 304 in 21ms :: []
+3:51:34 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 200 in 60ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:54:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:54:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:54:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:55:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x6)[39m
+3:55:48 PM [express] GET /api/user 401 in 1ms
+3:55:48 PM [express] GET /api/products 304 in 21ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+3:55:48 PM [express] GET /api/store/settings 304 in 21ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:55:48 PM [express] GET /api/pages 304 in 21ms :: []
+3:55:48 PM [express] GET /api/products/69e237673ca845bd867fbd20 200 in 21ms :: {"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}
+3:55:48 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 200 in 21ms :: []
+3:55:48 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 200 in 40ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:56:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m [33m(x7)[39m
+3:56:29 PM [express] GET /api/user 401 in 1ms
+3:56:29 PM [express] GET /api/products 304 in 1ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+3:56:29 PM [express] GET /api/store/settings 304 in 22ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:56:29 PM [express] GET /api/pages 304 in 22ms :: []
+3:56:29 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 304 in 21ms :: []
+3:56:29 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 304 in 42ms
+3:56:58 PM [express] GET /api/user 401 in 1ms
+3:56:58 PM [express] GET /api/store/settings 304 in 22ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:56:58 PM [express] GET /api/pages 304 in 21ms :: []
+3:56:58 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 304 in 22ms :: []
+3:56:58 PM [express] GET /api/products/69e237673ca845bd867fbd20 304 in 22ms :: {"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}
+3:56:58 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 304 in 42ms
+3:57:37 PM [express] GET /api/user 401 in 1ms
+3:57:37 PM [express] GET /api/store/settings 304 in 22ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+3:57:37 PM [express] GET /api/pages 304 in 24ms :: []
+3:57:37 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 304 in 25ms :: []
+3:57:37 PM [express] GET /api/products 304 in 21ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+3:57:37 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 304 in 42ms
+4:18:23 PM [express] GET /api/marketing/active 304 in 1ms :: []
+4:18:23 PM [express] GET /api/user 401 in 1ms
+4:18:23 PM [express] GET /api/promo-strip 304 in 75ms :: []
+4:18:23 PM [express] GET /api/reviews/featured 304 in 22ms :: []
+4:18:23 PM [express] GET /api/products 200 in 26ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+4:18:23 PM [express] GET /api/store/settings 304 in 25ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+4:18:23 PM [express] GET /api/pages 304 in 21ms :: []
+4:18:23 PM [express] GET /api/flash-deals 304 in 22ms :: []
+4:18:23 PM [express] GET /api/categories 304 in 22ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+4:18:27 PM [express] GET /api/products/69e237673ca845bd867fbd20 304 in 29ms :: {"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}
+4:18:27 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 304 in 22ms :: []
+4:18:27 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 304 in 42ms
+4:18:36 PM [express] POST /api/cart/sync 200 in 75ms :: {"ok":true,"cartId":"69e5005c81c2a5dadde70b6a"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:19:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Login.tsx, /src/pages/Register.tsx, /src/pages/ProductDetails.tsx, /src/pages/Home.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/ai/UnifiedChat.tsx, /src/components/AuthModal.tsx, /src/components/notification-bell.tsx, /src/pages/Cart.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Cart.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:31 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Cart.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:21:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/ProductDetails.tsx, /src/index.css[22m
+4:23:19 PM [express] POST /api/cart/sync 200 in 23ms :: {"ok":true,"cleared":true}
+4:23:30 PM [express] GET /api/store/settings 304 in 21ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+4:23:30 PM [express] GET /api/pages 304 in 26ms :: []
+4:23:31 PM [express] POST /api/cart/sync 200 in 56ms :: {"ok":true,"cartId":"69e5018381c2a5dadde70b7f"}
+4:23:50 PM [express] GET /api/marketing/active 200 in 0ms :: []
+4:23:50 PM [express] GET /api/user 401 in 0ms
+4:23:50 PM [express] GET /api/promo-strip 200 in 22ms :: []
+4:23:50 PM [express] GET /api/products 200 in 21ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":7,"price":50,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"price":150,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-19T15:48:31.741Z","__v":0,"descriptionEn":"","isOnSale":false,"nameEn":"","salePrice":"","id":"69e237673ca845bd867fbd20"}]
+4:23:50 PM [express] GET /api/reviews/featured 200 in 20ms :: []
+4:23:50 PM [express] GET /api/store/settings 200 in 20ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+4:23:50 PM [express] GET /api/pages 200 in 21ms :: []
+4:23:50 PM [express] GET /api/categories 200 in 21ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+4:23:50 PM [express] GET /api/flash-deals 200 in 20ms :: []
+4:23:54 PM [express] GET /api/auth/google/init 200 in 1ms :: {"clientId":"","redirectURI":"https://cc53ce2a-43c5-480c-a6f6-212a46135b4b-00-3g1n9rwgk6r2o.janeway.replit.dev/api/auth/google/callback","enabled":false}
+4:24:05 PM [express] POST /api/cart/sync 200 in 48ms :: {"ok":true,"cartId":"69e501a581c2a5dadde70b80"}
+4:24:30 PM [express] POST /api/ai/perfume-advisor 200 in 1178ms :: {"response":"العطر كهدية دائمًا يعكس الذوق الرفيع والاهتمام بالشخص الذي تحبه. أعتقد أن خمرة دخان سيكون اختيارًا رائعًا، حيث يتميز بطابع قوي وروائح دافئة من العود الملكي مع لمسة عنبر تنساب على البشرة ✨. هذا العطر يناسب الأشخاص الذين يحبون الطابع الشهي والروائح القوية، وسيشعر المستلم بالفخر والتميز عند ارتدائه في المناسبات الخاصة. مع سعره المعقول، يكون هذا العطر هدية فاخرة ومميزة 👑.","products":[{"id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","price":"250","image":"/uploads/1776431576941-633431113.png"}]}
+[1G[0K⠙[1G[0K
