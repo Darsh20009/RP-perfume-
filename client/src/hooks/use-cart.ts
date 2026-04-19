@@ -56,6 +56,7 @@ interface CartStore {
   updateQuantity: (productId: string, variantSku: string, quantity: number) => void;
   clearCart: () => void;
   total: () => number;
+  loadFromServer: () => Promise<void>;
 }
 
 export const useCart = create<CartStore>()(
@@ -121,6 +122,33 @@ export const useCart = create<CartStore>()(
         scheduleCartSync([], 0);
       },
       total: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      loadFromServer: async () => {
+        try {
+          const res = await fetch('/api/cart', { credentials: 'include' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const serverItems: CartItem[] = (data.items || []).map((i: any) => ({
+            productId: String(i.productId || ''),
+            variantSku: String(i.variantSku || ''),
+            quantity: Number(i.quantity) || 1,
+            price: Number(i.price) || 0,
+            title: String(i.title || ''),
+            image: String(i.image || ''),
+            color: i.color,
+            size: i.size,
+          })).filter((i: CartItem) => i.productId && i.variantSku);
+          if (serverItems.length === 0) return;
+          const local = get().items;
+          const merged = [...serverItems];
+          local.forEach(li => {
+            const exists = merged.find(m => m.productId === li.productId && m.variantSku === li.variantSku);
+            if (!exists) merged.push(li);
+          });
+          set({ items: merged });
+        } catch {
+          // silent
+        }
+      },
     }),
 
     {

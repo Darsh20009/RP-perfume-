@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type LoginRequest, type InsertUser } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/use-cart";
 
 export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const loadCartFromServer = useCart(s => s.loadFromServer);
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: [api.auth.me.path],
@@ -38,6 +40,7 @@ export function useAuth() {
     onSuccess: (data) => {
       queryClient.setQueryData([api.auth.me.path], data);
       toast({ title: "مرحباً", description: `تم الدخول بنجاح` });
+      loadCartFromServer();
     },
     onError: (error: Error) => {
       toast({ title: "فشل الدخول", description: error.message, variant: "destructive" });

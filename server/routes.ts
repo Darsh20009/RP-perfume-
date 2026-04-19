@@ -3527,6 +3527,21 @@ export async function registerRoutes(
     }
   });
 
+  // Load saved cart for logged-in user (cross-device sync)
+  app.get("/api/cart", async (req, res) => {
+    const user: any = req.isAuthenticated() ? req.user : null;
+    if (!user) return res.json({ items: [] });
+    try {
+      const cart = await CartSessionModel.findOne({
+        userId: String(user.id),
+        $or: [{ convertedToOrderId: { $exists: false } }, { convertedToOrderId: null }, { convertedToOrderId: "" }],
+      }).lean();
+      res.json({ items: (cart as any)?.items || [] });
+    } catch {
+      res.json({ items: [] });
+    }
+  });
+
   // ════════════════════════════════════════════════════════════════════════
   // Customer Order Cancellation
   // ════════════════════════════════════════════════════════════════════════

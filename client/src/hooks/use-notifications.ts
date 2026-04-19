@@ -36,7 +36,7 @@ async function subscribeToPush(userId: string) {
   try {
     const reg = await navigator.serviceWorker.ready;
     const existing = await reg.pushManager.getSubscription();
-    if (existing) return; // already subscribed
+    if (existing) return;
 
     const res = await fetch("/api/notifications/vapid-public-key");
     const { publicKey } = await res.json();
@@ -68,7 +68,16 @@ export function useNotifications() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastRef = useRef(toast);
+  const qcRef = useRef(qc);
   const userId = (user as any)?.id || (user as any)?._id;
+  const userIdRef = useRef(userId);
+
+  // Keep refs in sync without re-running connection logic
+  useEffect(() => { toastRef.current = toast; });
+  useEffect(() => { qcRef.current = qc; });
+  useEffect(() => { userIdRef.current = userId; });
 
   // ── REST: fetch notifications ──────────────────────────────────────────────
   const { data } = useQuery<NotificationsData>({
@@ -79,60 +88,57 @@ export function useNotifications() {
       return res.json();
     },
     enabled: !!userId,
-    refetchInterval: 30_000, // poll every 30s as a fallback
+    refetchInterval: 30_000,
   });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   const markRead = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/notifications/${id}/read`, {
-        method: "PATCH",
-        credentials: "include",
-      });
+      await fetch(`/api/notifications/${id}/read`, { method: "PATCH", credentials: "include" });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
   });
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      await fetch("/api/notifications/read-all", {
-        method: "PATCH",
-        credentials: "include",
-      });
+      await fetch("/api/notifications/read-all", { method: "PATCH", credentials: "include" });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
   });
 
   const deleteNotif = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/notifications/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      await fetch(`/api/notifications/${id}`, { method: "DELETE", credentials: "include" });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
   });
 
   // ── WebSocket: real-time ───────────────────────────────────────────────────
+  // Stable connect function — never changes reference, uses refs for all external values
   const connectWs = useCallback(() => {
-    if (!userId || wsRef.current?.readyState === WebSocket.OPEN) return;
+    const uid = userIdRef.current;
+    if (!uid) return;
+    if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) return;
+
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "auth", userId }));
+      ws.send(JSON.stringify({ type: "auth", userId: uid }));
     };
 
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "notification") {
-          // Refresh the notification list
-          qc.invalidateQueries({ queryKey: ["/api/notifications"] });
-          // Show toast
-          toast({
+          qcRef.current.invalidateQueries({ queryKey: ["/api/notifications"] });
+          toastRef.current({
             title: `${msg.icon || "🔔"} ${msg.title}`,
             description: msg.body,
             duration: 5000,
@@ -144,19 +150,19 @@ export function useNotifications() {
     };
 
     ws.onclose = () => {
-      // Reconnect after 3s
-      setTimeout(() => {
-        if (userId) connectWs();
-      }, 3000);
+      wsRef.current = null;
+      // Only reconnect if user is still logged in
+      if (userIdRef.current) {
+        reconnectTimer.current = setTimeout(() => connectWs(), 5000);
+      }
     };
 
     ws.onerror = () => ws.close();
-  }, [userId, qc, toast]);
+  }, []); // ← no external deps; all state accessed via refs
 
   // ── Web Push subscription setup ────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
-    // Request permission and subscribe
     if (Notification.permission === "default") {
       Notification.requestPermission().then((perm) => {
         if (perm === "granted") subscribeToPush(userId);
@@ -168,10 +174,21 @@ export function useNotifications() {
 
   // ── Start WebSocket connection ─────────────────────────────────────────────
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      // User logged out — close socket and cancel reconnect
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
+      wsRef.current?.close();
+      wsRef.current = null;
+      return;
+    }
     connectWs();
     return () => {
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       wsRef.current?.close();
+      wsRef.current = null;
     };
   }, [userId, connectWs]);
 
