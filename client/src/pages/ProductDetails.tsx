@@ -412,20 +412,26 @@ export default function ProductDetails() {
             <div className="border-b border-black/5 pb-6 sm:pb-8 mb-6 sm:mb-8">
               <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 uppercase tracking-tighter">{product.name}</h1>
               <AnimatePresence mode="wait">
-                <motion.p
+                <motion.div
                   key={displayedPrice.type === 'range' ? `${displayedPrice.min}-${displayedPrice.max}` : displayedPrice.value}
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
                   transition={{ duration: 0.2 }}
-                  className="text-3xl font-light text-primary tracking-tight"
-                  data-testid="text-product-price"
                 >
-                  {displayedPrice.type === 'range'
-                    ? `${displayedPrice.min.toLocaleString()} - ${displayedPrice.max.toLocaleString()} ${t('currency')}`
-                    : `${displayedPrice.value.toLocaleString()} ${t('currency')}`
-                  }
-                </motion.p>
+                  <p
+                    className="text-3xl font-light text-primary tracking-tight"
+                    data-testid="text-product-price"
+                  >
+                    {displayedPrice.type === 'range'
+                      ? `${displayedPrice.min.toLocaleString()} - ${displayedPrice.max.toLocaleString()} ${t('currency')}`
+                      : `${displayedPrice.value.toLocaleString()} ${t('currency')}`
+                    }
+                  </p>
+                  <p className="text-xs text-black/40 font-bold uppercase tracking-widest mt-1">
+                    {language === 'ar' ? 'شامل ضريبة القيمة المضافة ١٥٪' : 'VAT 15% Included'}
+                  </p>
+                </motion.div>
               </AnimatePresence>
             </div>
 

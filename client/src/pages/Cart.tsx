@@ -69,8 +69,8 @@ export default function Cart() {
   const discountAmount = calculateDiscount();
   const cashbackAmount = calculateCashback();
   const subtotal = total();
-  const tax = (subtotal * 0.15);
-  const finalTotal = subtotal + tax - discountAmount;
+  const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
+  const finalTotal = subtotal - discountAmount;
 
   if (items.length === 0) {
     return (
@@ -172,8 +172,8 @@ export default function Cart() {
                       <span className="opacity-40">{t('subtotal')}</span>
                     </div>
                     <div className={`flex justify-between ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-black">{tax.toLocaleString()} {t('currency')}</span>
-                      <span className="opacity-40">{t('tax')}</span>
+                      <span className="text-black/50">{vatIncluded.toLocaleString()} {t('currency')}</span>
+                      <span className="opacity-40">ضريبة ١٥٪ (مشمولة)</span>
                     </div>
                     
                     {appliedCoupon && discountAmount > 0 && (

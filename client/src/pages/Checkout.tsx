@@ -156,9 +156,9 @@ export default function Checkout() {
   const discountAmount = calculateDiscount();
   const cashbackAmount = calculateCashback();
   const subtotal = total();
-  const tax = subtotal * 0.15;
+  const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
   const shipping = shippingPrice;
-  const finalTotal = Math.max(0, subtotal + tax + shipping - discountAmount - loyaltyDiscount);
+  const finalTotal = Math.max(0, subtotal + shipping - discountAmount - loyaltyDiscount);
 
   const handleCheckoutInitiate = () => {
     if (!user) {
@@ -239,7 +239,7 @@ export default function Checkout() {
         userId: user!.id,
         total: finalTotal.toFixed(2),
         subtotal: subtotal.toFixed(2),
-        vatAmount: tax.toFixed(2),
+        vatAmount: vatIncluded.toFixed(2),
         shippingCost: shipping.toFixed(2),
         shippingCompany: selectedShipping?.name || "",
         deliveryAddress,
@@ -900,9 +900,9 @@ export default function Checkout() {
                   <span>{subtotal.toLocaleString()} ر.س</span>
                   <span>المجموع الفرعي</span>
                 </div>
-                <div className="flex justify-between text-gray-800 font-bold">
-                  <span>{tax.toLocaleString()} ر.س</span>
-                  <span>ضريبة ١٥٪</span>
+                <div className="flex justify-between text-gray-500 font-bold">
+                  <span>{vatIncluded.toLocaleString()} ر.س</span>
+                  <span>ضريبة ١٥٪ (مشمولة)</span>
                 </div>
                 <div className="flex justify-between text-gray-800 font-bold">
                   <span>{shipping.toLocaleString()} ر.س</span>
