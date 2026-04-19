@@ -1,0 +1,218 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development node_modules/.bin/tsx server/index.ts
+
+[1G[0KConnected to MongoDB successfully
+Seeding رفيف العود admin user...
+Admin user created with phone 567891011 and password 123456
+[AbandonedCarts] worker started (idle≥300s, tick=60s)
+[WS] WebSocket server ready on /ws
+11:18:10 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+11:18:26 AM [express] GET /api/marketing/active 304 in 129ms :: []
+11:18:26 AM [express] GET /api/user 200 in 133ms :: {"_id":"69e0e364f98b920ec3af441b","username":"532441566","password":"f38f46334b62b9623729a3f6ed28f67cc273714235574b5b4a6a40287b0ef5d5a647c03f6fc00392d24acf7343e1a698f681c2aad7d59d3e6ad7a0a2e4fcb43d.72ee488a92a5e31bdca179a3eb01606b","role":"customer","permissions":[],"loginType":"dashboard","isActive":true,"mustChangePassword":false,"name":"Youssef Darwish","email":"qiroxsystem@gmail.com","phone":"532441566","walletBalance":"0","addresses":[],"createdAt":"2026-04-16T13:25:56.774Z","updatedAt":"2026-04-18T19:44:55.591Z","__v":0,"loyaltyPoints":0,"loyaltyTier":"bronze","passwordResetAttempts":0,"totalSpent":0,"passwordResetToken":"f06d48d050c549d3147b82ee0bf02a8222d49f1ea78d9022b8997bc76b13f47d","passwordResetTokenExpires":"2026-04-18T19:59:55.590Z","id":"69e0e364f98b920ec3af441b"}
+11:18:26 AM [express] GET /api/reviews/featured 304 in 195ms :: []
+11:18:26 AM [express] GET /api/promo-strip 304 in 201ms :: []
+11:18:26 AM [express] GET /api/store/settings 304 in 199ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+11:18:26 AM [express] GET /api/pages 304 in 207ms :: []
+11:18:26 AM [express] GET /api/flash-deals 304 in 206ms :: []
+11:18:26 AM [express] GET /api/products 304 in 603ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-18T23:49:26.808Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+11:18:26 AM [express] GET /api/categories 304 in 193ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+11:18:26 AM [express] GET /api/notifications 304 in 268ms :: {"notifications":[],"unreadCount":0}
+11:18:27 AM [express] GET /api/wishlist/ids 304 in 197ms :: []
+11:18:38 AM [express] GET /api/user/loyalty 304 in 190ms :: {"points":0,"tier":"bronze","tierInfo":{"min":0,"max":1000,"discount":1,"icon":"🥉","nameAr":"برونزي","name":"bronze"},"totalSpent":0,"nextTier":"silver","nextTierThreshold":1000,"progressToNext":0,"pointsValue":"0.00"}
+11:18:38 AM [express] GET /api/shipping-companies 304 in 190ms :: [{"_id":"69e01b52a4c1f1016273cdb2","name":"Storage Station","price":20,"estimatedDays":3,"isActive":true,"storageXCode":"SS20","createdAt":"2026-04-15T23:12:18.873Z","updatedAt":"2026-04-15T23:12:18.873Z","__v":0,"id":"69e01b52a4c1f1016273cdb2"}]
+11:18:40 AM [express] GET /api/maps/token 200 in 132ms :: {"token":"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlhXOEc0OERHTVEifQ.eyJpc3MiOiJWNEs2Uk01OUxTIiwiaWF0IjoxNzc2NTk3NTIwLCJleHAiOjE3NzY1OTkzMjB9.8FMu1eO0K3qg8b_WQ7YtbtgYvrr2z8k0xn1ThlB-V4rQDP4jA5W8fEVp9-YPver5XUDbJzodhl9ap6iTkk0aPQ"}
+11:19:31 AM [express] GET /api/marketing/active 200 in 1ms :: []
+11:19:31 AM [express] GET /api/user 401 in 1ms
+11:19:31 AM [express] GET /api/promo-strip 200 in 66ms :: []
+11:19:31 AM [express] GET /api/reviews/featured 200 in 64ms :: []
+11:19:31 AM [express] GET /api/products 200 in 65ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-18T23:49:26.808Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+11:19:31 AM [express] GET /api/store/settings 200 in 65ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+11:19:31 AM [express] GET /api/categories 200 in 1ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+11:19:31 AM [express] GET /api/pages 200 in 64ms :: []
+11:19:31 AM [express] GET /api/flash-deals 200 in 70ms :: []
+11:19:49 AM [express] GET /api/auth/google/init 200 in 1ms :: {"clientId":"","redirectURI":"https://1f9edb6e-f807-440d-bdce-64c515e36593-00-ny66kftg9huh.kirk.replit.dev/api/auth/google/callback","enabled":false}
+11:20:10 AM [express] GET /api/auth/check-role/532441566 200 in 67ms :: {"isStaff":false,"role":"customer"}
+11:20:12 AM [express] POST /api/auth/login 200 in 274ms :: {"_id":"69e0e364f98b920ec3af441b","username":"532441566","role":"customer","permissions":[],"loginType":"dashboard","isActive":true,"mustChangePassword":false,"name":"Youssef Darwish","email":"qiroxsystem@gmail.com","phone":"532441566","walletBalance":"0","addresses":[],"createdAt":"2026-04-16T13:25:56.774Z","updatedAt":"2026-04-18T19:44:55.591Z","__v":0,"loyaltyPoints":0,"loyaltyTier":"bronze","passwordResetAttempts":0,"totalSpent":0,"passwordResetToken":"f06d48d050c549d3147b82ee0bf02a8222d49f1ea78d9022b8997bc76b13f47d","passwordResetTokenExpires":"2026-04-18T19:59:55.590Z","id":"69e0e364f98b920ec3af441b","redirectTo":"/"}
+11:20:12 AM [express] GET /api/wishlist/ids 200 in 195ms :: []
+11:20:12 AM [express] GET /api/notifications 200 in 259ms :: {"notifications":[],"unreadCount":0}
+11:20:33 AM [express] GET /api/notifications/vapid-public-key 200 in 129ms :: {"publicKey":"BMuRKYfA848bkr9LPDIi0BiXwbgcisqOp2NPzDDDsbc2aVpx1FtvUWxQj8YsP7stW5sdIRgh45NWvLNzu7gqRnE"}
+11:20:38 AM [express] POST /api/cart/sync 200 in 336ms :: {"ok":true,"cartId":"69e4b9b381c2a5dadde701a6"}
+11:20:39 AM [express] GET /api/notifications/vapid-public-key 304 in 127ms :: {"publicKey":"BMuRKYfA848bkr9LPDIi0BiXwbgcisqOp2NPzDDDsbc2aVpx1FtvUWxQj8YsP7stW5sdIRgh45NWvLNzu7gqRnE"}
+11:20:42 AM [express] GET /api/shipping-companies 200 in 191ms :: [{"_id":"69e01b52a4c1f1016273cdb2","name":"Storage Station","price":20,"estimatedDays":3,"isActive":true,"storageXCode":"SS20","createdAt":"2026-04-15T23:12:18.873Z","updatedAt":"2026-04-15T23:12:18.873Z","__v":0,"id":"69e01b52a4c1f1016273cdb2"}]
+11:20:42 AM [express] GET /api/user/loyalty 200 in 190ms :: {"points":0,"tier":"bronze","tierInfo":{"min":0,"max":1000,"discount":1,"icon":"🥉","nameAr":"برونزي","name":"bronze"},"totalSpent":0,"nextTier":"silver","nextTierThreshold":1000,"progressToNext":0,"pointsValue":"0.00"}
+11:20:44 AM [express] GET /api/maps/token 200 in 130ms :: {"token":"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlhXOEc0OERHTVEifQ.eyJpc3MiOiJWNEs2Uk01OUxTIiwiaWF0IjoxNzc2NTk3NjQ0LCJleHAiOjE3NzY1OTk0NDR9.ovtyTEkpzGsLC47zdI7d_3wb8rNR5MeanhbTkoK7_29hniyheSeRWDgHGRYxF4aNEjFKrWSkqmlAz1dxAyd_mg"}
+[Email] ✅ Sent to qiroxsystem@gmail.com — Subject: 🌸 سلتك تنتظرك — رفيف العود
+[CartTick] Sent 1 cart reminders
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:27:27 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Cart.tsx, /src/pages/ProductDetails.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/ai/UnifiedChat.tsx, /src/pages/Checkout.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:27:48 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Cart.tsx, /src/pages/ProductDetails.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/ai/UnifiedChat.tsx, /src/pages/Checkout.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:27:54 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Home.tsx, /src/pages/ProductDetails.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/AuthModal.tsx, /src/components/ai/UnifiedChat.tsx, /src/components/notification-bell.tsx, /src/pages/Checkout.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:27:59 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Home.tsx, /src/pages/ProductDetails.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/AuthModal.tsx, /src/components/ai/UnifiedChat.tsx, /src/components/notification-bell.tsx, /src/pages/Checkout.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:28:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Register.tsx, /src/pages/Login.tsx, /src/pages/Home.tsx, /src/pages/ProductDetails.tsx, /src/components/ProductCard.tsx, /src/components/Layout.tsx, /src/components/AuthModal.tsx, /src/components/ai/UnifiedChat.tsx, /src/components/notification-bell.tsx, /src/pages/Checkout.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:28:34 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/notification-bell.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:29:08 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/LocationMap.tsx[22m
+[1G[0K⠙[1G[0K

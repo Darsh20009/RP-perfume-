@@ -1,0 +1,75 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development node_modules/.bin/tsx server/index.ts
+
+[1G[0KConnected to MongoDB successfully
+Seeding رفيف العود admin user...
+Admin user created with phone 567891011 and password 123456
+[AbandonedCarts] worker started (idle≥300s, tick=60s)
+[WS] WebSocket server ready on /ws
+10:58:25 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[Maps] token error: ReferenceError: require is not defined
+    at <anonymous> [90m(/home/runner/workspace/[39mserver/routes.ts:206:19[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m
+    at Route.dispatch [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:284:15
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at strategy.pass [90m(/home/runner/workspace/[39mnode_modules/[4mpassport[24m/lib/middleware/authenticate.js:355:9[90m)[39m
+    at SessionStrategy.authenticate [90m(/home/runner/workspace/[39mnode_modules/[4mpassport[24m/lib/strategies/session.js:126:10[90m)[39m
+    at attempt [90m(/home/runner/workspace/[39mnode_modules/[4mpassport[24m/lib/middleware/authenticate.js:378:16[90m)[39m
+    at authenticate [90m(/home/runner/workspace/[39mnode_modules/[4mpassport[24m/lib/middleware/authenticate.js:379:7[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at initialize [90m(/home/runner/workspace/[39mnode_modules/[4mpassport[24m/lib/middleware/initialize.js:98:5[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at session [90m(/home/runner/workspace/[39mnode_modules/[4mexpress-session[24m/index.js:487:7[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at <anonymous> [90m(/home/runner/workspace/[39mserver/index.ts:114:3[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at urlencodedParser [90m(/home/runner/workspace/[39mnode_modules/[4mbody-parser[24m/lib/types/urlencoded.js:94:7[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at jsonParser [90m(/home/runner/workspace/[39mnode_modules/[4mbody-parser[24m/lib/types/json.js:113:7[90m)[39m
+    at Layer.handle [as handle_request] [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m
+    at trim_prefix [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:328:13[90m)[39m
+    at [90m/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:286:9
+    at Function.process_params [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m
+    at next [90m(/home/runner/workspace/[39mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m
+    at [90mfile:///home/runner/workspace/[39mnode_modules/[4mexpress-rate-limit[24m/dist/index.mjs:918:7
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async [90mfile:///home/runner/workspace/[39mnode_modules/[4mexpress-rate-limit[24m/dist/index.mjs:801:5
+10:58:33 AM [express] GET /api/maps/token 500 in 5ms :: {"error":"Failed to generate maps token"}
+10:58:36 AM [express] GET /api/marketing/active 304 in 2ms :: []
+10:58:36 AM [express] GET /api/reviews/featured 304 in 66ms :: []
+10:58:36 AM [express] GET /api/promo-strip 304 in 65ms :: []
+10:58:36 AM [express] GET /api/user 401 in 2ms
+10:58:36 AM [express] GET /api/store/settings 304 in 68ms :: {"_id":"69e0e6bb8045b7ac1bcca1f2","key":"main","storeName":"رفيف العود","storeNameAr":"رفيف العود","storePhone":"","storeEmail":"rf-purfume@outlook.com","storeAddress":"","vatNumber":"","crNumber":"0000203202","bankName":"مصرف الراجحي","bankAccountHolder":"رفيف العود","bankIBAN":"SA6280000501608016226411","bankAccountNumber":"501000010006086226411","bankLogo":"","paymentMethods":{"wallet":true,"tap":true,"stc_pay":true,"apple_pay":true,"bank_transfer":true,"tamara":true,"tabby":true},"freeShippingThreshold":0,"instagramUrl":"","twitterUrl":"","whatsappNumber":"","createdAt":"2026-04-16T13:40:11.170Z","updatedAt":"2026-04-16T13:40:11.170Z","__v":0,"id":"69e0e6bb8045b7ac1bcca1f2"}
+10:58:36 AM [express] GET /api/pages 304 in 65ms :: []
+10:58:36 AM [express] GET /api/flash-deals 304 in 65ms :: []
+10:58:36 AM [express] GET /api/products 304 in 66ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-18T23:49:26.808Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+10:58:36 AM [express] GET /api/categories 304 in 65ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+[1G[0K⠙[1G[0K
