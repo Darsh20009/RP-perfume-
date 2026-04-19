@@ -142,7 +142,29 @@ export function ProductCard({ product }: ProductCardProps) {
             <h3 className="font-black uppercase tracking-tighter text-sm mb-1 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            <p className="text-xs text-muted-foreground font-bold">{Number(product.price).toLocaleString()} {t('currency')}</p>
+            {(() => {
+              const variants = (product as any).variants as Array<{price?: number | string}> | undefined;
+              const variantPrices = (variants || [])
+                .map(v => Number(v?.price))
+                .filter(p => Number.isFinite(p) && p > 0);
+              const uniquePrices = Array.from(new Set(variantPrices));
+              const basePrice = Number(product.price) || 0;
+              if (uniquePrices.length > 1) {
+                const minPrice = Math.min(...uniquePrices);
+                return (
+                  <p className="text-xs text-muted-foreground font-bold" data-testid={`text-price-${product.id}`}>
+                    <span className="text-[10px] font-normal text-gray-500">{t('startingFrom')} </span>
+                    {minPrice.toLocaleString()} {t('currency')}
+                  </p>
+                );
+              }
+              const displayPrice = uniquePrices.length === 1 ? uniquePrices[0] : basePrice;
+              return (
+                <p className="text-xs text-muted-foreground font-bold" data-testid={`text-price-${product.id}`}>
+                  {displayPrice.toLocaleString()} {t('currency')}
+                </p>
+              );
+            })()}
             {(() => {
               const variants = (product as any).variants as Array<{color?:string; size?:string}> | undefined;
               if (!variants || variants.length === 0) return null;
