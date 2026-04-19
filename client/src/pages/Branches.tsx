@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/hooks/use-language";
 import { MapPin, Phone, Clock, Mail, Building, Navigation } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { AppleMapEmbed } from "@/components/AppleMapEmbed";
@@ -34,7 +34,7 @@ const googleMapsUrl = (b: Branch) => b.latitude && b.longitude
 
 
 export default function Branches() {
-  const { language, isRTL } = useLanguage();
+  const { language, isAr: isRTL } = useLanguage();
   const { data: branches = [], isLoading } = useQuery<Branch[]>({ queryKey: ["/api/branches"] });
 
   const active = (branches || []).filter(b => b.isActive !== false).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
