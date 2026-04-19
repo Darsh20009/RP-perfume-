@@ -384,9 +384,19 @@ export default function ProductDetails() {
           <div className={`flex flex-col ${language === 'ar' ? 'text-right' : 'text-left'}`}>
             <div className="border-b border-black/5 pb-6 sm:pb-8 mb-6 sm:mb-8">
               <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 uppercase tracking-tighter">{product.name}</h1>
-              <p className="text-3xl font-light text-primary tracking-tight">
-                {Number(product.price).toLocaleString()} {t('currency')}
-              </p>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={selectedVariant?.price ?? product.price}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-3xl font-light text-primary tracking-tight"
+                  data-testid="text-product-price"
+                >
+                  {Number(selectedVariant?.price ?? product.price).toLocaleString()} {t('currency')}
+                </motion.p>
+              </AnimatePresence>
             </div>
 
             <div className="prose prose-lg max-w-none text-muted-foreground mb-12 font-light leading-relaxed italic">
