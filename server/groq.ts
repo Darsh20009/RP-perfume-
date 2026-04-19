@@ -142,11 +142,20 @@ export async function perfumeAdvisor(
   products: any[]
 ): Promise<{ response: string; products: AdvisorProductRef[] }> {
   const lang = detectLang(userMessage);
-  const productList = products.map(p =>
-    lang === "ar"
-      ? `- [ID:${p.id || p._id}] ${p.name}: ${p.description || ""} | السعر: ${p.price} ر.س`
-      : `- [ID:${p.id || p._id}] ${p.nameEn || p.name}: ${p.descriptionEn || p.description || ""} | Price: ${p.price} SAR`
-  ).join("\n");
+  const productList = products.map(p => {
+    const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
+    if (lang === "ar") {
+      const priceInfo = variants.length > 0
+        ? variants.map((v: any) => `${v.color} (${v.size}): ${Number(v.price).toLocaleString("ar-SA")} ر.س`).join("، ")
+        : `${p.price} ر.س`;
+      return `- [ID:${p.id || p._id}] ${p.name}: ${p.description || ""} | الأسعار: ${priceInfo}`;
+    } else {
+      const priceInfo = variants.length > 0
+        ? variants.map((v: any) => `${v.color} (${v.size}): ${v.price} SAR`).join(", ")
+        : `${p.price} SAR`;
+      return `- [ID:${p.id || p._id}] ${p.nameEn || p.name}: ${p.descriptionEn || p.description || ""} | Prices: ${priceInfo}`;
+    }
+  }).join("\n");
 
   const base = lang === "ar" ? PERFUME_SYSTEM_PROMPT_AR : PERFUME_SYSTEM_PROMPT_EN;
   const catalogHeader = lang === "ar" ? "**المنتجات المتاحة حالياً:**" : "**Available products:**";
@@ -156,12 +165,16 @@ export async function perfumeAdvisor(
 - عندما تقترح منتجاً محدداً، يجب أن تذكره بصيغة: [PRODUCT:معرف_المنتج]
 - مثال: "أنصحك بعطر [PRODUCT:abc123] الذي يناسب ذوقك"
 - اقترح من 1 إلى 3 منتجات كحد أقصى لكل رد
-- اقترح فقط من القائمة أعلاه ولا تخترع منتجات`
+- اقترح فقط من القائمة أعلاه ولا تخترع منتجات
+- عندما يسأل العميل عن السعر أو الخيارات، اذكر جميع الخيارات المتاحة مع أسعارها بوضوح (الحجم واللون والسعر لكل خيار)
+- إذا كان المنتج له عدة خيارات (أحجام/ألوان)، وضّح ذلك للعميل حتى يختار المناسب`
     : `**Extra rules:**
 - When you recommend a specific product you MUST tag it as: [PRODUCT:product_id]
 - Example: "I'd suggest [PRODUCT:abc123] which matches your taste"
 - Recommend 1–3 products max per reply
-- ONLY recommend from the catalog above — never invent`;
+- ONLY recommend from the catalog above — never invent
+- When a customer asks about price or options, clearly list ALL available variants with their sizes, colors, and prices
+- If a product has multiple options (sizes/colors), explain them so the customer can choose`;
 
   const systemMsg = `${base}${LANG_DIRECTIVE(lang)}
 
@@ -189,10 +202,12 @@ ${extraRules}`;
     const product = products.find(p => String(p.id || p._id) === id);
     if (product) {
       seen.add(id);
+      const variants: any[] = Array.isArray(product.variants) ? product.variants.filter((v: any) => Number(v.price) > 0) : [];
+      const minVariantPrice = variants.length > 0 ? Math.min(...variants.map((v: any) => Number(v.price))) : null;
       refs.push({
         id: String(product.id || product._id),
         name: product.name,
-        price: product.price,
+        price: minVariantPrice ?? product.price,
         image: Array.isArray(product.images) ? product.images[0] : undefined,
       });
     }
