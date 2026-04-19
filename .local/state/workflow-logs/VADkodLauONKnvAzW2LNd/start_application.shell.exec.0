@@ -1,0 +1,168 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development node_modules/.bin/tsx server/index.ts
+
+[1G[0KConnected to MongoDB successfully
+Seeding رفيف العود admin user...
+Admin user created with phone 567891011 and password 123456
+[AbandonedCarts] worker started (idle≥300s, tick=60s)
+[WS] WebSocket server ready on /ws
+11:34:24 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+11:34:36 PM [express] GET /api/promo-strip 200 in 66ms :: []
+11:34:36 PM [express] GET /api/products/test/can-review 200 in 1ms :: {"canReview":false,"reason":"auth"}
+11:34:43 PM [express] GET /api/marketing/active 304 in 64ms :: []
+11:34:44 PM [express] GET /api/promo-strip 304 in 126ms :: []
+11:34:44 PM [express] GET /api/products 304 in 140ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-17T15:45:07.676Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+11:34:44 PM [express] GET /api/flash-deals 304 in 132ms :: []
+11:34:44 PM [express] GET /api/user 401 in 473ms
+11:34:44 PM [express] GET /api/reviews/featured 304 in 536ms :: []
+11:36:59 PM [express] GET /api/marketing/active 200 in 3ms :: []
+11:36:59 PM [express] GET /api/user 401 in 0ms
+11:36:59 PM [express] GET /api/promo-strip 200 in 67ms :: []
+11:36:59 PM [express] GET /api/reviews/featured 200 in 64ms :: []
+11:36:59 PM [express] GET /api/products 200 in 69ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-17T15:45:07.676Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+11:36:59 PM [express] GET /api/flash-deals 200 in 67ms :: []
+11:36:59 PM [express] GET /api/categories 200 in 70ms :: [{"_id":"69e01b51a4c1f1016273cd99","name":"Men","nameAr":"عطور رجالية","slug":"men","image":"/uploads/1776431298575-857206418.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd99"},{"_id":"69e01b51a4c1f1016273cd9a","name":"Women","nameAr":"عطور نسائية","slug":"women","image":"/uploads/1776431339286-770878375.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9a"},{"_id":"69e01b51a4c1f1016273cd9b","name":"Unisex","nameAr":"عطور مشتركة","slug":"unisex","image":"/uploads/1776431327047-621970509.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9b"},{"_id":"69e01b51a4c1f1016273cd9c","name":"Oud & Incense","nameAr":"عود ودخون","slug":"oud","image":"/uploads/1776431364905-443598529.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9c"},{"_id":"69e01b51a4c1f1016273cd9d","name":"Accessories","nameAr":"إكسسوارات عطرية","slug":"accessories","image":"/uploads/1776431390576-623455068.png","parentId":null,"sortOrder":0,"__v":0,"id":"69e01b51a4c1f1016273cd9d"}]
+11:37:30 PM [express] GET /api/marketing/active 304 in 0ms :: []
+11:37:30 PM [express] GET /api/user 401 in 1ms
+11:37:30 PM [express] GET /api/promo-strip 304 in 65ms :: []
+11:37:30 PM [express] GET /api/reviews/featured 304 in 64ms :: []
+11:37:30 PM [express] GET /api/flash-deals 304 in 66ms :: []
+11:37:30 PM [express] GET /api/products 304 in 2ms :: [{"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-17T15:45:07.676Z","__v":0,"id":"69e237673ca845bd867fbd20"}]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:37:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m
+11:37:51 PM [express] POST /api/ai/perfume-advisor 200 in 1249ms :: {"response":"العطر المثالي للعمل يجب أن يكون أنيقًا وراقيًا، يعكس شخصيتك المهنية وينقل ثقة وجاذبية. أنصحك بعطر خمرة دخان، الذي يتميز برائحة قوية ومليئة بروح العود، مما يجعله مناسبًا لمناسبات العمل الرسمية. روائحه الدافئة تنساب على البشرة، تاركةً أثرًا من الجمال والأناقة ✨. هذا العطر سيعزز من ثقتك بنفسك وسيجعلك تبرز في أي اجتماع أو مناقشة مهنية.","products":[{"id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","price":"250","image":"/uploads/1776431576941-633431113.png"}]}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:37:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m [33m(x2)[39m
+11:37:56 PM [express] GET /api/products/69e237673ca845bd867fbd20 304 in 130ms :: {"_id":"69e237673ca845bd867fbd20","name":"خمرة دخان ","description":"المنتج يرشح لمن يحب الطابع و الروايح القوية و المليئة بريحة العود","price":"250","cost":"100","images":["/uploads/1776431576941-633431113.png"],"categoryId":"69e01b51a4c1f1016273cd99","categoryIds":["69e01b51a4c1f1016273cd99","69e01b51a4c1f1016273cd9c"],"vendorId":null,"variants":[{"color":"صغير","size":"50ml","sku":"SKU-1776431587152","stock":8,"cost":0,"image":"/uploads/1776432781873-15379219.png","_id":"69e237673ca845bd867fbd21"},{"color":"كبير ","size":"150ml","sku":"SKU-1776432784488","stock":15,"cost":0,"image":"/uploads/1776432845465-916494524.png","_id":"69e237673ca845bd867fbd22"}],"isFeatured":true,"createdAt":"2026-04-17T13:36:39.960Z","updatedAt":"2026-04-17T15:45:07.676Z","__v":0,"id":"69e237673ca845bd867fbd20"}
+11:37:56 PM [express] GET /api/products/69e237673ca845bd867fbd20/reviews 304 in 129ms :: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:37:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m [33m(x3)[39m
+11:37:57 PM [express] GET /api/products/69e237673ca845bd867fbd20/insights 200 in 192ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:38:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m [33m(x4)[39m
+11:38:00 PM [express] POST /api/ai/outfit-suggestions 200 in 665ms :: {"occasions":["المناسبات الرسمية","الليل","المناسبات الخاصة"],"combinations":[{"item":"بخور العنبر","why":"يعزز نبرة الخمرة"}],"style_tip":"استخدمه على الملابس قبل ساعة من الخروج لتأثير دائم","avoid":"تجنب استخدامه على الجلد مباشرة"}
+11:38:15 PM [express] GET /api/auth/google/init 304 in 64ms :: {"clientId":"","redirectURI":"https://dcdc10a8-e47e-44ab-9796-1b78518939f5-00-2w2zw3skvoqsy.kirk.replit.dev/api/auth/google/callback","enabled":false}
+11:38:23 PM [express] GET /api/auth/check-role/532441566 304 in 66ms :: {"isStaff":false,"role":"customer"}
+11:38:24 PM [express] POST /api/auth/login 200 in 326ms :: {"_id":"69e0e364f98b920ec3af441b","username":"532441566","role":"customer","permissions":[],"loginType":"dashboard","isActive":true,"mustChangePassword":false,"name":"Youssef Darwish","email":"qiroxsystem@gmail.com","phone":"532441566","walletBalance":"0","addresses":[],"createdAt":"2026-04-16T13:25:56.774Z","updatedAt":"2026-04-18T19:44:55.591Z","__v":0,"loyaltyPoints":0,"loyaltyTier":"bronze","passwordResetAttempts":0,"totalSpent":0,"passwordResetToken":"f06d48d050c549d3147b82ee0bf02a8222d49f1ea78d9022b8997bc76b13f47d","passwordResetTokenExpires":"2026-04-18T19:59:55.590Z","id":"69e0e364f98b920ec3af441b","redirectTo":"/"}
+11:38:25 PM [express] GET /api/wishlist/ids 304 in 191ms :: []
+11:38:25 PM [express] GET /api/notifications 304 in 259ms :: {"notifications":[],"unreadCount":0}
+11:38:25 PM [express] GET /api/notifications/vapid-public-key 304 in 127ms :: {"publicKey":"BMuRKYfA848bkr9LPDIi0BiXwbgcisqOp2NPzDDDsbc2aVpx1FtvUWxQj8YsP7stW5sdIRgh45NWvLNzu7gqRnE"}
+11:38:27 PM [express] GET /api/products/69e237673ca845bd867fbd20/can-review 200 in 257ms :: {"canReview":false,"reason":"not-purchased","verified":false}
+11:38:27 PM [express] GET /api/notifications/vapid-public-key 304 in 128ms :: {"publicKey":"BMuRKYfA848bkr9LPDIi0BiXwbgcisqOp2NPzDDDsbc2aVpx1FtvUWxQj8YsP7stW5sdIRgh45NWvLNzu7gqRnE"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:38:34 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[1G[0K⠙[1G[0K

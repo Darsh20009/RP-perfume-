@@ -1,0 +1,10 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development node_modules/.bin/tsx server/index.ts
+
+[1G[0KConnected to MongoDB successfully
+Seeding رفيف العود admin user...
+Admin user created with phone 567891011 and password 123456
+[AbandonedCarts] worker started (idle≥300s, tick=60s)
+[WS] WebSocket server ready on /ws
+12:22:35 AM [express] serving on port 5000
