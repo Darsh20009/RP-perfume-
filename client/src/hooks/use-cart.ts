@@ -85,7 +85,7 @@ export const useCart = create<CartStore>()(
                 productId: product.id,
                 variantSku: variant.sku,
                 quantity,
-                price: Number(product.price),
+                price: Number(variant?.price) > 0 ? Number(variant.price) : Number(product.price),
                 title: product.name,
                 image: variant.image || product.images[0] || "",
                 color: variant.color,
