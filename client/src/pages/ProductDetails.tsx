@@ -188,6 +188,33 @@ export default function ProductDetails() {
     : Array.from(new Set(variants.map((v: any) => v.size))),
     [selectedColor, variants]
   );
+
+  // Compute variant price range from all variants
+  const variantPriceValues = useMemo(() =>
+    variants.map((v: any) => Number(v.price)).filter((p: number) => !isNaN(p) && p > 0),
+    [variants]
+  );
+  const minVariantPrice = useMemo(() => variantPriceValues.length > 0 ? Math.min(...variantPriceValues) : 0, [variantPriceValues]);
+  const maxVariantPrice = useMemo(() => variantPriceValues.length > 0 ? Math.max(...variantPriceValues) : 0, [variantPriceValues]);
+  const hasVariantPrices = variantPriceValues.length > 0;
+
+  // Get price for a specific size under the currently selected color
+  const getSizeVariantPrice = (size: string): number | null => {
+    const v = variants.find((v: any) => v.color === selectedColor && v.size === size);
+    const p = Number(v?.price);
+    return !isNaN(p) && p > 0 ? p : null;
+  };
+
+  // Determine what price to display
+  const displayedPrice = useMemo(() => {
+    const variantPrice = Number(selectedVariant?.price);
+    if (!isNaN(variantPrice) && variantPrice > 0) return { type: 'single' as const, value: variantPrice };
+    if (hasVariantPrices) {
+      if (minVariantPrice === maxVariantPrice) return { type: 'single' as const, value: minVariantPrice };
+      return { type: 'range' as const, min: minVariantPrice, max: maxVariantPrice };
+    }
+    return { type: 'single' as const, value: Number(product?.price ?? 0) };
+  }, [selectedVariant, hasVariantPrices, minVariantPrice, maxVariantPrice, product?.price]);
   
   // Get variant images grouped by color
   const colorImages: Record<string, string> = {};
@@ -198,9 +225,9 @@ export default function ProductDetails() {
     }
   });
   
-  // Auto select first color if not selected
+  // Auto select first color if not selected or if current selection is no longer valid
   useEffect(() => {
-    if (!selectedColor && colors.length > 0) {
+    if (colors.length > 0 && (!selectedColor || !colors.includes(selectedColor as string))) {
       setSelectedColor(colors[0]);
     }
   }, [colors, selectedColor]);
@@ -386,7 +413,7 @@ export default function ProductDetails() {
               <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 uppercase tracking-tighter">{product.name}</h1>
               <AnimatePresence mode="wait">
                 <motion.p
-                  key={selectedVariant?.price ?? product.price}
+                  key={displayedPrice.type === 'range' ? `${displayedPrice.min}-${displayedPrice.max}` : displayedPrice.value}
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
@@ -394,7 +421,10 @@ export default function ProductDetails() {
                   className="text-3xl font-light text-primary tracking-tight"
                   data-testid="text-product-price"
                 >
-                  {Number(selectedVariant?.price ?? product.price).toLocaleString()} {t('currency')}
+                  {displayedPrice.type === 'range'
+                    ? `${displayedPrice.min.toLocaleString()} - ${displayedPrice.max.toLocaleString()} ${t('currency')}`
+                    : `${displayedPrice.value.toLocaleString()} ${t('currency')}`
+                  }
                 </motion.p>
               </AnimatePresence>
             </div>
@@ -486,7 +516,9 @@ export default function ProductDetails() {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] mb-6 text-black/40">{t('sizeLabel')}</label>
                 <div className={`flex flex-wrap gap-4 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                  {availableSizes.map((size: string, idx: number) => (
+                  {availableSizes.map((size: string, idx: number) => {
+                    const sizePrice = getSizeVariantPrice(size);
+                    return (
                     <motion.button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -496,16 +528,22 @@ export default function ProductDetails() {
                       whileHover={{ scale: 1.08, y: -4 }}
                       whileTap={{ scale: 0.95 }}
                       className={`
-                        px-6 py-3 border-2 rounded-none font-bold uppercase tracking-widest text-sm transition-colors duration-300
+                        flex flex-col items-center px-6 py-3 border-2 rounded-none font-bold uppercase tracking-widest text-sm transition-colors duration-300
                         ${selectedSize === size
                           ? 'border-black bg-black text-white shadow-lg'
                           : 'border-black/20 hover:border-black text-black hover:bg-black/5'}
                       `}
                       data-testid={`button-size-${size}`}
                     >
-                      {size}
+                      <span>{size}</span>
+                      {sizePrice !== null && (
+                        <span className={`text-[10px] font-light mt-0.5 tracking-normal normal-case ${selectedSize === size ? 'text-white/80' : 'text-black/50'}`}>
+                          {sizePrice.toLocaleString()} {t('currency')}
+                        </span>
+                      )}
                     </motion.button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
