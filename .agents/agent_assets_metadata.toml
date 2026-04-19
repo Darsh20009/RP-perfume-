@@ -6,6 +6,18 @@ uri = "file://attached_assets/generated_images/generated_image.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "KVO3wprwyJkA9uLf3iNAM"
+uri = "file://client/public/images/banners/promo-luxury-1.png"
+type = "image"
+title = "luxury navy oud bottle"
+
+[[generated]]
+id = "DgDzaZ2f0kN0twsuG8kDz"
+uri = "file://client/public/images/banners/promo-luxury-2.png"
+type = "image"
+title = "luxury oud bakhoor wood"
+
 [[outputs]]
 id = "SEzCs3lbu0EY2VSqg4tde"
 uri = "file://client/public/og-cover.png"

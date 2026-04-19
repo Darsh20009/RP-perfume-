@@ -371,11 +371,13 @@ export default function Home() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-gradient-to-br from-[#1a2744] via-[#2a3856] to-[#1a2744]"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#1a2744]"
             >
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, #c9a96e 0%, transparent 40%), radial-gradient(circle at 80% 70%, #c9a96e 0%, transparent 40%)" }} />
-              <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-40 h-40 object-contain opacity-10 rotate-12" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#1a2744]/85 via-[#1a2744]/40 to-transparent" />
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #c9a96e 0%, transparent 50%)" }} />
+              <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-32 h-32 object-contain opacity-15 rotate-12" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -389,11 +391,13 @@ export default function Home() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-gradient-to-br from-[#3d2817] via-[#5a3a22] to-[#c9a96e]"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#3d2817]"
             >
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 70% 30%, #fff 0%, transparent 35%), radial-gradient(circle at 30% 80%, #fff 0%, transparent 35%)" }} />
-              <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-40 h-40 object-contain opacity-10 -rotate-12" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <img src="/images/banners/promo-luxury-2.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-tl from-[#3d2817]/85 via-[#3d2817]/30 to-transparent" />
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 80%, #c9a96e 0%, transparent 50%)" }} />
+              <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-32 h-32 object-contain opacity-15 -rotate-12" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -535,7 +539,9 @@ export default function Home() {
 
       {/* ── BRAND CTA ──────────────────────────────────── */}
       <section className="relative py-24 md:py-36 overflow-hidden bg-[#1a2744]">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 15% 25%, #c9a96e 0%, transparent 35%), radial-gradient(circle at 85% 75%, #c9a96e 0%, transparent 35%), linear-gradient(135deg, #1a2744 0%, #2a3856 50%, #1a2744 100%)" }} />
+        <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" loading="lazy" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a2744]/80 via-[#1a2744]/70 to-[#1a2744]/90" />
+        <div className="absolute inset-0 opacity-25" style={{ backgroundImage: "radial-gradient(circle at 15% 25%, #c9a96e 0%, transparent 40%), radial-gradient(circle at 85% 75%, #c9a96e 0%, transparent 40%)" }} />
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("${logoImg}")`, backgroundRepeat: "repeat", backgroundSize: "120px" }} />
         <div className="container px-4 relative z-10 text-center max-w-4xl mx-auto">
           <motion.div
