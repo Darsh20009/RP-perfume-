@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
+import { flyToCart } from "@/lib/flyToCart";
 
 interface ProductCardProps {
   product: Product;
@@ -224,6 +225,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   addItem(product, variant, 1);
                   setAddedToCart(true);
                   setTimeout(() => setAddedToCart(false), 2000);
+                  flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
                 }
               }}
               className={`mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 ${

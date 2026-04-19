@@ -93,3 +93,10 @@ npm run start     # Production server
 - **Public `/branches`** page (`client/src/pages/Branches.tsx`): luxury navy/gold hero, grid of cards with embedded OSM map preview (when lat/lng present, else branch image), full contact info, pickup badge, and prominent "خرائط أبل" + "خرائط جوجل" buttons (`maps.apple.com/?ll=lat,lon&q=name` — no API key required, opens natively on iPhone/Mac).
 - **Footer** (Layout.tsx): renders dynamic `socialAccounts` from `/api/store/settings` with the previous 4 hardcoded links as fallback when none configured. Adds "فروعنا / Our Branches" link in Help column.
 - **Maps strategy**: free OpenStreetMap iframe for in-page preview; deep-link to Apple/Google Maps for navigation. MapKit JS deferred (would require Apple Developer Program $99/yr).
+
+## 2026-04-19 — Mega-feature batch (T001–T005)
+- **Backend foundations**: Added Mongoose models `PromoStripItem`, `CustomPage`, `ProductInsights`. Extended `categorySchema` (asPage, showInNav, pageHero, pageContentAr/En) and `storeSettingsSchema` (freeShippingThreshold + freeShippingEnabled, vatRate, support contacts, SEO, maintenance mode, Tabby/Tamara order limits). Storage CRUD + admin/public REST routes wired.
+- **AI insights**: `GET /api/products/:id/insights` (Groq summarises reviews, 24h cache, refresh on +2 new comments) and `GET /api/admin/ai/inventory-insights` (sales velocity, restock urgency, slow movers, AI fallback heuristic).
+- **Admin UI**: New tabs in Admin panel — `AdminPromoStrip`, `AdminPages`, `AdminAiInsights`. Shipping companies admin form expanded (logo, nameEn, freeShippingThreshold, trackingUrlTemplate, supportPhone, isActive switch).
+- **Frontend integrations**: Home reads promo strip from API; Layout pulls dynamic nav links from CustomPages flagged `showInNav`; `/pages/:slug` route renders hero + bilingual content; ProductDetails shows `ProductInsightsCard` + review lightbox + verified-buyer review form.
+- **Fly-to-cart animation**: New `lib/flyToCart.ts` helper animates the product image into the cart icon (which now carries `data-cart-target`). Honors `prefers-reduced-motion`.

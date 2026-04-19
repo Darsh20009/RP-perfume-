@@ -15,9 +15,10 @@ type InventoryInsights = {
 };
 
 export default function AdminAiInsights() {
-  const { data, isLoading, isFetching, refetch } = useQuery<InventoryInsights>({
+  const { data, isLoading, isFetching, refetch, error, isError } = useQuery<InventoryInsights>({
     queryKey: ["/api/admin/ai/inventory-insights"],
     staleTime: 10 * 60_000,
+    retry: 1,
   });
 
   return (
@@ -45,8 +46,15 @@ export default function AdminAiInsights() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-[#c9a96e]" /></div>
-      ) : !data ? (
-        <div className="text-center py-20 bg-[#faf8f5] rounded-2xl">
+      ) : isError ? (
+          <div className="text-center py-16 bg-red-50 border border-red-200 rounded-2xl" data-testid="ai-insights-error">
+            <AlertTriangle className="w-12 h-12 mx-auto text-red-400 mb-3" />
+            <p className="font-bold text-red-700">تعذّر جلب التحليلات</p>
+            <p className="text-xs text-red-500 mt-1">{(error as any)?.message || "خطأ غير متوقع. تأكّد من صلاحياتك أو حاول مجدداً."}</p>
+            <Button onClick={() => refetch()} className="mt-4 bg-red-500 hover:bg-red-600 text-white" data-testid="button-retry-insights">إعادة المحاولة</Button>
+          </div>
+        ) : !data ? (
+          <div className="text-center py-20 bg-[#faf8f5] rounded-2xl">
           <Brain className="w-12 h-12 mx-auto text-[#c9a96e]/40 mb-3" />
           <p className="font-bold text-slate-700">لا تتوفر بيانات كافية بعد</p>
           <p className="text-xs text-slate-500 mt-1">سجّل بعض المبيعات لتظهر التحليلات</p>

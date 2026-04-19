@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { insertProductSchema, type InsertProduct, orderStatuses, employeePermissions, insertUserSchema, type InsertUser } from "@shared/schema";
 import { api } from "@shared/routes";
-import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin, Sparkles, FileText, Brain } from "lucide-react";
+import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, Building2, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin, Sparkles, FileText, Brain } from "lucide-react";
 import { Link } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -3360,9 +3360,14 @@ const EmployeesManagement = () => {
       const res = await apiRequest("POST", "/api/admin/users", data);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      toast({ title: "تم إضافة الموظف بنجاح" });
+      toast({
+        title: "تم إضافة الموظف بنجاح ✅",
+        description: data?.activationEmailSent
+          ? `تم إرسال رابط تعيين كلمة المرور إلى بريد الموظف (${data.email}). الرابط صالح لمدة 48 ساعة.`
+          : "تم إنشاء الموظف",
+      });
       setOpen(false);
       setFormData({
         name: "",
@@ -3378,6 +3383,19 @@ const EmployeesManagement = () => {
     onError: (err: any) => {
       toast({ title: "خطأ", description: err.message || "فشلت الإضافة", variant: "destructive" });
     }
+  });
+
+  const resendActivationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("POST", `/api/admin/users/${id}/resend-activation`, {});
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "📧 تم إرسال رابط التفعيل من جديد إلى بريد الموظف" });
+    },
+    onError: (err: any) => {
+      toast({ title: "تعذّر إرسال الرابط", description: err.message, variant: "destructive" });
+    },
   });
 
   const toggleActiveMutation = useMutation({
@@ -3428,15 +3446,22 @@ const EmployeesManagement = () => {
                   <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="text-right" placeholder="5XXXXXXXX" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-right block">البريد الإلكتروني</Label>
-                  <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="text-right" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-right block">كلمة المرور</Label>
-                  <Input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="text-right" />
-                </div>
+              <div className="space-y-2">
+                <Label className="text-right block">
+                  البريد الإلكتروني <span className="text-red-600">*</span>
+                </Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="text-right"
+                  placeholder="employee@example.com"
+                  data-testid="input-employee-email"
+                  dir="ltr"
+                />
+                <p className="text-[11px] text-muted-foreground font-bold leading-relaxed bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
+                  📧 سيتم إرسال رابط آمن إلى هذا البريد ليقوم الموظف بتعيين كلمة المرور بنفسه (صالح لمدة 48 ساعة). لا تحتاج لإدخال كلمة مرور هنا.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -3557,27 +3582,43 @@ const EmployeesManagement = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-black/5">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 text-[10px] font-black h-8"
-                  onClick={() => {
-                    toggleActiveMutation.mutate({ id: emp.id, isActive: !emp.isActive });
-                  }}
+              <div className="grid grid-cols-1 gap-1.5 text-[10px]">
+                {emp.email && (
+                  <div className="flex items-center justify-between gap-2 bg-secondary/10 px-2 py-1 rounded">
+                    <span className="text-muted-foreground font-bold">البريد</span>
+                    <span className="font-bold truncate" dir="ltr" data-testid={`text-employee-email-${emp.id}`}>{emp.email}</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-black/5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] font-black h-8"
+                  onClick={() => toggleActiveMutation.mutate({ id: emp.id, isActive: !emp.isActive })}
+                  data-testid={`button-toggle-${emp.id}`}
                 >
                   {emp.isActive ? "تعطيل" : "تفعيل"}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 text-[10px] font-black h-8"
-                  onClick={() => {
-                    setEditingUser(emp);
-                    setResetDialogOpen(true);
-                  }}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] font-black h-8"
+                  onClick={() => { setEditingUser(emp); setResetDialogOpen(true); }}
+                  data-testid={`button-reset-password-${emp.id}`}
                 >
                   كلمة المرور
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] font-black h-8"
+                  disabled={!emp.email || resendActivationMutation.isPending}
+                  onClick={() => resendActivationMutation.mutate(emp.id)}
+                  title={emp.email ? "إرسال رابط تعيين كلمة المرور إلى بريد الموظف" : "لا يوجد بريد للموظف"}
+                  data-testid={`button-resend-activation-${emp.id}`}
+                >
+                  {resendActivationMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "إرسال رابط"}
                 </Button>
               </div>
             </CardContent>
@@ -4245,8 +4286,70 @@ const StoreSettingsPanel = () => {
   const [pickupEnabled, setPickupEnabled] = useState(true);
   const [pickupInstructionsAr, setPickupInstructionsAr] = useState("");
   const [pickupInstructionsEn, setPickupInstructionsEn] = useState("");
+  // ── Store identity / contact / tax / SEO / maintenance / installments ──
+  const [storeName, setStoreName] = useState("");
+  const [storePhone, setStorePhone] = useState("");
+  const [storeEmail, setStoreEmail] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [crNumber, setCrNumber] = useState("");
+  const [vatNumber, setVatNumber] = useState("");
+  const [vatRate, setVatRate] = useState<number>(15);
+  const [maroofUrl, setMaroofUrl] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [supportPhone, setSupportPhone] = useState("");
+  const [supportEmail, setSupportEmail] = useState("");
+  const [supportHours, setSupportHours] = useState("");
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(true);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(0);
+  const [freeShippingMessageAr, setFreeShippingMessageAr] = useState("");
+  const [freeShippingMessageEn, setFreeShippingMessageEn] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoTitleEn, setSeoTitleEn] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoDescriptionEn, setSeoDescriptionEn] = useState("");
+  const [seoKeywords, setSeoKeywords] = useState("");
+  const [ogImage, setOgImage] = useState("");
+  const [ogUploading, setOgUploading] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessageAr, setMaintenanceMessageAr] = useState("");
+  const [maintenanceMessageEn, setMaintenanceMessageEn] = useState("");
+  const [tabbyMin, setTabbyMin] = useState<number>(100);
+  const [tabbyMax, setTabbyMax] = useState<number>(5000);
+  const [tamaraMin, setTamaraMin] = useState<number>(100);
+  const [tamaraMax, setTamaraMax] = useState<number>(5000);
 
   useEffect(() => {
+    if (settings) {
+      setStoreName(settings.storeName ?? "رفيف العود");
+      setStorePhone(settings.storePhone ?? "");
+      setStoreEmail(settings.storeEmail ?? "");
+      setStoreAddress(settings.storeAddress ?? "");
+      setCrNumber(settings.crNumber ?? "");
+      setVatNumber(settings.vatNumber ?? "");
+      setVatRate(Number(settings.vatRate ?? 15));
+      setMaroofUrl(settings.maroofUrl ?? "");
+      setWhatsappNumber(settings.whatsappNumber ?? "");
+      setSupportPhone(settings.supportPhone ?? "");
+      setSupportEmail(settings.supportEmail ?? "");
+      setSupportHours(settings.supportHours ?? "");
+      setFreeShippingEnabled(settings.freeShippingEnabled !== false);
+      setFreeShippingThreshold(Number(settings.freeShippingThreshold ?? 0));
+      setFreeShippingMessageAr(settings.freeShippingMessageAr ?? "");
+      setFreeShippingMessageEn(settings.freeShippingMessageEn ?? "");
+      setSeoTitle(settings.seoTitle ?? "");
+      setSeoTitleEn(settings.seoTitleEn ?? "");
+      setSeoDescription(settings.seoDescription ?? "");
+      setSeoDescriptionEn(settings.seoDescriptionEn ?? "");
+      setSeoKeywords(settings.seoKeywords ?? "");
+      setOgImage(settings.ogImage ?? "");
+      setMaintenanceMode(!!settings.maintenanceMode);
+      setMaintenanceMessageAr(settings.maintenanceMessageAr ?? "");
+      setMaintenanceMessageEn(settings.maintenanceMessageEn ?? "");
+      setTabbyMin(Number(settings.tabbyMinOrder ?? 100));
+      setTabbyMax(Number(settings.tabbyMaxOrder ?? 5000));
+      setTamaraMin(Number(settings.tamaraMinOrder ?? 100));
+      setTamaraMax(Number(settings.tamaraMaxOrder ?? 5000));
+    }
     if (settings) {
       setBankName(settings.bankName ?? "مصرف الراجحي");
       setBankAccountHolder(settings.bankAccountHolder ?? "رفيف العود");
@@ -4311,6 +4414,21 @@ const StoreSettingsPanel = () => {
       saleSectionImage, bestSellersSectionImage, newArrivalsSectionImage,
       socialAccounts: socials.map((s, i) => ({ ...s, sortOrder: s.sortOrder ?? i })),
       pickupEnabled, pickupInstructionsAr, pickupInstructionsEn,
+      // identity / legal
+      storeName, storePhone, storeEmail, storeAddress, crNumber, vatNumber,
+      vatRate: Number(vatRate) || 0, maroofUrl,
+      // contact
+      whatsappNumber, supportPhone, supportEmail, supportHours,
+      // shipping rules
+      freeShippingEnabled, freeShippingThreshold: Number(freeShippingThreshold) || 0,
+      freeShippingMessageAr, freeShippingMessageEn,
+      // SEO
+      seoTitle, seoTitleEn, seoDescription, seoDescriptionEn, seoKeywords, ogImage,
+      // maintenance
+      maintenanceMode, maintenanceMessageAr, maintenanceMessageEn,
+      // installment limits
+      tabbyMinOrder: Number(tabbyMin) || 0, tabbyMaxOrder: Number(tabbyMax) || 0,
+      tamaraMinOrder: Number(tamaraMin) || 0, tamaraMaxOrder: Number(tamaraMax) || 0,
     });
   };
 
@@ -4323,6 +4441,267 @@ const StoreSettingsPanel = () => {
 
   return (
     <div className="space-y-8 max-w-2xl" dir="rtl">
+      {/* ─── Maintenance Mode (top alert) ─── */}
+      {maintenanceMode && (
+        <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-black text-amber-900 text-sm">⚠️ المتجر حالياً في وضع الصيانة</p>
+            <p className="text-xs text-amber-800 font-bold mt-1">العملاء لا يستطيعون التسوق الآن. عطّل الخيار من قسم "الصيانة" بالأسفل لإعادة فتح المتجر.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Store Identity & Legal ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Building2 className="h-5 w-5 text-primary" />
+            هوية المتجر والمعلومات القانونية
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">تظهر في الفواتير، الفوتر، وصفحات السياسات</p>
+        </CardHeader>
+        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">اسم المتجر</Label>
+            <Input value={storeName} onChange={e => setStoreName(e.target.value)} className="font-bold" data-testid="input-store-name" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">عنوان المتجر</Label>
+            <Input value={storeAddress} onChange={e => setStoreAddress(e.target.value)} className="font-bold" placeholder="الرياض، حي..." data-testid="input-store-address" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">السجل التجاري (CR)</Label>
+            <Input value={crNumber} onChange={e => setCrNumber(e.target.value)} className="font-mono font-bold" dir="ltr" data-testid="input-cr-number" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">الرقم الضريبي (VAT)</Label>
+            <Input value={vatNumber} onChange={e => setVatNumber(e.target.value)} className="font-mono font-bold" dir="ltr" placeholder="3xxxxxxxxx00003" data-testid="input-vat-number" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">نسبة ضريبة القيمة المضافة %</Label>
+            <Input type="number" value={vatRate} onChange={e => setVatRate(Number(e.target.value))} className="font-bold" min={0} max={100} step={0.5} data-testid="input-vat-rate" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">رابط معروف (Maroof)</Label>
+            <Input value={maroofUrl} onChange={e => setMaroofUrl(e.target.value)} className="font-bold" dir="ltr" placeholder="https://maroof.sa/..." data-testid="input-maroof" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Contact & Customer Support ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Phone className="h-5 w-5 text-primary" />
+            معلومات التواصل وخدمة العملاء
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">تظهر في الفوتر وصفحة "تواصل معنا" وفي رسائل الدعم</p>
+        </CardHeader>
+        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">الهاتف العام للمتجر</Label>
+            <Input value={storePhone} onChange={e => setStorePhone(e.target.value)} className="font-bold" dir="ltr" placeholder="+9665XXXXXXXX" data-testid="input-store-phone" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">البريد العام للمتجر</Label>
+            <Input type="email" value={storeEmail} onChange={e => setStoreEmail(e.target.value)} className="font-bold" dir="ltr" data-testid="input-store-email" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">رقم WhatsApp للعملاء</Label>
+            <Input value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} className="font-bold" dir="ltr" placeholder="+9665XXXXXXXX" data-testid="input-whatsapp" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">هاتف الدعم الفني</Label>
+            <Input value={supportPhone} onChange={e => setSupportPhone(e.target.value)} className="font-bold" dir="ltr" data-testid="input-support-phone" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">بريد الدعم الفني</Label>
+            <Input type="email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} className="font-bold" dir="ltr" data-testid="input-support-email" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">ساعات عمل الدعم</Label>
+            <Input value={supportHours} onChange={e => setSupportHours(e.target.value)} className="font-bold" placeholder="السبت - الخميس، 9 صباحاً - 10 مساءً" data-testid="input-support-hours" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Free Shipping Rules ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Truck className="h-5 w-5 text-primary" />
+            قاعدة الشحن المجاني
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">تظهر للعميل في السلة وأثناء التصفح كحافز للشراء</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center justify-between bg-secondary/10 rounded p-3">
+            <div>
+              <p className="text-sm font-black">تفعيل الشحن المجاني</p>
+              <p className="text-[11px] text-muted-foreground font-bold">عند تجاوز الطلب الحد الأدنى</p>
+            </div>
+            <Switch checked={freeShippingEnabled} onCheckedChange={setFreeShippingEnabled} data-testid="switch-free-shipping" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+              <Input type="number" value={freeShippingThreshold} onChange={e => setFreeShippingThreshold(Number(e.target.value))} className="font-bold" min={0} disabled={!freeShippingEnabled} data-testid="input-free-shipping-threshold" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-xs font-black uppercase">رسالة المتجر (عربي)</Label>
+              <Input value={freeShippingMessageAr} onChange={e => setFreeShippingMessageAr(e.target.value)} className="font-bold" placeholder="شحن مجاني للطلبات أكثر من" disabled={!freeShippingEnabled} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">رسالة المتجر (English)</Label>
+            <Input value={freeShippingMessageEn} onChange={e => setFreeShippingMessageEn(e.target.value)} className="font-bold" dir="ltr" placeholder="Free shipping on orders over" disabled={!freeShippingEnabled} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Installment Limits (Tabby & Tamara) ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <CreditCard className="h-5 w-5 text-primary" />
+            حدود التقسيط — Tabby و Tamara
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">يظهر خيار التقسيط للعميل فقط إذا كان مبلغ الطلب ضمن هذا النطاق</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-5">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <p className="text-sm font-black text-emerald-900 mb-3">Tabby — تابي</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+                <Input type="number" value={tabbyMin} onChange={e => setTabbyMin(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tabby-min" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase">الحد الأقصى (ر.س)</Label>
+                <Input type="number" value={tabbyMax} onChange={e => setTabbyMax(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tabby-max" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <p className="text-sm font-black text-purple-900 mb-3">Tamara — تمارة</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+                <Input type="number" value={tamaraMin} onChange={e => setTamaraMin(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tamara-min" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase">الحد الأقصى (ر.س)</Label>
+                <Input type="number" value={tamaraMax} onChange={e => setTamaraMax(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tamara-max" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── SEO ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <Search className="h-5 w-5 text-primary" />
+            تحسين محركات البحث (SEO)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">يظهر في نتائج Google ومنصات التواصل عند مشاركة رابط المتجر</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase">عنوان الصفحة (عربي)</Label>
+              <Input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} className="font-bold" maxLength={70} placeholder="رفيف العود — عطور فاخرة" data-testid="input-seo-title" />
+              <p className="text-[10px] text-muted-foreground">{seoTitle.length}/70</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase">Page Title (English)</Label>
+              <Input value={seoTitleEn} onChange={e => setSeoTitleEn(e.target.value)} className="font-bold" dir="ltr" maxLength={70} placeholder="RF Perfume — Luxury Fragrances" data-testid="input-seo-title-en" />
+              <p className="text-[10px] text-muted-foreground">{seoTitleEn.length}/70</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">الوصف (عربي)</Label>
+            <Textarea value={seoDescription} onChange={e => setSeoDescription(e.target.value)} className="font-bold" rows={2} maxLength={160} data-testid="input-seo-description" />
+            <p className="text-[10px] text-muted-foreground">{seoDescription.length}/160</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">Description (English)</Label>
+            <Textarea value={seoDescriptionEn} onChange={e => setSeoDescriptionEn(e.target.value)} className="font-bold" dir="ltr" rows={2} maxLength={160} data-testid="input-seo-description-en" />
+            <p className="text-[10px] text-muted-foreground">{seoDescriptionEn.length}/160</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">الكلمات المفتاحية (افصلها بفاصلة)</Label>
+            <Input value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)} className="font-bold" placeholder="عطور، عود، بخور، عطور رجالية" data-testid="input-seo-keywords" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">صورة المشاركة (Open Graph)</Label>
+            <p className="text-[10px] text-muted-foreground">تظهر عند مشاركة رابط المتجر في WhatsApp، Twitter، Facebook. الأبعاد المثلى: 1200×630</p>
+            <div className="flex items-center gap-3">
+              {ogImage && (
+                <div className="border border-black/10 rounded p-1 bg-white">
+                  <img src={ogImage} alt="OG" className="h-16 w-28 object-cover" />
+                </div>
+              )}
+              <div className="flex-1">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  disabled={ogUploading}
+                  className="h-10 text-xs"
+                  data-testid="input-upload-og"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setOgUploading(true);
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      const r = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+                      const d = await r.json();
+                      if (d.url) { setOgImage(d.url); toast({ title: "تم رفع الصورة" }); }
+                    } catch { toast({ title: "فشل الرفع", variant: "destructive" }); }
+                    finally { setOgUploading(false); }
+                  }}
+                />
+              </div>
+              {ogImage && (
+                <button onClick={() => setOgImage("")} className="text-[10px] text-red-500 font-bold hover:underline">حذف</button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Maintenance Mode ─── */}
+      <Card className="border-black/5">
+        <CardHeader className="border-b border-black/5 pb-6">
+          <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-tight">
+            <AlertCircle className="h-5 w-5 text-amber-600" />
+            وضع الصيانة
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold">عند التفعيل، يرى الزوار صفحة صيانة بدلاً من المتجر (الإدارة تبقى متاحة)</p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded p-3">
+            <div>
+              <p className="text-sm font-black">إغلاق المتجر مؤقتاً</p>
+              <p className="text-[11px] text-amber-800 font-bold">العملاء لن يستطيعوا التسوق</p>
+            </div>
+            <Switch checked={maintenanceMode} onCheckedChange={setMaintenanceMode} data-testid="switch-maintenance" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">رسالة الصيانة (عربي)</Label>
+            <Textarea value={maintenanceMessageAr} onChange={e => setMaintenanceMessageAr(e.target.value)} className="font-bold" rows={2} data-testid="input-maintenance-ar" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-black uppercase">Message (English)</Label>
+            <Textarea value={maintenanceMessageEn} onChange={e => setMaintenanceMessageEn(e.target.value)} className="font-bold" dir="ltr" rows={2} data-testid="input-maintenance-en" />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Bank Transfer Settings */}
       <Card className="border-black/5">
         <CardHeader className="border-b border-black/5 pb-6">

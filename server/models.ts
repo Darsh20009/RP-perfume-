@@ -263,12 +263,21 @@ const bannerSchema = new Schema<Banner>(
 const shippingCompanySchema = new Schema<ShippingCompany>(
   {
     name: { type: String, required: true },
+    nameEn: { type: String, default: "" },
+    logo: { type: String, default: "" },
     price: { type: Number, required: true },
     estimatedDays: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
     storageXCode: String,
+    // Per-company free shipping rule
+    freeShippingThreshold: { type: Number, default: 0 },
+    // Tracking link template — use {tracking} placeholder. Example:
+    //   https://aramex.com/track/{tracking}
+    trackingUrlTemplate: { type: String, default: "" },
+    // Optional: support phone for the shipping company shown to customers
+    supportPhone: { type: String, default: "" },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 const auditLogSchema = new Schema<AuditLog>(
@@ -436,6 +445,29 @@ const storeSettingsSchema = new Schema(
     pickupEnabled: { type: Boolean, default: true },
     pickupInstructionsAr: { type: String, default: "" },
     pickupInstructionsEn: { type: String, default: "" },
+    // ── Tax & Legal (KSA compliance) ──
+    vatRate: { type: Number, default: 15 },
+    maroofUrl: { type: String, default: "" },
+    // ── Customer support contact ──
+    supportPhone: { type: String, default: "" },
+    supportEmail: { type: String, default: "" },
+    supportHours: { type: String, default: "" },
+    // ── SEO (homepage / brand-wide) ──
+    seoTitle: { type: String, default: "" },
+    seoTitleEn: { type: String, default: "" },
+    seoDescription: { type: String, default: "" },
+    seoDescriptionEn: { type: String, default: "" },
+    seoKeywords: { type: String, default: "" },
+    ogImage: { type: String, default: "" },
+    // ── Maintenance mode ──
+    maintenanceMode: { type: Boolean, default: false },
+    maintenanceMessageAr: { type: String, default: "نعمل على تحسينات سريعة، نعود قريباً" },
+    maintenanceMessageEn: { type: String, default: "We're making quick improvements, back shortly" },
+    // ── Installment limits (Tabby/Tamara) ──
+    tabbyMinOrder: { type: Number, default: 100 },
+    tabbyMaxOrder: { type: Number, default: 5000 },
+    tamaraMinOrder: { type: Number, default: 100 },
+    tamaraMaxOrder: { type: Number, default: 5000 },
   },
   { timestamps: true, strict: false }
 );

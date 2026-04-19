@@ -1745,8 +1745,11 @@ export async function registerRoutes(
   // Shipping Companies
   app.get("/api/shipping-companies", async (req, res) => {
     try {
+      const role = req.isAuthenticated() ? (req.user as any)?.role : null;
+      const isStaff = role === "admin" || role === "employee";
       const companies = await storage.getShippingCompanies();
-      res.json(companies);
+      const filtered = isStaff ? companies : companies.filter((c: any) => c.isActive !== false);
+      res.json(filtered);
     } catch (err: any) {
       console.error("[API] shipping-companies.list error:", err?.message);
       res.json([]);
@@ -2037,7 +2040,7 @@ export async function registerRoutes(
   });
 
   // ─── AI Product Insights ─────────────────────────────────────────────────────
-  app.get("/api/products/:id/insights", async (req, res) => {
+  app.get("/api/products/:id/insights", aiLimiter, async (req, res) => {
     try {
       const productId = req.params.id;
       const cached = await storage.getProductInsights(productId);
@@ -2076,7 +2079,7 @@ export async function registerRoutes(
   });
 
   // ─── AI Inventory Insights ───────────────────────────────────────────────────
-  app.get("/api/admin/ai/inventory-insights", checkPermission("products.view"), async (_req, res) => {
+  app.get("/api/admin/ai/inventory-insights", aiLimiter, checkPermission("products.view"), async (_req, res) => {
     try {
       const [products, orders] = await Promise.all([storage.getProducts(), storage.getOrders()]);
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
