@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { AppleMapEmbed } from "@/components/AppleMapEmbed";
 import { useProducts, useCreateProduct } from "@/hooks/use-products";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -3834,11 +3835,7 @@ const AdminBranches = () => {
                 <p className="text-[10px] text-muted-foreground">يمكنك أيضاً نسخها من خرائط جوجل بضغط مطوّل على الموقع</p>
                 {b.latitude && b.longitude && (
                   <div className="rounded-none border border-black/10 overflow-hidden h-48">
-                    <iframe
-                      title="معاينة الموقع"
-                      className="w-full h-full"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(b.longitude)-0.01},${Number(b.latitude)-0.01},${Number(b.longitude)+0.01},${Number(b.latitude)+0.01}&layer=mapnik&marker=${b.latitude},${b.longitude}`}
-                    />
+                    <AppleMapEmbed lat={Number(b.latitude)} lng={Number(b.longitude)} label={b.name} height={192} />
                   </div>
                 )}
               </div>

@@ -9,6 +9,7 @@ import { seed } from "./seed";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import jwt from "jsonwebtoken";
 import { UserModel, NotificationModel, PushSubscriptionModel, ActivityLogModel, StoreSettingsModel, MailAccountModel, MailMessageModel } from "./models";
 import { encryptSecret, PROVIDER_PRESETS, testConnection as testInboxConnection, syncAccount as syncInboxAccount, setMessageFlags as setInboxFlags, deleteMessage as deleteInboxMessage, sendFromAccount as sendInboxMessage } from "./inbox";
 import { paymentGateway } from "./payments";
@@ -197,6 +198,25 @@ export async function registerRoutes(
       res.type("text/plain").sendFile(filePath);
     } else {
       res.status(404).send("Not found");
+    }
+  });
+
+  // Apple Maps JWT token for MapKit JS
+  const _mapsKeyPath = path.resolve(process.cwd(), "server/keys/AuthKey_XW8G48DGMQ.p8");
+  const _mapsPrivateKey = fs.existsSync(_mapsKeyPath) ? fs.readFileSync(_mapsKeyPath, "utf8") : null;
+  app.get("/api/maps/token", (_req, res) => {
+    try {
+      if (!_mapsPrivateKey) return res.status(500).json({ error: "Maps key not configured" });
+      const now = Math.floor(Date.now() / 1000);
+      const token = jwt.sign(
+        { iss: "V4K6RM59LS", iat: now, exp: now + 1800 },
+        _mapsPrivateKey,
+        { algorithm: "ES256", header: { alg: "ES256", kid: "XW8G48DGMQ", typ: "JWT" } } as any
+      );
+      res.json({ token });
+    } catch (e) {
+      console.error("[Maps] token error:", e);
+      res.status(500).json({ error: "Failed to generate maps token" });
     }
   });
 

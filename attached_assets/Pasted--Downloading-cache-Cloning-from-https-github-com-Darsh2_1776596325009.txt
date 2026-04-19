@@ -1,0 +1,222 @@
+==> Downloading cache...
+==> Cloning from https://github.com/Darsh20009/RP-perfume-
+==> Checking out commit 51a486944abf367fb0ddec5fcc6ff7f3f3e84d7d in branch main
+==> Downloaded 593MB in 2s. Extraction took 1s.
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 225B done
+#1 DONE 0.0s
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 ...
+#3 [auth] library/node:pull render-prod/docker-mirror-repository/library/node:pull token for us-west1-docker.pkg.dev
+#3 DONE 0.0s
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 6.1s
+#4 [internal] load .dockerignore
+#4 transferring context: 137B done
+#4 DONE 0.0s
+#5 importing cache manifest from local:13204531270337836721
+#5 inferred cache manifest type: application/vnd.oci.image.manifest.v1+json done
+#5 DONE 0.0s
+#6 [1/6] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#6 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.0s done
+#6 DONE 0.0s
+#7 [internal] load build context
+#7 transferring context: 188.20MB 1.6s done
+#7 DONE 1.7s
+#8 [2/6] WORKDIR /app
+#8 sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 3.86MB / 3.86MB 0.1s done
+#8 extracting sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 0.1s done
+#8 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 33.55MB / 43.23MB 0.2s
+#8 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 43.23MB / 43.23MB 0.3s
+#8 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 43.23MB / 43.23MB 0.5s done
+#8 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287
+#8 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 3.8s done
+#8 sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 1.26MB / 1.26MB 0.0s done
+#8 extracting sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 0.1s done
+#8 sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 445B / 445B done
+#8 extracting sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 0.0s done
+#8 sha256:db5e132570fd9432e463dcaca06e3b0655590f9c129fc1a98667603dd748ebe3 92B / 92B done
+#8 extracting sha256:db5e132570fd9432e463dcaca06e3b0655590f9c129fc1a98667603dd748ebe3 0.0s done
+#8 CACHED
+#9 [3/6] COPY package*.json ./
+#9 DONE 0.0s
+#10 [4/6] RUN npm ci --include=dev
+#10 5.304 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+#10 13.22 
+#10 13.22 added 732 packages, and audited 733 packages in 13s
+#10 13.22 
+#10 13.22 106 packages are looking for funding
+#10 13.22   run `npm fund` for details
+#10 13.25 
+#10 13.25 18 vulnerabilities (7 low, 3 moderate, 8 high)
+#10 13.25 
+#10 13.25 To address issues that do not require attention, run:
+#10 13.25   npm audit fix
+#10 13.25 
+#10 13.25 Some issues need review, and may require choosing
+#10 13.25 a different dependency.
+#10 13.25 
+#10 13.25 Run `npm audit` for details.
+#10 13.25 npm notice
+#10 13.25 npm notice New major version of npm available! 10.8.2 -> 11.12.1
+#10 13.25 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+#10 13.25 npm notice To update run: npm install -g npm@11.12.1
+#10 13.25 npm notice
+#10 DONE 20.8s
+#11 [5/6] COPY . .
+#11 DONE 1.6s
+#12 [6/6] RUN npm run build
+#12 0.196 
+#12 0.196 > rest-express@1.0.0 build
+#12 0.196 > tsx script/build.ts
+#12 0.196 
+#12 1.000 building client...
+#12 1.072 vite v7.3.0 building client environment for production...
+#12 1.605 transforming...
+#12 1.711 Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+#12 1.711   npx update-browserslist-db@latest
+#12 1.711   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+#12 6.042 ✓ 1716 modules transformed.
+#12 6.287 ✗ Build failed in 4.73s
+#12 6.290 [vite:load-fallback] Could not load /app/client/src/contexts/LanguageContext (imported by client/src/pages/Branches.tsx): ENOENT: no such file or directory, open '/app/client/src/contexts/LanguageContext'
+#12 6.290     at async open (node:internal/fs/promises:637:25)
+#12 6.290     at async Object.readFile (node:internal/fs/promises:1249:14)
+#12 6.290     at async Object.handler (/app/node_modules/vite/dist/node/chunks/config.js:33168:21)
+#12 6.290     at async PluginDriver.hookFirstAndGetPlugin (/app/node_modules/rollup/dist/es/shared/node-entry.js:22376:28)
+#12 6.290     at async <anonymous> (/app/node_modules/rollup/dist/es/shared/node-entry.js:21376:33)
+#12 6.290     at async Queue.work (/app/node_modules/rollup/dist/es/shared/node-entry.js:22604:32) {
+#12 6.290   errno: -2,
+#12 6.290   code: 'PLUGIN_ERROR',
+#12 6.290   syscall: 'open',
+#12 6.290   path: '/app/client/src/contexts/LanguageContext',
+#12 6.290   pluginCode: 'ENOENT',
+#12 6.290   plugin: 'vite:load-fallback',
+#12 6.290   hook: 'load',
+#12 6.290   watchFiles: [
+#12 6.290     '/app/client/index.html',
+#12 6.290     '/app/client/src/main.tsx',
+#12 6.290     '/app/package.json',
+#12 6.290     '/app/node_modules/react/jsx-runtime.js',
+#12 6.290     '/app/node_modules/react-dom/client.js',
+#12 6.290     '/app/client/src/App.tsx',
+#12 6.290     '/app/client/src/index.css',
+#12 6.290     '/app/node_modules/react/cjs/react-jsx-runtime.production.min.js',
+#12 6.290     '/app/node_modules/react-dom/index.js',
+#12 6.290     '/app/node_modules/react/index.js',
+#12 6.290     '/app/node_modules/@tanstack/react-query/build/modern/index.js',
+#12 6.290     '/app/node_modules/wouter/esm/index.js',
+#12 6.290     '/app/client/src/lib/queryClient.ts',
+#12 6.290     '/app/client/src/components/ui/toaster.tsx',
+#12 6.290     '/app/client/src/components/theme-provider.tsx',
+#12 6.290     '/app/client/src/components/ui/tooltip.tsx',
+#12 6.290     '/app/client/src/hooks/use-language.ts',
+#12 6.290     '/app/client/src/components/auth-provider.tsx',
+#12 6.290     '/app/client/src/pages/not-found.tsx',
+#12 6.290     '/app/client/src/components/SplashScreen.tsx',
+#12 6.290     '/app/client/src/pages/Home.tsx',
+#12 6.290     '/app/client/src/pages/Products.tsx',
+#12 6.290     '/app/node_modules/lucide-react/dist/esm/lucide-react.js',
+#12 6.290     '/app/client/src/pages/Cart.tsx',
+#12 6.290     '/app/client/src/pages/Login.tsx',
+#12 6.290     '/app/client/src/pages/ProductDetails.tsx',
+#12 6.290     '/app/client/src/pages/Register.tsx',
+#12 6.290     '/app/client/src/components/PWAPrompt.tsx',
+#12 6.290     '/app/client/src/hooks/use-auth.ts',
+#12 6.290     '/app/client/src/components/IOSInstallGuide.tsx',
+#12 6.290     '/app/client/src/pages/ProfileInvoices.tsx',
+#12 6.290     '/app/client/src/pages/Dashboard.tsx',
+#12 6.290     '/app/client/src/pages/Employees.tsx',
+#12 6.290     '/app/client/src/pages/Terms.tsx',
+#12 6.290     '/app/client/src/pages/Orders.tsx',
+#12 6.290     '/app/client/src/pages/OrderDetail.tsx',
+#12 6.290     '/app/client/src/pages/ForgotPassword.tsx',
+#12 6.290     '/app/client/src/pages/ActivateAccount.tsx',
+#12 6.290     '/app/client/src/pages/Checkout.tsx',
+#12 6.290     '/app/client/src/pages/PaymentGateway.tsx',
+#12 6.290     '/app/client/src/pages/TamaraCheckout.tsx',
+#12 6.290     '/app/client/src/pages/Admin.tsx',
+#12 6.290     '/app/client/src/pages/TabbyCheckout.tsx',
+#12 6.290     '/app/client/src/pages/Profile.tsx',
+#12 6.290     '/app/client/src/pages/PaymobResult.tsx',
+#12 6.290     '/app/client/src/pages/AdminBranches.tsx',
+#12 6.290     '/app/client/src/pages/AdminBranchInventory.tsx',
+#12 6.290     '/app/client/src/pages/STCCheckout.tsx',
+#12 6.290     '/app/client/src/pages/AdminBanners.tsx',
+#12 6.290     '/app/client/src/pages/AdminStaff.tsx',
+#12 6.290     '/app/client/src/pages/AdminAuditLogs.tsx',
+#12 6.290     '/app/client/src/pages/AdminShippingCompanies.tsx',
+#12 6.290     '/app/client/src/pages/ProfileWishlist.tsx',
+#12 6.290     '/app/client/src/pages/AdminRoles.tsx',
+#12 6.290     '/app/client/src/pages/VendorApply.tsx',
+#12 6.290     '/app/client/src/pages/POS.tsx',
+#12 6.290     '/app/client/src/pages/VendorDashboard.tsx',
+#12 6.290     '/app/client/src/pages/CashDrawer.tsx',
+#12 6.290     '/app/client/src/pages/VendorsList.tsx',
+#12 6.290     '/app/client/src/pages/VendorStore.tsx',
+#12 6.290     '/app/client/src/pages/CashDrawerReport.tsx',
+#12 6.290     '/app/client/src/pages/AdminAbandonedCarts.tsx',
+#12 6.290     '/app/client/src/pages/AdminCancellationPolicy.tsx',
+#12 6.290     '/app/client/src/pages/CustomPage.tsx',
+#12 6.290     '/app/client/src/pages/Branches.tsx',
+#12 6.290     '/app/node_modules/react-dom/cjs/react-dom.production.min.js',
+#12 6.290     '/app/client/src/constants/brand.ts',
+#12 6.290     '/app/client/src/hooks/use-cart.ts',
+#12 6.290     '/app/client/src/hooks/use-coupon.ts',
+#12 6.290     '/app/client/src/hooks/use-notifications.ts',
+#12 6.290     '/app/client/src/hooks/use-orders.ts',
+#12 6.290     '/app/client/src/hooks/use-products.ts',
+#12 6.290     '/app/client/src/hooks/use-toast.ts',
+#12 6.290     '/app/client/src/lib/flyToCart.ts',
+#12 6.290     '/app/client/src/lib/utils.ts',
+#12 6.290     '/app/client/src/components/AuthModal.tsx',
+#12 6.290     '/app/client/src/components/CustomerTestimonials.tsx',
+#12 6.290     '/app/client/src/components/Layout.tsx',
+#12 6.290     '/app/client/src/components/LocationMap.tsx',
+#12 6.290     '/app/client/src/components/ProductCard.tsx',
+#12 6.290     '/app/client/src/components/ProductInsightsCard.tsx',
+#12 6.290     '/app/client/src/components/admin/EmployeeAssistant.tsx',
+#12 6.290     '/app/client/src/components/ai/AIInsights.tsx',
+#12 6.290     '/app/client/src/components/ai/DescriptionGenerator.tsx',
+#12 6.290     '/app/client/src/components/ai/OutfitSuggestions.tsx',
+#12 6.290     '/app/client/src/components/ai/PerfumeAdvisor.tsx',
+#12 6.290     '/app/client/src/components/ai/SizeAdvisor.tsx',
+#12 6.290     '/app/client/src/components/ai/StyleAssistant.tsx',
+#12 6.290     '/app/client/src/components/ai/SupportChat.tsx',
+#12 6.290     '/app/client/src/components/ai/UnifiedChat.tsx',
+#12 6.290     '/app/client/src/components/barcode-generator.tsx',
+#12 6.290     '/app/client/src/components/marketing-banners.tsx',
+#12 6.290     '/app/client/src/components/notification-bell.tsx',
+#12 6.290     '/app/client/src/components/payment/ApplePayButton.tsx',
+#12 6.290     '/app/client/src/components/payment/CardPaymentForm.tsx',
+#12 6.290     '/app/client/src/components/payment/InstallmentSection.tsx',
+#12 6.290     '/app/client/src/components/payment/PaymentBrands.tsx',
+#12 6.290     '/app/client/src/components/payment/STCPayForm.tsx',
+#12 6.290     '/app/client/src/components/payment/ThreeDSModal.tsx',
+#12 6.290     '/app/client/src/components/ui/accordion.tsx',
+#12 6.290     ... 1654 more items
+#12 6.290   ]
+#12 6.290 }
+#12 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [6/6] RUN npm run build:
+6.290     '/app/client/src/components/payment/ApplePayButton.tsx',
+6.290     '/app/client/src/components/payment/CardPaymentForm.tsx',
+6.290     '/app/client/src/components/payment/InstallmentSection.tsx',
+6.290     '/app/client/src/components/payment/PaymentBrands.tsx',
+6.290     '/app/client/src/components/payment/STCPayForm.tsx',
+6.290     '/app/client/src/components/payment/ThreeDSModal.tsx',
+6.290     '/app/client/src/components/ui/accordion.tsx',
+6.290     ... 1654 more items
+6.290   ]
+6.290 }
+------
+Dockerfile:11
+--------------------
+   9 |     COPY . .
+  10 |     
+  11 | >>> RUN npm run build
+  12 |     
+  13 |     ENV NODE_ENV=production
+--------------------
+error: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+error: exit status 1

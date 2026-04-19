@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { MapPin, Phone, Clock, Mail, Building, Navigation } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { AppleMapEmbed } from "@/components/AppleMapEmbed";
 
 interface Branch {
   id: string;
@@ -31,12 +32,6 @@ const googleMapsUrl = (b: Branch) => b.latitude && b.longitude
   ? `https://www.google.com/maps/search/?api=1&query=${b.latitude},${b.longitude}`
   : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.name, b.address || b.location, b.city].filter(Boolean).join(", "))}`;
 
-const osmEmbedUrl = (b: Branch) => {
-  if (!b.latitude || !b.longitude) return "";
-  const lat = Number(b.latitude); const lon = Number(b.longitude);
-  const d = 0.005;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${lon-d},${lat-d},${lon+d},${lat+d}&layer=mapnik&marker=${lat},${lon}`;
-};
 
 export default function Branches() {
   const { language, isRTL } = useLanguage();
@@ -82,7 +77,7 @@ export default function Branches() {
                 {/* Map preview */}
                 <div className="relative h-56 bg-gradient-to-br from-[#f5f0eb] to-[#faf8f5] overflow-hidden">
                   {b.latitude && b.longitude ? (
-                    <iframe title={displayName} className="w-full h-full" loading="lazy" src={osmEmbedUrl(b)} />
+                    <AppleMapEmbed lat={Number(b.latitude)} lng={Number(b.longitude)} label={displayName} height={224} />
                   ) : b.image ? (
                     <img src={b.image} alt={displayName} className="w-full h-full object-cover" />
                   ) : (

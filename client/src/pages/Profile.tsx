@@ -10,22 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MapPin, User as UserIcon, Plus, Trash2, X, ChevronRight, Navigation, AlertCircle, Loader2, Award, Star, Gift, Zap } from "lucide-react";
+import { MapPin, User as UserIcon, Plus, Trash2, X, ChevronRight, AlertCircle, Loader2, Award, Star, Gift, Zap } from "lucide-react";
 import { useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { useLocation } from "wouter";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { LocationMap } from "@/components/LocationMap";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-const DefaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 const profileSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
@@ -115,46 +104,12 @@ function LoyaltyCard() {
   );
 }
 
-function LocationMarker({ position, setPosition }: { position: L.LatLng | null, setPosition: (pos: L.LatLng) => void }) {
-  const map = useMap();
-  useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    },
-  });
-  return position === null ? null : <Marker position={position} />;
-}
-
-function LocateMeButton({ setPosition }: { setPosition: (pos: L.LatLng) => void }) {
-  const map = useMap();
-  const handleLocate = () => {
-    map.locate().on("locationfound", (e) => {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    });
-  };
-  return (
-    <div className="absolute top-20 right-2 z-[1000]">
-      <Button
-        variant="secondary"
-        size="icon"
-        className="bg-white hover:bg-gray-100 shadow-md border border-gray-200"
-        onClick={handleLocate}
-        title="تحديد موقعي الحالي"
-      >
-        <Navigation className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-}
-
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showMap, setShowMap] = useState(false);
-  const [markerPosition, setMarkerPosition] = useState<L.LatLng | null>(null);
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [addressName, setAddressName] = useState("");
   const mustChange = new URLSearchParams(window.location.search).get("mustChangePassword") === "true";
 
@@ -372,13 +327,11 @@ export default function Profile() {
                   <span className="text-[10px] font-bold uppercase tracking-widest">حدد موقعك على الخريطة</span>
                   <Button variant="ghost" size="icon" onClick={() => setShowMap(false)}><X className="h-4 w-4" /></Button>
                 </div>
-                <div className="h-[300px] w-full relative z-[1]">
-                  <MapContainer center={[24.7136, 46.6753]} zoom={6} style={{ height: "100%", width: "100%" }}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <LocationMarker position={markerPosition} setPosition={setMarkerPosition} />
-                    <LocateMeButton setPosition={setMarkerPosition} />
-                  </MapContainer>
-                </div>
+                <LocationMap
+                  onLocationSelect={(coords) => setMarkerPosition(coords)}
+                  initialLat={24.7136}
+                  initialLng={46.6753}
+                />
                 <div className="space-y-4">
                   <div className="text-right">
                     <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-black/40">اسم العنوان (مثلاً: المنزل)</FormLabel>
