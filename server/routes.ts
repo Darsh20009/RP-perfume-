@@ -3793,6 +3793,16 @@ export async function registerRoutes(
   // ─── Employee Inbox (Zoho / Gmail / etc. via IMAP+SMTP) ─────────────────────
   // Helper: check inbox account ownership (admins bypass)
   const ADMIN_ROLES = ["admin", "assistant_manager", "tech_support"];
+  const INBOX_STAFF_ROLES = ["admin", "assistant_manager", "tech_support", "accountant", "legal_consultant", "employee", "cashier", "support"];
+
+  // Allow any authenticated staff user to access the inbox endpoints; ownership is enforced per-account below.
+  const inboxAccess = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated || !req.isAuthenticated()) return res.sendStatus(401);
+    const role = (req.user as any)?.role;
+    if (!INBOX_STAFF_ROLES.includes(role)) return res.status(403).json({ message: "ليس لديك صلاحية" });
+    next();
+  };
+
   async function assertAccountAccess(req: any, accountId: string): Promise<{ ok: true; account: any } | { ok: false; status: number; message: string }> {
     if (!accountId) return { ok: false, status: 400, message: "accountId مطلوب" };
     const account = await MailAccountModel.findById(accountId).lean();
@@ -3809,7 +3819,7 @@ export async function registerRoutes(
     res.json(PROVIDER_PRESETS);
   });
 
-  app.get("/api/admin/inbox/accounts", checkPermission("orders.view"), async (req, res) => {
+  app.get("/api/admin/inbox/accounts", inboxAccess, async (req, res) => {
     try {
       const userId = (req as any).user?._id || (req as any).user?.id;
       const isAdmin = ["admin", "assistant_manager", "tech_support"].includes((req as any).user?.role);
@@ -3880,7 +3890,21 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
-  app.post("/api/admin/inbox/accounts/:id/sync", checkPermission("orders.view"), async (req, res) => {
+  app.patch("/api/admin/inbox/accounts/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const { userId, displayName, color, isActive } = req.body || {};
+      const update: any = {};
+      if (typeof userId === "string") update.userId = userId;
+      if (typeof displayName === "string") update.displayName = displayName;
+      if (typeof color === "string") update.color = color;
+      if (typeof isActive === "boolean") update.isActive = isActive;
+      const account = await MailAccountModel.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
+      if (!account) return res.status(404).json({ message: "الحساب غير موجود" });
+      res.json({ id: account._id.toString(), email: account.email, userId: account.userId, displayName: account.displayName, color: account.color, isActive: account.isActive });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.post("/api/admin/inbox/accounts/:id/sync", inboxAccess, async (req, res) => {
     try {
       const chk = await assertAccountAccess(req, req.params.id);
       if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
@@ -3889,7 +3913,7 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
-  app.get("/api/admin/inbox/messages", checkPermission("orders.view"), async (req, res) => {
+  app.get("/api/admin/inbox/messages", inboxAccess, async (req, res) => {
     try {
       const { accountId, folder = "INBOX", q = "", filter = "all", page = "1", limit = "30" } = req.query as any;
       const chk = await assertAccountAccess(req, accountId);
@@ -3920,7 +3944,7 @@ export async function registerRoutes(
     return { ok: true as const, msg };
   }
 
-  app.get("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+  app.get("/api/admin/inbox/messages/:id", inboxAccess, async (req, res) => {
     try {
       const chk = await assertMessageAccess(req, req.params.id);
       if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
@@ -3928,7 +3952,7 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
-  app.patch("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+  app.patch("/api/admin/inbox/messages/:id", inboxAccess, async (req, res) => {
     try {
       const chk = await assertMessageAccess(req, req.params.id);
       if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
@@ -3938,7 +3962,7 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
-  app.delete("/api/admin/inbox/messages/:id", checkPermission("orders.view"), async (req, res) => {
+  app.delete("/api/admin/inbox/messages/:id", inboxAccess, async (req, res) => {
     try {
       const chk = await assertMessageAccess(req, req.params.id);
       if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
@@ -3947,7 +3971,7 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
-  app.post("/api/admin/inbox/send", checkPermission("orders.view"), async (req, res) => {
+  app.post("/api/admin/inbox/send", inboxAccess, async (req, res) => {
     try {
       const { accountId, to, cc, bcc, subject, html, text, inReplyTo, references } = req.body || {};
       if (!accountId || !to || !subject) return res.status(400).json({ message: "accountId, to, subject مطلوبة" });

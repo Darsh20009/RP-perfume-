@@ -14,8 +14,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Mail, Inbox, Send, Star, Trash2, Plus, RefreshCw, Search, Loader2,
   Reply, Forward, X, ChevronRight, Paperclip, AlertCircle, CheckCircle2,
-  Settings as SettingsIcon, Server, ShieldCheck, Sparkles
+  Settings as SettingsIcon, Server, ShieldCheck, Sparkles, UserCog, Save
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 type MailAccount = {
   id: string; userId: string; email: string; displayName: string;
@@ -529,10 +530,28 @@ export default function AdminInbox() {
 // ─── Account Dialog (add/manage) ──────────────────────────────────────────
 function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; onOpenChange: (b: boolean) => void; accounts?: MailAccount[] }) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = ["admin", "assistant_manager", "tech_support"].includes((user as any)?.role);
   const [showAddForm, setShowAddForm] = useState(accounts.length === 0);
   const [provider, setProvider] = useState("zoho");
-  const [form, setForm] = useState({ email: "", password: "", displayName: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465 });
+  const [form, setForm] = useState({ email: "", password: "", displayName: "", userId: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465 });
   const [testing, setTesting] = useState(false);
+  const [assignments, setAssignments] = useState<Record<string, string>>({});
+
+  // Fetch employees (admin only)
+  const { data: employees = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/users"],
+    enabled: isAdmin && open,
+  });
+  const staffOptions = (employees || []).filter((u: any) =>
+    ["admin", "assistant_manager", "tech_support", "accountant", "legal_consultant", "employee", "cashier", "support"].includes(u.role)
+  );
+
+  const employeeName = (uid: string) => {
+    if (!uid) return "غير معيّن (مشترك)";
+    const u = staffOptions.find((x: any) => (x.id || x._id) === uid);
+    return u ? `${u.fullName || u.username || u.phone}${u.role ? ` (${u.role})` : ""}` : "غير معروف";
+  };
 
   const handleProviderChange = (p: string) => {
     setProvider(p);
@@ -568,7 +587,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
     onSuccess: () => {
       toast({ title: "✅ تمت الإضافة", description: "جاري مزامنة الرسائل..." });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/inbox/accounts"] });
-      setForm({ email: "", password: "", displayName: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465 });
+      setForm({ email: "", password: "", displayName: "", userId: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465 });
       setShowAddForm(false);
     },
     onError: (e: any) => toast({ title: "فشلت الإضافة", description: e?.message, variant: "destructive" }),
@@ -582,6 +601,16 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
     },
   });
 
+  const assignMutation = useMutation({
+    mutationFn: async ({ id, userId }: { id: string; userId: string }) =>
+      apiRequest("PATCH", `/api/admin/inbox/accounts/${id}`, { userId }),
+    onSuccess: () => {
+      toast({ title: "✅ تم تحديث الإسناد" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/inbox/accounts"] });
+    },
+    onError: (e: any) => toast({ title: "فشل الإسناد", description: e?.message, variant: "destructive" }),
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
@@ -591,22 +620,64 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
 
         {!showAddForm && accounts.length > 0 && (
           <div className="space-y-2">
-            {accounts.map(a => (
-              <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-black" style={{ background: a.color }}>
-                  {a.email.charAt(0).toUpperCase()}
+            {accounts.map(a => {
+              const pending = assignments[a.id];
+              const currentAssign = pending !== undefined ? pending : (a.userId || "");
+              return (
+                <div key={a.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2" data-testid={`row-account-${a.id}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-black" style={{ background: a.color }}>
+                      {a.email.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-black text-[#1a2744] text-sm">{a.displayName}</p>
+                      <p className="text-[10px] text-slate-500 font-mono">{a.email}</p>
+                    </div>
+                    <Badge className="bg-slate-200 text-slate-700">{a.provider}</Badge>
+                    <Button onClick={() => deleteMutation.mutate(a.id)} size="sm" variant="ghost" className="text-red-500 hover:bg-red-50" data-testid={`button-delete-account-${a.id}`}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+                      <UserCog className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <Label className="text-[10px] font-bold text-slate-500 shrink-0">الموظف:</Label>
+                      <Select
+                        value={currentAssign || "__none__"}
+                        onValueChange={(v) => setAssignments({ ...assignments, [a.id]: v === "__none__" ? "" : v })}
+                      >
+                        <SelectTrigger className="h-8 text-xs flex-1" data-testid={`select-assign-${a.id}`}>
+                          <SelectValue placeholder="اختر موظف" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">— غير معيّن (مشترك) —</SelectItem>
+                          {staffOptions.map((u: any) => (
+                            <SelectItem key={u.id || u._id} value={u.id || u._id}>
+                              {u.fullName || u.username || u.phone} · {u.role}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={() => assignMutation.mutate({ id: a.id, userId: currentAssign })}
+                        disabled={assignMutation.isPending || pending === undefined || pending === (a.userId || "")}
+                        size="sm"
+                        className="h-8 gap-1 bg-[#1a2744] text-white text-[10px] font-bold"
+                        data-testid={`button-save-assign-${a.id}`}
+                      >
+                        <Save className="w-3 h-3" /> حفظ
+                      </Button>
+                    </div>
+                  )}
+                  {!isAdmin && a.userId && (
+                    <p className="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200">
+                      <UserCog className="w-3 h-3 inline ml-1" /> معيّن لـ: {employeeName(a.userId)}
+                    </p>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="font-black text-[#1a2744] text-sm">{a.displayName}</p>
-                  <p className="text-[10px] text-slate-500 font-mono">{a.email}</p>
-                </div>
-                <Badge className="bg-slate-200 text-slate-700">{a.provider}</Badge>
-                <Button onClick={() => deleteMutation.mutate(a.id)} size="sm" variant="ghost" className="text-red-500 hover:bg-red-50">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            <Button onClick={() => setShowAddForm(true)} className="w-full bg-[#c9a96e] hover:bg-[#b8944f] text-white rounded-xl gap-2 h-11 font-black">
+              );
+            })}
+            <Button onClick={() => setShowAddForm(true)} className="w-full bg-[#c9a96e] hover:bg-[#b8944f] text-white rounded-xl gap-2 h-11 font-black" data-testid="button-show-add-form">
               <Plus className="w-4 h-4" /> إضافة صندوق جديد
             </Button>
           </div>
@@ -643,6 +714,26 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
                 <Input value={form.displayName} onChange={e => setForm({ ...form, displayName: e.target.value })} placeholder="قسم المبيعات" className="h-10 rounded-lg" />
               </div>
             </div>
+
+            {isAdmin && (
+              <div>
+                <Label className="text-xs font-bold">إسناد لموظف</Label>
+                <Select value={form.userId || "__none__"} onValueChange={(v) => setForm({ ...form, userId: v === "__none__" ? "" : v })}>
+                  <SelectTrigger className="h-10 rounded-lg" data-testid="select-account-user">
+                    <SelectValue placeholder="اختر الموظف الذي يملك هذا الصندوق" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— غير معيّن (يراه الأدمن فقط) —</SelectItem>
+                    {staffOptions.map((u: any) => (
+                      <SelectItem key={u.id || u._id} value={u.id || u._id}>
+                        {u.fullName || u.username || u.phone} · {u.role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-slate-400 mt-1">الموظف يرى رسائل الإيميل المُسند له فقط. الأدمن يرى كل الإيميلات.</p>
+              </div>
+            )}
 
             <div>
               <Label className="text-xs font-bold">App Password *</Label>

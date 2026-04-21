@@ -52,6 +52,7 @@ const VendorsList = lazy(() => import("@/pages/VendorsList"));
 const CashDrawer = lazy(() => import("@/pages/CashDrawer"));
 const CashDrawerReport = lazy(() => import("@/pages/CashDrawerReport"));
 const AdminAbandonedCarts = lazy(() => import("@/pages/AdminAbandonedCarts"));
+const EmployeeInbox = lazy(() => import("@/pages/admin/AdminInbox"));
 const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPolicy"));
 const CustomPage = lazy(() => import("@/pages/CustomPage"));
 const Branches = lazy(() => import("@/pages/Branches"));
@@ -155,6 +156,9 @@ function Router() {
       </Route>
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
+      </Route>
+      <Route path="/inbox">
+        <ProtectedRoute component={EmployeeInbox} />
       </Route>
 
       {/* Admin Section */}
