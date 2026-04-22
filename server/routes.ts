@@ -1276,11 +1276,21 @@ export async function registerRoutes(
     }
   });
 
-  // Branches
+  // Branches — public list. Includes a lightweight inventory snapshot
+  // (sku → stock) so checkout can warn shoppers about out-of-stock items
+  // at the chosen pickup branch without exposing prices/costs.
   app.get("/api/branches", async (_req, res) => {
     try {
       const branches = await storage.getBranches();
-      res.json(branches);
+      const products = await storage.getProducts();
+      const stockBySku: Array<{ sku: string; stock: number }> = [];
+      for (const p of products as any[]) {
+        for (const v of (p.variants || [])) {
+          if (v?.sku) stockBySku.push({ sku: v.sku, stock: Number(v.stock) || 0 });
+        }
+      }
+      const enriched = branches.map((b: any) => ({ ...b, inventory: stockBySku }));
+      res.json(enriched);
     } catch (err: any) {
       console.error("[API] branches.list error:", err?.message);
       res.json([]);
@@ -1797,6 +1807,24 @@ export async function registerRoutes(
       if (!allowed) return res.status(403).json({ message: "ليس لديك صلاحية تحديث المخزون" });
       const stock = Math.max(0, Number(req.body?.stock) || 0);
       const item = await storage.updateBranchStock(req.params.id, stock);
+
+      // Real-time low-stock alert (≤ 5 units) → notify all admins + branch managers
+      const LOW = 5;
+      if (stock <= LOW) {
+        const branches = await storage.getBranches().catch(() => [] as any[]);
+        const branch = branches.find((b: any) => String(b.id || b._id) === String(req.branchId));
+        const branchName = branch?.name || req.branchId;
+        const title = stock === 0 ? "🚨 نفذ منتج من فرع" : "⚠️ مخزون منخفض في فرع";
+        const body = `${branchName}: SKU ${item.variantSku || req.params.id} — متبقّي ${stock} فقط`;
+        try {
+          await fireNotifyAdmins(title, body, {
+            type: stock === 0 ? "error" : "warning",
+            link: "/branch-dashboard",
+            icon: stock === 0 ? "🚨" : "⚠️",
+            webPush: true,
+          });
+        } catch (e) { /* best-effort */ }
+      }
       res.json(item);
     } catch (err: any) {
       console.error("[API] branch.inventory.update error:", err?.message);

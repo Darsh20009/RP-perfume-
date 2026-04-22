@@ -44,6 +44,19 @@ const paymentMethodLabel: Record<string, string> = {
   tamara: "Tamara — أقساط",
 };
 
+// ─── Auto-print when ?print=1 ───────────────────────────────────────────────
+function useAutoPrint(ready: boolean) {
+  useEffect(() => {
+    if (!ready) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("print") === "1") {
+      const t = setTimeout(() => window.print(), 600);
+      return () => clearTimeout(t);
+    }
+  }, [ready]);
+}
+
 // ─── Pickup QR / Code Card ──────────────────────────────────────────────────
 function PickupCodeCard({ orderId }: { orderId: string }) {
   const { data } = useQuery<{ pickupCode: string | null; pickupBranch: string | null }>({
@@ -287,6 +300,8 @@ export default function OrderDetail() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  useAutoPrint(!!order);
 
   if (!user) { setLocation("/login"); return null; }
 
