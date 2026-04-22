@@ -37,6 +37,7 @@ const STCCheckout = lazy(() => import("@/pages/STCCheckout"));
 const PaymobResult = lazy(() => import("@/pages/PaymobResult"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const AdminBranches = lazy(() => import("@/pages/AdminBranches"));
+const AdminBranchAnalytics = lazy(() => import("@/pages/AdminBranchAnalytics"));
 const AdminBranchInventory = lazy(() => import("@/pages/AdminBranchInventory"));
 const AdminStaff = lazy(() => import("@/pages/AdminStaff"));
 const AdminBanners = lazy(() => import("@/pages/AdminBanners"));
@@ -168,6 +169,9 @@ function Router() {
       </Route>
       <Route path="/admin/branches">
         <ProtectedRoute component={AdminBranches} permission="settings.manage" />
+      </Route>
+      <Route path="/admin/branch-analytics">
+        <ProtectedRoute component={AdminBranchAnalytics} />
       </Route>
       <Route path="/admin/staff">
         <ProtectedRoute component={AdminStaff} permission="staff.manage" />

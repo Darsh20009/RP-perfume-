@@ -58,6 +58,49 @@ function useAutoPrint(ready: boolean) {
 }
 
 // ─── Pickup QR / Code Card ──────────────────────────────────────────────────
+function OnMyWayButton({ orderId }: { orderId: string }) {
+  const { toast } = useToast();
+  const [eta, setEta] = useState(15);
+  const mut = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/orders/${orderId}/on-my-way`, { etaMin: eta });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "🚗 تم إعلام الفرع", description: "الفرع يستعد لاستقبالك" });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders", orderId] });
+    },
+    onError: (err: any) => {
+      toast({ title: "تعذّر الإرسال", description: err?.message || "حاول مرة أخرى", variant: "destructive" });
+    },
+  });
+  return (
+    <div className="bg-gradient-to-l from-blue-500 to-cyan-500 text-white rounded-3xl p-5 shadow-lg shadow-blue-500/30">
+      <p className="font-black text-lg mb-3">🚗 ذاهب للفرع الآن؟</p>
+      <p className="text-xs font-bold opacity-90 mb-3">أعلِم الموظف بقدومك ليكون طلبك جاهزاً عند وصولك</p>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs font-bold">وصول خلال:</span>
+        <select
+          value={eta}
+          onChange={(e) => setEta(Number(e.target.value))}
+          className="bg-white/20 border border-white/30 rounded-lg px-2 py-1 text-xs font-black"
+          data-testid="select-eta"
+        >
+          {[5, 10, 15, 20, 30, 45, 60].map(m => <option key={m} value={m} className="text-black">{m} دقيقة</option>)}
+        </select>
+      </div>
+      <button
+        onClick={() => mut.mutate()}
+        disabled={mut.isPending}
+        className="w-full bg-white text-blue-700 font-black py-3 rounded-2xl hover:bg-blue-50 transition disabled:opacity-50"
+        data-testid="button-on-my-way"
+      >
+        {mut.isPending ? "جاري الإرسال..." : "أنا في الطريق 🚀"}
+      </button>
+    </div>
+  );
+}
+
 function PickupCodeCard({ orderId }: { orderId: string }) {
   const { data } = useQuery<{ pickupCode: string | null; pickupBranch: string | null }>({
     queryKey: ["/api/orders", orderId, "pickup-code"],
@@ -375,6 +418,21 @@ export default function OrderDetail() {
 
         {/* ── Content ─── */}
         <div className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+          {/* On-my-way confirmation */}
+          {(order as any).customerOnWay && !(order as any).pickupVerified && (
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-4 text-center" data-testid="banner-on-way-confirmed">
+              <p className="font-black text-blue-900">🚗 تم إعلام الفرع بقدومك — في انتظارك</p>
+              <p className="text-xs text-blue-700 font-bold mt-1">
+                تم الإرسال {new Date((order as any).customerOnWayAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            </div>
+          )}
+
+          {/* Pickup ready banner + "On my way" CTA */}
+          {(order as any).shippingMethod === "pickup" && (order as any).status === "ready_for_pickup" && !(order as any).pickupVerified && !(order as any).customerOnWay && (
+            <OnMyWayButton orderId={order.id} />
+          )}
 
           {/* Pickup ready banner */}
           {(order as any).shippingMethod === "pickup" && (order as any).status === "ready_for_pickup" && !(order as any).pickupVerified && (

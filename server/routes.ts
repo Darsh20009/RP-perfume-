@@ -1838,6 +1838,160 @@ export async function registerRoutes(
     }
   });
 
+  // Customer "I'm on my way" — alert branch staff that customer is heading over
+  app.post("/api/orders/:id/on-my-way", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const user = req.user as any;
+      const order: any = await storage.getOrder(req.params.id);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+      if (String(order.userId) !== String(user._id || user.id)) return res.sendStatus(403);
+      if (order.shippingMethod !== "pickup") return res.status(400).json({ message: "هذا الطلب ليس استلام من فرع" });
+      if (order.pickupVerified) return res.status(400).json({ message: "تم استلام هذا الطلب مسبقاً" });
+
+      const eta = Math.max(1, Math.min(120, Number(req.body?.etaMin ?? 15)));
+      await OrderModel.updateOne(
+        { _id: order._id },
+        { $set: { customerOnWay: true, customerOnWayAt: new Date(), customerOnWayEtaMin: eta } }
+      );
+
+      // Notify branch employees + admins
+      try {
+        const { UserModel } = await import("./models");
+        const branchUsers = order.pickupBranch
+          ? await UserModel.find({ branchId: order.pickupBranch }).select("_id").lean()
+          : [];
+        const ref = String(order._id).slice(-6).toUpperCase();
+        const title = "🚗 العميل في الطريق";
+        const body = `طلب #${ref} — العميل ${user.name || ""} في الطريق (وصول خلال ${eta} دقيقة)`;
+        await Promise.allSettled(
+          branchUsers.map((u: any) =>
+            fireNotify(String(u._id), title, body, {
+              type: "info", link: "/branch-dashboard", icon: "🚗", webPush: true,
+            })
+          )
+        );
+        await fireNotifyAdmins(title, body, { type: "info", link: "/admin", icon: "🚗" });
+      } catch (e: any) { console.warn("[on-my-way] notify err:", e?.message); }
+
+      res.json({ ok: true, etaMin: eta });
+    } catch (err: any) {
+      console.error("[API] on-my-way error:", err?.message);
+      res.status(500).json({ message: "خطأ في إرسال الإشعار" });
+    }
+  });
+
+  // Admin: per-branch analytics (revenue, pickups, fulfillment, inventory health)
+  app.get("/api/admin/branches/analytics", async (req: any, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "assistant_manager"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const branches = await storage.getBranches();
+      const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
+      const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+
+      const rows = await Promise.all(branches.map(async (b: any) => {
+        const orders = await storage.getOrdersByBranch(b.id || b._id).catch(() => [] as any[]);
+        const monthOrders = orders.filter((o: any) => new Date(o.createdAt) >= startOfMonth);
+        const todayOrders = orders.filter((o: any) => new Date(o.createdAt) >= startOfDay);
+        const completed = monthOrders.filter((o: any) => o.status === "completed" || o.pickupVerified);
+        const revenueMonth = completed.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+        const todayPickups = todayOrders.filter((o: any) =>
+          o.pickupVerified && new Date(o.pickupVerifiedAt || 0) >= startOfDay
+        ).length;
+        const pendingPickups = orders.filter((o: any) =>
+          o.shippingMethod === "pickup" && !o.pickupVerified && o.status !== "cancelled"
+        ).length;
+        const onWay = orders.filter((o: any) => o.customerOnWay && !o.pickupVerified).length;
+
+        // Fulfillment: avg minutes from createdAt → pickupVerifiedAt
+        const fulfilled = orders.filter((o: any) => o.pickupVerified && o.pickupVerifiedAt && o.createdAt);
+        const avgMinutes = fulfilled.length
+          ? Math.round(fulfilled.reduce((s: number, o: any) =>
+              s + (new Date(o.pickupVerifiedAt).getTime() - new Date(o.createdAt).getTime()) / 60000, 0
+            ) / fulfilled.length)
+          : 0;
+
+        const inv = await storage.getBranchInventory(b.id || b._id).catch(() => [] as any[]);
+        const lowStock = inv.filter((i: any) => Number(i.stock || 0) <= 5).length;
+        const outOfStock = inv.filter((i: any) => Number(i.stock || 0) === 0).length;
+
+        return {
+          branchId: b.id || b._id,
+          name: b.name,
+          city: b.city || "",
+          revenueMonth,
+          ordersMonth: monthOrders.length,
+          todayOrders: todayOrders.length,
+          todayPickups,
+          pendingPickups,
+          onWay,
+          avgFulfillmentMin: avgMinutes,
+          totalProducts: inv.length,
+          lowStock,
+          outOfStock,
+        };
+      }));
+
+      // Sort by revenue desc
+      rows.sort((a, b) => b.revenueMonth - a.revenueMonth);
+      res.json({
+        branches: rows,
+        totals: {
+          revenueMonth: rows.reduce((s, r) => s + r.revenueMonth, 0),
+          ordersMonth: rows.reduce((s, r) => s + r.ordersMonth, 0),
+          todayPickups: rows.reduce((s, r) => s + r.todayPickups, 0),
+          pendingPickups: rows.reduce((s, r) => s + r.pendingPickups, 0),
+          onWay: rows.reduce((s, r) => s + r.onWay, 0),
+        },
+      });
+    } catch (err: any) {
+      console.error("[API] branches.analytics error:", err?.message);
+      res.status(500).json({ message: "خطأ في جلب الإحصائيات" });
+    }
+  });
+
+  // End-of-day shift summary for branch employees
+  app.get("/api/branch/shift-summary", branchAccess, async (req: any, res) => {
+    try {
+      const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+      const orders = await storage.getOrdersByBranch(req.branchId).catch(() => [] as any[]);
+      const todayOrders = orders.filter((o: any) => new Date(o.createdAt) >= startOfDay);
+      const todayDelivered = orders.filter((o: any) =>
+        o.pickupVerified && o.pickupVerifiedAt && new Date(o.pickupVerifiedAt) >= startOfDay
+      );
+      const revenue = todayDelivered.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
+      const pending = orders.filter((o: any) =>
+        o.shippingMethod === "pickup" && !o.pickupVerified && o.status !== "cancelled"
+      );
+      const inventory = await storage.getBranchInventory(req.branchId).catch(() => [] as any[]);
+      const branches = await storage.getBranches().catch(() => [] as any[]);
+      const branch: any = branches.find((b: any) => String(b.id || b._id) === String(req.branchId)) || null;
+
+      res.json({
+        date: startOfDay.toISOString(),
+        branchName: branch?.name || "",
+        ordersToday: todayOrders.length,
+        deliveredToday: todayDelivered.length,
+        revenueToday: revenue,
+        pendingPickups: pending.length,
+        lowStockCount: inventory.filter((i: any) => Number(i.stock || 0) <= 5).length,
+        outOfStockCount: inventory.filter((i: any) => Number(i.stock || 0) === 0).length,
+        deliveredOrders: todayDelivered.map((o: any) => ({
+          id: o.id || o._id,
+          ref: String(o.id || o._id).slice(-6).toUpperCase(),
+          total: Number(o.total || 0),
+          customerName: o.customerName || o.shippingName || "",
+          verifiedAt: o.pickupVerifiedAt,
+        })),
+      });
+    } catch (err: any) {
+      console.error("[API] shift-summary error:", err?.message);
+      res.status(500).json({ message: "خطأ في تجهيز التقرير" });
+    }
+  });
+
   // Branch dashboard stats: today's pickups, pending pickups, low-stock count, last inventory update
   app.get("/api/branch/stats", branchAccess, async (req: any, res) => {
     try {

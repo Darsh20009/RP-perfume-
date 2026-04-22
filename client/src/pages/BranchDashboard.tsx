@@ -15,8 +15,57 @@ import {
 import {
   ScanLine, Package, Printer, AlertTriangle, CheckCircle,
   Loader2, Search, RefreshCw, ShoppingBag, MapPin, Save,
-  Clock, TrendingUp, AlertCircle,
+  Clock, TrendingUp, AlertCircle, FileText,
 } from "lucide-react";
+
+function ShiftSummaryButton() {
+  const handleDownload = async () => {
+    const res = await fetch("/api/branch/shift-summary");
+    if (!res.ok) return;
+    const data = await res.json();
+    const html = `
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير اليوم — ${data.branchName}</title>
+<style>
+body{font-family:system-ui,sans-serif;padding:30px;color:#1a2744;max-width:800px;margin:0 auto}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:16px;margin:24px 0 8px;border-bottom:2px solid #c9a96e;padding-bottom:6px}
+.meta{color:#888;font-size:12px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.kpi{border:1px solid #eee;border-radius:12px;padding:16px;text-align:center}
+.kpi .v{font-size:28px;font-weight:900;color:#1a2744}
+.kpi .l{font-size:11px;color:#666;font-weight:700;margin-top:4px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{padding:8px;text-align:right;border-bottom:1px solid #eee}
+th{background:#f8f8f8;font-weight:800}
+.total{background:linear-gradient(135deg,#c9a96e,#a08a52);color:white;border-radius:12px;padding:18px;text-align:center;margin-top:20px}
+.total .v{font-size:36px;font-weight:900}
+@media print{button{display:none}}
+</style></head><body>
+<h1>تقرير اليوم — ${data.branchName || "الفرع"}</h1>
+<div class="meta">${new Date(data.date).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div>
+<div class="grid">
+  <div class="kpi"><div class="v">${data.deliveredToday}</div><div class="l">مسلَّم اليوم</div></div>
+  <div class="kpi"><div class="v">${data.ordersToday}</div><div class="l">طلبات جديدة</div></div>
+  <div class="kpi"><div class="v">${data.pendingPickups}</div><div class="l">بانتظار الاستلام</div></div>
+  <div class="kpi"><div class="v">${data.lowStockCount}</div><div class="l">مخزون منخفض</div></div>
+</div>
+<h2>الطلبات المسلَّمة (${data.deliveredOrders.length})</h2>
+<table><thead><tr><th>المرجع</th><th>العميل</th><th>المبلغ</th><th>وقت التسليم</th></tr></thead><tbody>
+${data.deliveredOrders.map((o:any)=>`<tr><td>#${o.ref}</td><td>${o.customerName||"-"}</td><td>${o.total} ر.س</td><td>${new Date(o.verifiedAt).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("") || '<tr><td colspan="4" style="text-align:center;color:#888">لا توجد عمليات تسليم اليوم</td></tr>'}
+</tbody></table>
+<div class="total"><div class="l" style="font-size:11px;opacity:.85;font-weight:700">إجمالي إيرادات اليوم</div><div class="v">${Number(data.revenueToday).toLocaleString()} ر.س</div></div>
+<div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="background:#1a2744;color:white;border:0;padding:10px 24px;border-radius:10px;font-weight:800;cursor:pointer">🖨️ طباعة</button></div>
+</body></html>`;
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); }
+  };
+  return (
+    <Button variant="outline" size="sm" onClick={handleDownload} data-testid="button-shift-summary">
+      <FileText className="h-4 w-4 ml-1" />
+      تقرير اليوم
+    </Button>
+  );
+}
 
 const LOW_STOCK_THRESHOLD = 5;
 
@@ -107,6 +156,7 @@ function PickupScanner() {
 function BranchOrdersTab() {
   const { data: orders = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/branch/orders"],
+    refetchInterval: 20_000,
   });
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pickup" | "pending" | "completed">("all");
@@ -124,11 +174,49 @@ function BranchOrdersTab() {
         (o.deliveryAddress || "").toLowerCase().includes(s)
       );
     }
-    return list;
+    // Sort: customers on the way first, then ready_for_pickup, then by createdAt desc
+    return [...list].sort((a, b) => {
+      const aw = a.customerOnWay && !a.pickupVerified ? 1 : 0;
+      const bw = b.customerOnWay && !b.pickupVerified ? 1 : 0;
+      if (aw !== bw) return bw - aw;
+      const ar = a.status === "ready_for_pickup" ? 1 : 0;
+      const br = b.status === "ready_for_pickup" ? 1 : 0;
+      if (ar !== br) return br - ar;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
   }, [orders, filter, search]);
+
+  const onTheWay = orders.filter((o: any) => o.customerOnWay && !o.pickupVerified);
 
   return (
     <div className="space-y-4">
+      {/* Live "customers on the way" banner */}
+      {onTheWay.length > 0 && (
+        <Card className="p-4 bg-gradient-to-l from-blue-500 to-cyan-500 text-white border-0 shadow-lg shadow-blue-500/30 no-print">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl animate-bounce">🚗</div>
+            <div className="flex-1">
+              <p className="font-black text-base">{onTheWay.length} عميل في الطريق إلى الفرع</p>
+              <p className="text-xs opacity-90 font-bold">جهّز طلباتهم للتسليم السريع</p>
+            </div>
+          </div>
+          <div className="space-y-1.5 mt-3">
+            {onTheWay.slice(0, 5).map((o: any) => {
+              const minsAgo = Math.floor((Date.now() - new Date(o.customerOnWayAt).getTime()) / 60000);
+              const remaining = Math.max(0, (o.customerOnWayEtaMin || 15) - minsAgo);
+              return (
+                <div key={o.id} className="bg-white/15 rounded-xl px-3 py-2 flex items-center justify-between text-xs font-bold" data-testid={`onway-${o.id}`}>
+                  <span className="font-mono">#{(o.id || "").slice(-6).toUpperCase()}</span>
+                  <span>{o.total} ر.س</span>
+                  <span className={remaining < 3 ? "bg-amber-300 text-amber-900 px-2 py-0.5 rounded-lg" : ""}>
+                    {remaining > 0 ? `يصل خلال ~${remaining} د` : "وصل تقريباً"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute right-3 top-3 h-4 w-4 text-gray-700" />
@@ -358,6 +446,7 @@ export default function BranchDashboard() {
               <RefreshCw className="h-4 w-4 ml-1" />
               تحديث
             </Button>
+            <ShiftSummaryButton />
           </div>
 
           {/* Daily reminder banner */}

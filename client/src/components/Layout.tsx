@@ -181,6 +181,9 @@ export function Layout({ children }: { children: ReactNode }) {
                         })),
                         ...(user ? [{ href: "/orders", icon: Package, label: t('myOrders') }] : []),
                         ...(user?.role === 'admin' ? [{ href: "/admin", icon: LayoutDashboard, label: t('adminPanel'), accent: true, badge: pendingAdminCount }] : []),
+                        ...(user?.role === 'admin' || user?.role === 'assistant_manager'
+                          ? [{ href: "/admin/branch-analytics", icon: LayoutDashboard, label: language === 'ar' ? 'تحليلات الفروع' : 'Branch Analytics' }]
+                          : []),
                         ...((user?.role === 'admin' || (user?.permissions || []).some((p: string) => p.startsWith('branch.'))) && user?.branchId
                           ? [{ href: "/branch-dashboard", icon: Package, label: language === 'ar' ? 'لوحة الفرع' : 'Branch Dashboard', accent: true }]
                           : []),
