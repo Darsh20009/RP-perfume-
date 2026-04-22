@@ -151,7 +151,7 @@ export async function cancelOrder(opts: CancelOptions) {
         await sendEmail({
           to: user.email,
           toName: user.name,
-          subject: `تم إلغاء طلبك #${ref} — رفيف العود`,
+          subject: `تم إلغاء طلبك #${ref} — عطور آر اف`,
           html,
         }).catch(() => {});
       }

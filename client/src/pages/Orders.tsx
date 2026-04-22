@@ -286,7 +286,7 @@ const OrderCard = ({ order }: { order: any }) => {
 .footer{text-align:center;margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
 </style></head>
 <body>
-<div class="header"><div><img src="https://rfperfume.sa/images/logos/logo-dark-nobg.png" alt="رفيف العود" style="height:48px;margin-bottom:6px"/><h1 style="margin:0;font-size:24px;font-weight:900">رفيف العود</h1>
+<div class="header"><div><img src="https://rfperfume.sa/images/logos/logo-dark-nobg.png" alt="عطور آر اف" style="height:48px;margin-bottom:6px"/><h1 style="margin:0;font-size:24px;font-weight:900">عطور آر اف</h1>
 <p style="margin:5px 0;color:#666;font-size:11px;letter-spacing:0.2em">RF PERFUME · LUXURY FRAGRANCES</p></div>
 <div style="text-align:left"><h2 style="margin:0">فاتورة ضريبية</h2>
 <p>#${order.id.slice(-6).toUpperCase()}</p>
@@ -300,7 +300,7 @@ const OrderCard = ({ order }: { order: any }) => {
 <div class="total-row" style="font-size:20px"><span>الإجمالي</span><span>${Number(order.total).toFixed(2)} ر.س</span></div>
 </div>
 <div style="text-align:center;margin-top:40px">${qrUrl ? `<img src="${qrUrl}" width="150"/><p style="font-size:9px;color:#999;margin-top:6px;letter-spacing:0.1em">ZATCA · رمز الفاتورة الإلكترونية</p>` : ""}</div>
-<div class="footer">رفيف العود • الرقم الضريبي: ${vatNumber}</div>
+<div class="footer">عطور آر اف • الرقم الضريبي: ${vatNumber}</div>
 </body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);

@@ -32,7 +32,7 @@ export function SupportChat() {
     if (messages.length === 0) {
       setMessages([{
         role: "assistant",
-        content: "أهلاً بك في دعم رفيف العود! 🎧 كيف أقدر أساعدك اليوم؟ يمكنني مساعدتك في:\n\n• تتبع طلبك\n• معلومات عن المنتجات\n• سياسة الاسترجاع\n• أي استفسار آخر"
+        content: "أهلاً بك في دعم عطور آر اف! 🎧 كيف أقدر أساعدك اليوم؟ يمكنني مساعدتك في:\n\n• تتبع طلبك\n• معلومات عن المنتجات\n• سياسة الاسترجاع\n• أي استفسار آخر"
       }]);
     }
   };
@@ -92,7 +92,7 @@ export function SupportChat() {
                   <Headphones className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-black text-sm text-gray-800">دعم رفيف العود</h4>
+                  <h4 className="font-black text-sm text-gray-800">دعم عطور آر اف</h4>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-[10px] text-gray-700 font-bold">متصل الآن</span>
@@ -153,7 +153,7 @@ export function SupportChat() {
                 </button>
               </div>
               <p className="text-[9px] text-gray-700 text-center mt-2 font-bold">
-                دعم ذكي · رفيف العود
+                دعم ذكي · عطور آر اف
               </p>
             </div>
           </motion.div>

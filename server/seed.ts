@@ -19,14 +19,14 @@ export async function seed() {
   await UserModel.deleteMany({ phone: "567326086" });
   await UserModel.deleteMany({ phone: "567891011" });
   
-  // Create رفيف العود admin user
-  console.log("Seeding رفيف العود admin user...");
+  // Create عطور آر اف admin user
+  console.log("Seeding عطور آر اف admin user...");
   const password = await hashPassword("123456");
   await storage.createUser({
     phone: "567891011",
     password,
     role: "admin",
-    name: "رفيف العود",
+    name: "عطور آر اف",
     username: "567891011",
     email: "rf-purfume@outlook.com",
     walletBalance: "0",
@@ -104,7 +104,7 @@ export async function seed() {
     });
 
     await storage.createProduct({
-      name: "عطر رفيف المسك",
+      name: "عطر آر اف المسك",
       description: "عطر مسك أبيض نقي مع لمسات من الورد الطائفي والعنبر",
       price: "350",
       cost: "140",
@@ -159,7 +159,7 @@ export async function seed() {
   } else {
     const productCategoryMap: Record<string, string[]> = {
       "عطر العود الملكي": ["men", "oud"],
-      "عطر رفيف المسك": ["women", "unisex"],
+      "عطر آر اف المسك": ["women", "unisex"],
       "بخور دخون الفخامة": ["oud"],
       "عطر ليلة سعودية": ["unisex", "men"],
     };

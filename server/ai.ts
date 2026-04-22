@@ -99,7 +99,7 @@ export async function getBusinessInsights(data: {
 }) {
   const lang = pickLang(data.lang);
   const prompt = lang === "ar"
-    ? `أنت محلل أعمال خبير. حلّل هذه البيانات لمتجر رفيف العود وقدم تقريراً مختصراً وقابلاً للتطبيق:
+    ? `أنت محلل أعمال خبير. حلّل هذه البيانات لمتجر عطور آر اف وقدم تقريراً مختصراً وقابلاً للتطبيق:
 
 البيانات (آخر ${data.periodDays || 30} يوم):
 - إجمالي الطلبات: ${data.totalOrders}

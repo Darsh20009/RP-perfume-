@@ -20,7 +20,7 @@ export function buildZatcaTlvBase64(params: {
   vatAmount: number;
 }): string {
   const buf = Buffer.concat([
-    tlv(1, params.sellerName || "رفيف العود"),
+    tlv(1, params.sellerName || "عطور آر اف"),
     tlv(2, params.vatNumber || ""),
     tlv(3, params.timestamp.toISOString().replace(/\.\d{3}Z$/, "Z")),
     tlv(4, params.total.toFixed(2)),

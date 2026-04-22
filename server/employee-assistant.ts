@@ -611,9 +611,9 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
 .body{padding:40px 32px;color:#1a1a1a;font-size:14px;line-height:1.8}
 .footer{background:#000;color:rgba(255,255,255,.4);padding:20px;text-align:center;font-size:11px}
 </style></head><body><div class="wrap">
-<div class="header"><img src="${LOGO_BASE64}" alt=""/><div class="brand">رفيف العود</div><div class="sub">RF PERFUME · LUXURY FRAGRANCES</div></div>
+<div class="header"><img src="${LOGO_BASE64}" alt=""/><div class="brand">عطور آر اف</div><div class="sub">RF PERFUME · LUXURY FRAGRANCES</div></div>
 <div class="body">${args.messageHtml}</div>
-<div class="footer">© ${new Date().getFullYear()} رفيف العود — جميع الحقوق محفوظة</div>
+<div class="footer">© ${new Date().getFullYear()} عطور آر اف — جميع الحقوق محفوظة</div>
 </div></body></html>`;
         await sendEmail({ to: args.to, subject: args.subject, html: wrapped });
         return { ok: true, message: `Email sent to ${args.to}` };
@@ -636,7 +636,7 @@ async function execTool(name: string, args: any, _user: any): Promise<any> {
 
 // ─── System Prompts (bilingual) ─────────────────────────────────────────────
 
-const SYSTEM_PROMPT_AR = (today: string, role: string, name: string) => `أنت "لمسة" 🌸 — مساعدة موظفي رفيف العود الذكية والذكية جداً.
+const SYSTEM_PROMPT_AR = (today: string, role: string, name: string) => `أنت "لمسة" 🌸 — مساعدة موظفي عطور آر اف الذكية والذكية جداً.
 
 🎯 **هويتك ومهمتك:**
 - اسمك "لمسة"، خبيرة تشغيل متجر عطور فاخر، عملية وسريعة وذكية

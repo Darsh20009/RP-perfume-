@@ -877,7 +877,7 @@ export default function Checkout() {
                             <div className="mt-2 pt-4 border-t border-primary/10 space-y-3">
                               <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2 text-sm">
                                 <p className="font-black">{storeSettings?.bankName || "مصرف الراجحي"}</p>
-                                <p className="text-gray-600 font-bold">الاسم: {storeSettings?.bankAccountHolder || "رفيف العود"}</p>
+                                <p className="text-gray-600 font-bold">الاسم: {storeSettings?.bankAccountHolder || "عطور آر اف"}</p>
                                 <p className="font-mono text-gray-600 text-xs">IBAN: {storeSettings?.bankIBAN || "SA6280000501608016226411"}</p>
                               </div>
                               <div>

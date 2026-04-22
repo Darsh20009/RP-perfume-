@@ -521,7 +521,7 @@ export default function OrderDetail() {
             >
               <CheckCircle className="h-10 w-10 mx-auto mb-3 text-white" />
               <p className="font-black text-xl mb-1">وصل طلبك بسلامة!</p>
-              <p className="text-white/70 text-sm font-bold">نتمنى تكون راضي عن تجربتك مع رفيف العود</p>
+              <p className="text-white/70 text-sm font-bold">نتمنى تكون راضي عن تجربتك مع عطور آر اف</p>
               <div className="flex items-center justify-center gap-1 mt-4">
                 {[1,2,3,4,5].map(s => <Star key={s} className="h-6 w-6 fill-white/40 text-white/40 hover:fill-white hover:text-white cursor-pointer transition-all" />)}
               </div>

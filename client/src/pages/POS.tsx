@@ -122,7 +122,7 @@ export default function POS() {
     
     // ZATCA QR Code Data (Simplified for this version)
     // In a real production app, this would be a Base64 TLV encoded string
-    const qrData = `Seller: ${branch?.name || "رفيف العود"}\nVAT: 312037024200003\nTime: ${new Date().toISOString()}\nTotal: ${finalTotal.toFixed(2)}\nTax: ${taxAmount.toFixed(2)}`;
+    const qrData = `Seller: ${branch?.name || "عطور آر اف"}\nVAT: 312037024200003\nTime: ${new Date().toISOString()}\nTotal: ${finalTotal.toFixed(2)}\nTax: ${taxAmount.toFixed(2)}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
 
     const printContent = `<!DOCTYPE html>
@@ -146,7 +146,7 @@ export default function POS() {
 </head>
 <body>
   <div class="header">
-    <h2>${branch?.name || "رفيف العود"}</h2>
+    <h2>${branch?.name || "عطور آر اف"}</h2>
     <p>الرقم الضريبي: 312037024200003</p>
     <p>فاتورة ضريبية مبسطة</p>
   </div>

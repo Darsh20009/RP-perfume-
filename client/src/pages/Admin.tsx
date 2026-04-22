@@ -188,14 +188,14 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
             </div>
             <div className="relative">
               <div className="absolute inset-0 rounded-2xl bg-[#c9a96e]/30 blur-xl" />
-              <img src="/brand-logo.png" alt="رفيف العود" className="relative w-14 h-14 object-contain drop-shadow-[0_4px_12px_rgba(201,169,110,0.5)]" />
+              <img src="/brand-logo.png" alt="عطور آر اف" className="relative w-14 h-14 object-contain drop-shadow-[0_4px_12px_rgba(201,169,110,0.5)]" />
             </div>
           </div>
 
           <div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">
               <span className="bg-gradient-to-l from-[#c9a96e] via-[#e8d4a3] to-[#c9a96e] bg-clip-text text-transparent">
-                لوحة تحكم رفيف العود
+                لوحة تحكم عطور آر اف
               </span>
             </h1>
             <p className="mt-2 text-xs md:text-sm font-semibold text-white/60 tracking-wide" dir="ltr">
@@ -4339,7 +4339,7 @@ const StoreSettingsPanel = () => {
 
   useEffect(() => {
     if (settings) {
-      setStoreName(settings.storeName ?? "رفيف العود");
+      setStoreName(settings.storeName ?? "عطور آر اف");
       setStorePhone(settings.storePhone ?? "");
       setStoreEmail(settings.storeEmail ?? "");
       setStoreAddress(settings.storeAddress ?? "");
@@ -4371,7 +4371,7 @@ const StoreSettingsPanel = () => {
     }
     if (settings) {
       setBankName(settings.bankName ?? "مصرف الراجحي");
-      setBankAccountHolder(settings.bankAccountHolder ?? "رفيف العود");
+      setBankAccountHolder(settings.bankAccountHolder ?? "عطور آر اف");
       setBankIBAN(settings.bankIBAN ?? "SA6280000501608016226411");
       setBankAccountNumber(settings.bankAccountNumber ?? "");
       setBankLogo(settings.bankLogo ?? "");
@@ -4631,7 +4631,7 @@ const StoreSettingsPanel = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-black uppercase">عنوان الصفحة (عربي)</Label>
-              <Input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} className="font-bold" maxLength={70} placeholder="رفيف العود — عطور فاخرة" data-testid="input-seo-title" />
+              <Input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} className="font-bold" maxLength={70} placeholder="عطور آر اف — عطور فاخرة" data-testid="input-seo-title" />
               <p className="text-[10px] text-muted-foreground">{seoTitle.length}/70</p>
             </div>
             <div className="space-y-2">
@@ -4737,7 +4737,7 @@ const StoreSettingsPanel = () => {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-black uppercase">اسم صاحب الحساب</Label>
-            <Input value={bankAccountHolder} onChange={e => setBankAccountHolder(e.target.value)} placeholder="رفيف العود" className="font-bold" />
+            <Input value={bankAccountHolder} onChange={e => setBankAccountHolder(e.target.value)} placeholder="عطور آر اف" className="font-bold" />
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-black uppercase">رقم الآيبان (IBAN)</Label>
@@ -5066,10 +5066,10 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
       >
         {/* Header / Logo */}
         <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-slate-200">
-          <img src={logoDarkImg} alt="رفيف العود" className="w-9 h-9 rounded-xl object-cover shrink-0" />
+          <img src={logoDarkImg} alt="عطور آر اف" className="w-9 h-9 rounded-xl object-cover shrink-0" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="font-black text-sm text-[#1a2744] tracking-tight whitespace-nowrap">رفيف العود</p>
+              <p className="font-black text-sm text-[#1a2744] tracking-tight whitespace-nowrap">عطور آر اف</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <PulseRing color="bg-[#c9a96e]" />
                 <span className="text-[9px] text-[#c9a96e] font-bold uppercase tracking-widest">لوحة التحكم</span>

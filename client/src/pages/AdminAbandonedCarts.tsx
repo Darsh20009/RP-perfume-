@@ -236,7 +236,7 @@ export default function AdminAbandonedCarts() {
                 <Textarea
                   value={customMessage}
                   onChange={e => setCustomMessage(e.target.value)}
-                  placeholder="مثلاً: عرض خاص لك من رفيف العود..."
+                  placeholder="مثلاً: عرض خاص لك من عطور آر اف..."
                   rows={3}
                   data-testid="input-custom-message"
                 />

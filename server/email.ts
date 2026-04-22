@@ -22,7 +22,7 @@ function getCredentials() {
   return {
     apiKey,
     sender: process.env.EMAIL_SENDER || "noreply@rfperfume.sa",
-    senderName: process.env.EMAIL_SENDER_NAME || "رفيف العود",
+    senderName: process.env.EMAIL_SENDER_NAME || "عطور آر اف",
   };
 }
 
@@ -107,7 +107,7 @@ function baseTemplate(title: string, content: string): string {
           <tr>
             <td align="center" bgcolor="#0f1a2e" style="background:#0f1a2e;background-image:linear-gradient(135deg,#0f1a2e 0%,#1a2744 35%,#243154 65%,#1a2744 100%);padding:28px 20px;line-height:1;font-size:0;border-bottom:1px solid rgba(201,169,110,0.25);">
               <!--[if mso]><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center"><tr><td align="center"><![endif]-->
-              <img src="${BANNER_URL}" alt="رفيف العود — RF Perfume Luxury Fragrances" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;margin:0 auto;" />
+              <img src="${BANNER_URL}" alt="عطور آر اف — RF Perfume Luxury Fragrances" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;margin:0 auto;" />
               <!-- CSS-only fallback that always shows (becomes visible if image fails / is blocked) -->
               <div style="color:#c9a96e;font-size:11px;font-weight:900;letter-spacing:0.4em;text-transform:uppercase;margin-top:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;line-height:1.2;">RF Perfume · Luxury Fragrances</div>
               <!--[if mso]></td></tr></table><![endif]-->
@@ -126,7 +126,7 @@ function baseTemplate(title: string, content: string): string {
                   </td>
                 </tr>
               </table>
-              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.18em;line-height:1.2;margin-top:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">رفيف العود</div>
+              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.18em;line-height:1.2;margin-top:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">عطور آر اف</div>
               <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">${SITE.DOMAIN}</div>
             </td>
           </tr>
@@ -140,7 +140,7 @@ function baseTemplate(title: string, content: string): string {
           <tr>
             <td align="center" style="background-color:#0f1a2e;padding:32px 40px;">
               <p style="margin:0 0 12px;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-                &copy; ${new Date().getFullYear()} رفيف العود &mdash; جميع الحقوق محفوظة
+                &copy; ${new Date().getFullYear()} عطور آر اف &mdash; جميع الحقوق محفوظة
               </p>
               <p style="margin:0 0 16px;font-size:11px;line-height:1.6;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
                 <a href="${SITE.URL}" style="color:#c9a96e;text-decoration:none;font-weight:700;">${SITE.DOMAIN}</a>
@@ -273,7 +273,7 @@ export async function sendOrderConfirmationEmail(params: {
   shippingCompany?: string;
 }) {
   const paymentLabels: Record<string, string> = {
-    wallet: "محفظة رفيف",
+    wallet: "محفظة آر اف",
     bank_transfer: "تحويل بنكي",
     tap: "بطاقة بنكية",
     stc_pay: "STC Pay",
@@ -352,7 +352,7 @@ export async function sendOrderConfirmationEmail(params: {
     toName: params.customerName,
     subject: `✅ تم استلام طلبك #${params.orderRef} | Order #${params.orderRef} Received — RF Perfume`,
     html: baseTemplate(`تأكيد الطلب #${params.orderRef} / Order Confirmation`, content + enMirror),
-    text: `تم استلام طلبك #${params.orderRef} بقيمة ${params.total} ر.س. شكراً لتسوقك مع رفيف العود.\n\nYour order #${params.orderRef} (${params.total} SAR) has been received. Thank you for shopping with RF Perfume.`,
+    text: `تم استلام طلبك #${params.orderRef} بقيمة ${params.total} ر.س. شكراً لتسوقك مع عطور آر اف.\n\nYour order #${params.orderRef} (${params.total} SAR) has been received. Thank you for shopping with RF Perfume.`,
   });
 }
 
@@ -513,7 +513,7 @@ export async function sendWelcomeEmail(params: {
     <div style="text-align:center;margin-bottom:32px;">
       <div style="font-size:48px;margin-bottom:12px;line-height:1;">👋</div>
       <h1 class="title-mobile" style="margin:0 0 8px;font-size:26px;font-weight:900;color:#000000;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">أهلاً وسهلاً ${params.customerName}!</h1>
-      <p style="margin:0;font-size:14px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">انضممت إلى عائلة رفيف العود</p>
+      <p style="margin:0;font-size:14px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">انضممت إلى عائلة عطور آر اف</p>
     </div>
 
     <p style="margin:0 0 24px;font-size:14px;color:rgba(0,0,0,0.7);line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
@@ -550,9 +550,9 @@ export async function sendWelcomeEmail(params: {
   return sendEmail({
     to: params.to,
     toName: params.customerName,
-    subject: `👋 أهلاً ${params.customerName}! مرحباً بك في رفيف العود | Welcome to RF Perfume`,
-    html: baseTemplate("مرحباً بك في رفيف العود / Welcome to RF Perfume", content + enMirror),
-    text: `أهلاً ${params.customerName}! مرحباً بك في رفيف العود.\nWelcome ${params.customerName}! Your RF Perfume account is ready.`,
+    subject: `👋 أهلاً ${params.customerName}! مرحباً بك في عطور آر اف | Welcome to RF Perfume`,
+    html: baseTemplate("مرحباً بك في عطور آر اف / Welcome to RF Perfume", content + enMirror),
+    text: `أهلاً ${params.customerName}! مرحباً بك في عطور آر اف.\nWelcome ${params.customerName}! Your RF Perfume account is ready.`,
   });
 }
 
@@ -572,7 +572,7 @@ export async function sendPaymentConfirmationEmail(params: {
     apple_pay: "Apple Pay",
     tamara: "تمارة",
     tabby: "تابي",
-    wallet: "محفظة رفيف",
+    wallet: "محفظة آر اف",
   };
 
   const greenAmount = `<span style="color:#16a34a;font-weight:900;">${params.amount.toLocaleString("ar-SA")} ر.س</span>`;
@@ -684,7 +684,7 @@ export async function sendAdminAlertEmail(params: {
 
   const content = `
     <h1 class="title-mobile" style="margin:0 0 8px;font-size:26px;font-weight:900;color:#000000;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">${params.title}</h1>
-    <p style="margin:0 0 24px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">تنبيه إداري — رفيف العود</p>
+    <p style="margin:0 0 24px;font-size:13px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">تنبيه إداري — عطور آر اف</p>
 
     <p style="margin:0 0 16px;font-size:14px;color:rgba(0,0,0,0.75);line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">${params.message}</p>
 
@@ -725,13 +725,13 @@ export async function sendActivationEmail(params: {
   const content = `
     <div style="text-align:center;margin-bottom:32px;">
       <div style="font-size:48px;margin-bottom:12px;line-height:1;">🎉</div>
-      <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#000;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">مرحباً بك في فريق رفيف العود</h1>
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#000;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">مرحباً بك في فريق عطور آر اف</h1>
       <p style="margin:0;font-size:14px;color:rgba(0,0,0,0.55);font-weight:600;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">تم إنشاء حسابك كـ ${roleLabel}</p>
     </div>
 
     <p style="margin:0 0 16px;font-size:14px;color:rgba(0,0,0,0.75);line-height:1.8;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
       مرحباً ${params.name},<br/>
-      تم إنشاء حسابك في نظام رفيف العود. لتفعيل حسابك وتعيين كلمة المرور الخاصة بك، اضغط على الزر أدناه:
+      تم إنشاء حسابك في نظام عطور آر اف. لتفعيل حسابك وتعيين كلمة المرور الخاصة بك، اضغط على الزر أدناه:
     </p>
 
     ${ctaButton(params.activationLink, "تفعيل الحساب وتعيين كلمة المرور")}
@@ -763,7 +763,7 @@ export async function sendActivationEmail(params: {
   return sendEmail({
     to: params.to,
     toName: params.name,
-    subject: `🎉 تفعيل حسابك في رفيف العود | Activate your RF Perfume account`,
+    subject: `🎉 تفعيل حسابك في عطور آر اف | Activate your RF Perfume account`,
     html: baseTemplate("تفعيل الحساب / Account Activation", content + enMirror),
     text: `مرحباً ${params.name}, لتفعيل حسابك: ${params.activationLink}\nHi ${params.name}, activate your account: ${params.activationLink}`,
   });

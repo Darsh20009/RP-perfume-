@@ -126,7 +126,7 @@ export default function VendorApply() {
             <div className="w-20 h-20 bg-foreground rounded-full flex items-center justify-center mx-auto mb-4">
               <Store className="h-10 w-10 text-background" />
             </div>
-            <h1 className="text-3xl font-black mb-2">افتح متجرك على رفيف العود</h1>
+            <h1 className="text-3xl font-black mb-2">افتح متجرك على عطور آر اف</h1>
             <p className="text-muted-foreground">انضم إلى المنصة وبيع منتجاتك لآلاف العملاء في السعودية</p>
           </div>
 

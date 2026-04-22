@@ -91,7 +91,7 @@ export default function VendorsList() {
               ) : (
                 <>
                   <p className="font-bold text-lg">لا يوجد متاجر بعد</p>
-                  <p className="text-sm">كن أول البائعين على رفيف العود!</p>
+                  <p className="text-sm">كن أول البائعين على عطور آر اف!</p>
                   <Button onClick={() => navigate("/vendor/apply")} className="rounded-none mt-4">افتح متجرك</Button>
                 </>
               )}

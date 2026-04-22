@@ -69,7 +69,7 @@ export function IOSInstallGuide() {
                   <img src="/icons/icon-192x192.png" alt="" className="w-10 h-10 rounded-xl" />
                 </div>
                 <h2 className="text-xl font-black tracking-tight">
-                  {ar ? "حمّل تطبيق رفيف العود" : "Install RF Perfume App"}
+                  {ar ? "حمّل تطبيق عطور آر اف" : "Install RF Perfume App"}
                 </h2>
                 <p className="text-[12px] text-white/60 mt-1.5 font-medium">
                   {ar
@@ -100,7 +100,7 @@ export function IOSInstallGuide() {
                   {/* Page preview */}
                   <div className="p-3 space-y-2 bg-gradient-to-b from-amber-50/50 to-white">
                     <div className="text-center">
-                      <div className="text-[9px] font-black text-stone-900">رفيف العود</div>
+                      <div className="text-[9px] font-black text-stone-900">عطور آر اف</div>
                       <div className="text-[6px] text-amber-600 tracking-widest mt-0.5">
                         LUXURY FRAGRANCES
                       </div>

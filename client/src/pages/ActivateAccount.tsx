@@ -61,7 +61,7 @@ export default function ActivateAccount() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <Link href="/"><img src={logoImg} alt="رفيف العود" className="h-24 w-auto mx-auto mb-6 object-contain" /></Link>
+          <Link href="/"><img src={logoImg} alt="عطور آر اف" className="h-24 w-auto mx-auto mb-6 object-contain" /></Link>
           <h2 className="text-2xl font-black uppercase tracking-tighter">تفعيل الحساب</h2>
           <p className="text-muted-foreground mt-2 text-xs font-bold uppercase tracking-widest">عيّن كلمة المرور لحسابك الجديد</p>
         </div>

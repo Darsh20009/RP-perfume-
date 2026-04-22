@@ -396,8 +396,8 @@ export const InvoiceModel = mongoose.model<Invoice>("Invoice", invoiceSchema);
 const storeSettingsSchema = new Schema(
   {
     key: { type: String, default: "main", unique: true },
-    storeName: { type: String, default: "رفيف العود" },
-    storeNameAr: { type: String, default: "رفيف العود" },
+    storeName: { type: String, default: "عطور آر اف" },
+    storeNameAr: { type: String, default: "عطور آر اف" },
     storePhone: { type: String, default: "" },
     storeEmail: { type: String, default: "rf-purfume@outlook.com" },
     storeAddress: { type: String, default: "" },
@@ -405,7 +405,7 @@ const storeSettingsSchema = new Schema(
     crNumber: { type: String, default: "0000203202" },
     // Bank transfer details
     bankName: { type: String, default: "مصرف الراجحي" },
-    bankAccountHolder: { type: String, default: "رفيف العود" },
+    bankAccountHolder: { type: String, default: "عطور آر اف" },
     bankIBAN: { type: String, default: "SA6280000501608016226411" },
     bankAccountNumber: { type: String, default: "501000010006086226411" },
     bankLogo: { type: String, default: "" },

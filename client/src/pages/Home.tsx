@@ -619,7 +619,7 @@ export default function Home() {
             </div>
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white uppercase tracking-tight leading-[0.95] mb-6">
               {isRtl ? (
-                <>فخامتك تكمل<br /><span className="text-[#c9a96e]">بعطور رفيف</span></>
+                <>فخامتك تكمل<br /><span className="text-[#c9a96e]">بعطور آر اف</span></>
               ) : (
                 <>Your Elegance<br /><span className="text-[#c9a96e]">With RF Perfume</span></>
               )}

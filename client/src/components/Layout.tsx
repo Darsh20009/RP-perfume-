@@ -57,9 +57,9 @@ export function Layout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user?.role === "admin" && pendingAdminCount > 0) {
-      document.title = `(${pendingAdminCount}) لوحة التحكم | رفيف العود`;
+      document.title = `(${pendingAdminCount}) لوحة التحكم | عطور آر اف`;
     } else {
-      document.title = "رفيف العود | RF Perfume";
+      document.title = "عطور آر اف | RF Perfume";
     }
   }, [pendingAdminCount, user]);
 
@@ -110,7 +110,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
                   {/* ── Header ─────────────────────────────────── */}
                   <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                    <img src={logoImg} alt="رفيف العود" className="h-9 w-auto object-contain" />
+                    <img src={logoImg} alt="عطور آر اف" className="h-9 w-auto object-contain" />
                     <button
                       onClick={closeSidebar}
                       className="w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors active:scale-95"
@@ -310,7 +310,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
                     {/* Footer */}
                     <div className="border-t border-border pt-4 pb-8 text-center">
-                      <p className="text-[10px] text-muted-foreground font-bold">© 2026 رفيف العود | RF Perfume</p>
+                      <p className="text-[10px] text-muted-foreground font-bold">© 2026 عطور آر اف | RF Perfume</p>
                       <p className="text-[9px] text-muted-foreground/50 mt-0.5">rfperfume.sa</p>
                     </div>
                   </div>
@@ -320,7 +320,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </Sheet>
 
             <Link href="/" className="flex items-center py-1 hover:opacity-80 transition-opacity active:scale-95 transition-transform">
-              <img src={logoImg} alt="رفيف العود" className="h-11 md:h-14 w-auto object-contain rounded-sm" />
+              <img src={logoImg} alt="عطور آر اف" className="h-11 md:h-14 w-auto object-contain rounded-sm" />
             </Link>
           </div>
 
@@ -490,7 +490,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="container grid grid-cols-1 md:grid-cols-4 gap-12 px-4">
           <div className="space-y-4">
             <Link href="/" className="flex items-center">
-              <img src={logoImg} alt="رفيف العود" className="h-14 w-auto object-contain" />
+              <img src={logoImg} alt="عطور آر اف" className="h-14 w-auto object-contain" />
             </Link>
             <p className="text-sm text-gray-700 leading-relaxed">
               {t('footerTagline')}
@@ -650,7 +650,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-gray-700">© 2026 رفيف العود | RF Perfume. {t('allRightsReserved')}.</p>
+            <p className="text-gray-700">© 2026 عطور آر اف | RF Perfume. {t('allRightsReserved')}.</p>
             <p className="mt-2 text-xs text-gray-700">
               rfperfume.sa
             </p>

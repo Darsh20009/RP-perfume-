@@ -189,9 +189,9 @@ export default function Dashboard() {
 
             {/* Logo */}
             <div className="relative z-10 flex items-center gap-3 p-6 border-b border-white/5">
-              <img src={logoImg} alt="رفيف العود" className="h-9 w-9 rounded-xl object-cover" />
+              <img src={logoImg} alt="عطور آر اف" className="h-9 w-9 rounded-xl object-cover" />
               <div>
-                <p className="font-black text-sm tracking-tight text-white">رفيف العود</p>
+                <p className="font-black text-sm tracking-tight text-white">عطور آر اف</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <PulseRing color="bg-emerald-400" />
                   <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">متجر نشط</span>

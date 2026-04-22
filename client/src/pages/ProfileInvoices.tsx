@@ -41,7 +41,7 @@ function printInvoice(invoice: Invoice, language: string) {
 <body>
   <div class="header">
     <div>
-      <div class="brand">رفيف العود</div>
+      <div class="brand">عطور آر اف</div>
       <div class="brand-sub">${isAr ? "فاتورة ضريبية" : "Tax Invoice"}</div>
     </div>
     <div class="invoice-meta">
@@ -55,7 +55,7 @@ function printInvoice(invoice: Invoice, language: string) {
   <div class="info-grid">
     <div class="info-block">
       <div class="section-title">${isAr ? "من" : "From"}</div>
-      <p><strong>رفيف العود</strong></p>
+      <p><strong>عطور آر اف</strong></p>
       <p>${isAr ? "المملكة العربية السعودية" : "Saudi Arabia"}</p>
     </div>
     ${invoice.customerId ? `<div class="info-block">
@@ -99,7 +99,7 @@ function printInvoice(invoice: Invoice, language: string) {
   ${invoice.notes ? `<div class="section" style="margin-top:24px"><div class="section-title">${isAr ? "ملاحظات" : "Notes"}</div><p style="font-size:12px;color:#555">${invoice.notes}</p></div>` : ""}
 
   <div class="footer">
-    رفيف العود &bull; ${isAr ? "شكراً لتعاملكم معنا" : "Thank you for your business"}
+    عطور آر اف &bull; ${isAr ? "شكراً لتعاملكم معنا" : "Thank you for your business"}
   </div>
 </body>
 </html>`;
@@ -143,7 +143,7 @@ export default function ProfileInvoices() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-700 uppercase tracking-widest font-bold">{isAr ? "فاتورة ضريبية" : "Tax Invoice"}</p>
-                  <p className="font-black text-xl mt-1">رفيف العود</p>
+                  <p className="font-black text-xl mt-1">عطور آر اف</p>
                 </div>
                 <div className={isAr ? "text-left" : "text-right"}>
                   <p className="font-black text-lg">{viewing.invoiceNumber}</p>

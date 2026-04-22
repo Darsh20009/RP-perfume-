@@ -34,7 +34,7 @@ export function StyleAssistant({ currentProduct, cartItems }: StyleAssistantProp
     if (open && messages.length === 0) {
       setMessages([{
         role: "assistant",
-        content: `مرحباً! أنا نوف ✨ مستشارتك العطور في رفيف العود. ${
+        content: `مرحباً! أنا نوف ✨ مستشارتك العطور في عطور آر اف. ${
           currentProduct ? `أرى أنك تتصفحين "${currentProduct}" — ` : ""
         }كيف يمكنني مساعدتك في إطلالتك اليوم؟`,
       }]);

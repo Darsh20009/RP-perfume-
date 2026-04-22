@@ -13,7 +13,7 @@ export const SITE = {
   /** Bare domain, e.g. "rfperfume.sa" — used for display in footers and copy */
   DOMAIN: RAW_URL.replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
   /** Brand name (Arabic) */
-  BRAND_AR: "رفيف العود",
+  BRAND_AR: "عطور آر اف",
   /** Brand name (English) */
   BRAND_EN: "RF Perfume",
   /** Support email shown to customers */

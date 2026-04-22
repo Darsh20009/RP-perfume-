@@ -83,13 +83,13 @@ export const UnifiedChat = memo(function UnifiedChat() {
     if (tab === "advisor" && advisorMessages.length === 0) {
       setAdvisorMessages([{
         role: "assistant",
-        content: "أهلاً بك في رفيف العود. أنا رفيف، مستشارك الشخصي للعطور — أخبرني عن ذوقك أو المناسبة وسأقترح لك العطر المثالي.\n\nWelcome to RF Perfume. I'm Rafeef, your personal fragrance advisor — tell me your taste or the occasion (in Arabic or English) and I'll suggest the perfect scent."
+        content: "أهلاً بك في عطور آر اف. أنا مستشارك الشخصي للعطور من عطور آر اف — أخبرني عن ذوقك أو المناسبة وسأقترح لك العطر المثالي.\n\nWelcome to RF Perfume. I am your personal fragrance advisor at RF Perfume — tell me your taste or the occasion (in Arabic or English) and I'll suggest the perfect scent."
       }]);
     }
     if (tab === "support" && supportMessages.length === 0) {
       setSupportMessages([{
         role: "assistant",
-        content: "مرحباً بك في الدعم الفني لرفيف العود. كيف يمكنني خدمتك؟\n• تتبع طلبك  • معلومات المنتجات  • سياسة الاسترجاع  • استفسارات أخرى\n\nHi! Welcome to RF Perfume support. How can I help?\n• Track your order  • Product info  • Return policy  • Other questions\n\n(You can write in Arabic or English — I'll reply in the same language.)"
+        content: "مرحباً بك في الدعم الفني لعطور آر اف. كيف يمكنني خدمتك؟\n• تتبع طلبك  • معلومات المنتجات  • سياسة الاسترجاع  • استفسارات أخرى\n\nHi! Welcome to RF Perfume support. How can I help?\n• Track your order  • Product info  • Return policy  • Other questions\n\n(You can write in Arabic or English — I'll reply in the same language.)"
       }]);
     }
   }, [advisorMessages.length, supportMessages.length]);
@@ -173,7 +173,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
             {/* Logo */}
             <img
               src={LOGO_LIGHT}
-              alt="رفيف العود"
+              alt="عطور آر اف"
               className="relative h-12 w-auto object-contain transition-transform group-hover:scale-110 drop-shadow-lg"
               draggable={false}
             />
@@ -263,7 +263,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
             {/* Footer */}
             <div className="px-4 py-3 bg-gradient-to-l from-[#faf8f5] to-white border-t border-[#c9a96e]/10 text-center">
               <p className="text-[10px] text-gray-400 font-bold tracking-wide">
-                رفيف العود <span className="text-[#c9a96e]">·</span> RF Perfume
+                عطور آر اف <span className="text-[#c9a96e]">·</span> RF Perfume
               </p>
             </div>
           </motion.div>
@@ -306,7 +306,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
               <div className="flex items-center gap-2.5">
                 <div>
                   <h4 className="font-black text-sm text-[#1a2744] text-center">
-                    {isAdvisor ? "رفيف — مستشار العطور" : "الدعم الفني"}
+                    {isAdvisor ? "آر اف — مستشار العطور" : "الدعم الفني"}
                   </h4>
                   <div className="flex items-center justify-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -356,7 +356,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                           data-testid={`card-recommended-${p.id}`}
                         >
                           <div className="absolute -top-1 -right-1 bg-gradient-to-br from-[#c9a96e] to-[#b8944f] text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg shadow">
-                            توصية رفيف ✨
+                            توصية آر اف ✨
                           </div>
                           <div className="flex items-stretch gap-3">
                             <button
@@ -421,7 +421,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                 <div className="flex justify-end">
                   <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2 border border-gray-100 shadow-sm">
                     <Loader2 className="h-4 w-4 animate-spin" style={{ color: accentColor }} />
-                    <span className="text-xs text-gray-400 font-bold">رفيف يفكر...</span>
+                    <span className="text-xs text-gray-400 font-bold">المستشار يفكر...</span>
                   </div>
                 </div>
               )}
@@ -471,7 +471,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={isAdvisor ? "اسأل رفيف عن العطور… / Ask about fragrances…" : "اكتب رسالتك… / Type your message…"}
+                  placeholder={isAdvisor ? "اسألنا عن العطور… / Ask about fragrances…" : "اكتب رسالتك… / Type your message…"}
                   className="flex-1 h-11 px-4 rounded-full bg-[#faf8f5] border border-gray-200 text-sm font-medium focus:outline-none focus:border-[#c9a96e] transition-all"
                   disabled={isLoading}
                 />
@@ -486,7 +486,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                 </button>
               </div>
               <p className="text-[9px] text-gray-400 text-center mt-2 font-bold tracking-wide">
-                مدعوم بالذكاء الاصطناعي · رفيف العود
+                مدعوم بالذكاء الاصطناعي · عطور آر اف
               </p>
             </div>
           </motion.div>

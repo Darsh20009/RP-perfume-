@@ -44,7 +44,7 @@ export function ApplePayButton({ orderId, amount, onSuccess, onError }: ApplePay
             <div className="flex justify-center">
               <ApplePayLogo className="h-10 object-contain" />
             </div>
-            <p className="text-sm text-gray-800">رفيف العود</p>
+            <p className="text-sm text-gray-800">عطور آر اف</p>
           </div>
           <div className="bg-gray-50 rounded-2xl p-4 flex justify-between items-center">
             <span className="text-gray-800 text-sm">المبلغ</span>

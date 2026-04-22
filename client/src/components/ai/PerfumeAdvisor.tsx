@@ -32,7 +32,7 @@ export function PerfumeAdvisor() {
     if (messages.length === 0) {
       setMessages([{
         role: "assistant",
-        content: "أهلاً بك في رفيف العود! 🌸 أنا رفيف، مستشارك الشخصي للعطور. أخبرني عن ذوقك أو المناسبة اللي تبحث عن عطر لها، وأساعدك تلاقي العطر المثالي!"
+        content: "أهلاً بك في عطور آر اف! 🌸 أنا مستشارك الشخصي للعطور من عطور آر اف. أخبرني عن ذوقك أو المناسبة اللي تبحث عن عطر لها، وأساعدك تلاقي العطر المثالي!"
       }]);
     }
   };
@@ -85,7 +85,7 @@ export function PerfumeAdvisor() {
                 </div>
                 <div>
                   <p className="font-bold text-sm text-gray-800">ما تعرف ايش ذوقك؟ 🤔</p>
-                  <p className="text-xs text-gray-800 mt-1">خلّي رفيف يساعدك تلاقي عطرك المثالي</p>
+                  <p className="text-xs text-gray-800 mt-1">خلّي آر اف يساعدك تلاقي عطرك المثالي</p>
                   <span className="inline-block mt-2 text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest group-hover:underline">
                     اضغط هنا للمزيد ←
                   </span>
@@ -127,7 +127,7 @@ export function PerfumeAdvisor() {
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-black text-sm text-gray-800">رفيف — مستشار العطور</h4>
+                  <h4 className="font-black text-sm text-gray-800">آر اف — مستشار العطور</h4>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-[10px] text-gray-700 font-bold">متصل الآن</span>
@@ -160,7 +160,7 @@ export function PerfumeAdvisor() {
                 <div className="flex justify-end">
                   <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 text-[#c9a96e] animate-spin" />
-                    <span className="text-xs text-gray-700 font-bold">رفيف يفكر...</span>
+                    <span className="text-xs text-gray-700 font-bold">المستشار يفكر...</span>
                   </div>
                 </div>
               )}
@@ -188,7 +188,7 @@ export function PerfumeAdvisor() {
                 </button>
               </div>
               <p className="text-[9px] text-gray-700 text-center mt-2 font-bold">
-                مدعوم بالذكاء الاصطناعي · رفيف العود
+                مدعوم بالذكاء الاصطناعي · عطور آر اف
               </p>
             </div>
           </motion.div>

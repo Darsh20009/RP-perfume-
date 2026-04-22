@@ -34,8 +34,8 @@ export default function CustomPage() {
 
   useEffect(() => {
     if (page) {
-      const t = page.seoTitle || (isAr ? page.titleAr : page.titleEn) || "رفيف العود";
-      document.title = `${t} | رفيف العود`;
+      const t = page.seoTitle || (isAr ? page.titleAr : page.titleEn) || "عطور آر اف";
+      document.title = `${t} | عطور آر اف`;
       const desc = page.seoDescription || (isAr ? page.excerptAr : page.excerptEn);
       if (desc) {
         let m = document.querySelector('meta[name="description"]');
@@ -74,7 +74,7 @@ export default function CustomPage() {
             <img src={page.heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0" style={{ backgroundColor: page.heroOverlay || "rgba(26,39,68,0.55)" }} />
             <div className="relative h-full flex flex-col items-center justify-center text-center text-white px-6">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-[#c9a96e] mb-3">{isAr ? "رفيف العود" : "Rfeef Al Oud"}</span>
+              <span className="inline-block text-[10px] font-bold uppercase tracking-[0.4em] text-[#c9a96e] mb-3">{isAr ? "عطور آر اف" : "Rfeef Al Oud"}</span>
               <h1 className="text-4xl md:text-6xl font-black tracking-tight drop-shadow-lg">{title}</h1>
               {excerpt && <p className="mt-4 max-w-2xl text-base md:text-lg text-white/85 leading-relaxed">{excerpt}</p>}
               <div className="mt-6 h-px w-24 bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />

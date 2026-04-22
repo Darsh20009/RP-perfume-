@@ -1212,7 +1212,7 @@ export async function registerRoutes(
     res.json({
       configured: !!process.env.SMTP2GO_API_KEY,
       sender: "rf-purfume@outlook.com",
-      senderName: "رفيف العود",
+      senderName: "عطور آر اف",
       provider: "SMTP2GO",
     });
   });
@@ -2285,7 +2285,7 @@ export async function registerRoutes(
       const r = await storage.replyToReview(req.params.id, {
         text,
         byUserId: String(user.id),
-        byName: user.name || "إدارة رفيف العود",
+        byName: user.name || "إدارة عطور آر اف",
       });
       if (!r) return res.status(404).json({ message: "التقييم غير موجود" });
       res.json(r);
@@ -4050,7 +4050,7 @@ export async function registerRoutes(
       if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
       const settings: any = await StoreSettingsModel.findOne({ key: "main" }).lean();
       const result = await buildZatcaQrDataUrl({
-        sellerName: settings?.storeNameAr || settings?.storeName || "رفيف العود",
+        sellerName: settings?.storeNameAr || settings?.storeName || "عطور آر اف",
         vatNumber: settings?.vatNumber || "",
         timestamp: new Date(order.createdAt || Date.now()),
         total: Number(order.total) || 0,
@@ -4059,7 +4059,7 @@ export async function registerRoutes(
       res.json({
         qr: result.dataUrl,
         base64: result.base64,
-        sellerName: settings?.storeNameAr || "رفيف العود",
+        sellerName: settings?.storeNameAr || "عطور آر اف",
         vatNumber: settings?.vatNumber || "",
         total: Number(order.total) || 0,
         vatAmount: Number(order.vatAmount) || 0,

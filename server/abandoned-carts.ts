@@ -131,8 +131,8 @@ async function sendReminder(cart: any, opts: {
         to: user.email,
         toName: user.name,
         subject: discountCode
-          ? `🎁 خصم ${discountPercent}% خاص — رفيف العود`
-          : "🌸 سلتك تنتظرك — رفيف العود",
+          ? `🎁 خصم ${discountPercent}% خاص — عطور آر اف`
+          : "🌸 سلتك تنتظرك — عطور آر اف",
         html: (opts.customMessage ? `<p style="background:#f5f5f0;padding:12px;border-right:3px solid #c9a96e;color:#1a2744">${opts.customMessage}</p>` : "") +
               buildReminderHtml({
                 customerName: user.name,
