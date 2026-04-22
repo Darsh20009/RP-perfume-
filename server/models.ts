@@ -117,7 +117,7 @@ const orderSchema = new Schema<Order>(
     type: { type: String, enum: ["online", "pos"], default: "online" },
     branchId: String,
     cashierId: String,
-    status: { type: String, enum: ["new", "pending_payment", "processing", "out_for_delivery", "shipped", "completed", "cancelled"], default: "new" },
+    status: { type: String, enum: ["new", "pending_payment", "processing", "ready_for_pickup", "out_for_delivery", "shipped", "completed", "cancelled", "returned"], default: "new" },
     total: { type: String, required: true },
     subtotal: { type: String, required: true },
     vatAmount: { type: String, required: true },

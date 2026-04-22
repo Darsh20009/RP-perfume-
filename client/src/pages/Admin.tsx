@@ -2484,6 +2484,7 @@ const statusColors: Record<string, string> = {
   new: "bg-blue-400/10 text-blue-400 border-blue-400/30",
   pending_payment: "bg-amber-400/10 text-amber-400 border-amber-400/30",
   processing: "bg-violet-400/10 text-violet-400 border-violet-400/30",
+  ready_for_pickup: "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
   out_for_delivery: "bg-orange-400/10 text-orange-400 border-orange-400/30",
   shipped: "bg-cyan-400/10 text-cyan-400 border-cyan-400/30",
   completed: "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
@@ -2495,6 +2496,7 @@ const statusLabels: Record<string, string> = {
   new: "جديد",
   pending_payment: "⏳ انتظار تأكيد الدفع",
   processing: "قيد التجهيز",
+  ready_for_pickup: "📦 جاهز للاستلام",
   out_for_delivery: "🛵 خرج للتوصيل",
   shipped: "تم الشحن",
   completed: "مكتمل",
@@ -2770,6 +2772,15 @@ const OrdersManagement = memo(() => {
                                 <Bike className="w-3 h-3" />
                                 🛵 خرج للتوصيل (داخلي)
                               </DropdownMenuItem>
+                              {(order as any).shippingMethod === "pickup" && (
+                                <DropdownMenuItem
+                                  onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, "ready_for_pickup"); }}
+                                  className="text-right gap-2 text-emerald-400"
+                                >
+                                  <span className="text-sm">📦</span>
+                                  جاهز للاستلام من الفرع
+                                </DropdownMenuItem>
+                              )}
                               {(["shipped", "completed", "cancelled"] as const).map((status) => (
                                 <DropdownMenuItem
                                   key={status}

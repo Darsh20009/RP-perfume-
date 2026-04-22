@@ -376,6 +376,25 @@ export default function OrderDetail() {
         {/* ── Content ─── */}
         <div className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
 
+          {/* Pickup ready banner */}
+          {(order as any).shippingMethod === "pickup" && (order as any).status === "ready_for_pickup" && !(order as any).pickupVerified && (
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-gradient-to-l from-emerald-500 to-green-500 text-white rounded-3xl p-5 shadow-lg shadow-green-500/30 relative overflow-hidden"
+              data-testid="banner-pickup-ready"
+            >
+              <div className="absolute inset-0 bg-white/10 animate-pulse" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">📦</div>
+                <div className="flex-1">
+                  <p className="font-black text-lg">طلبك جاهز للاستلام!</p>
+                  <p className="text-xs font-bold opacity-90 mt-0.5">توجّه للفرع وأظهر رمز QR أدناه للموظف</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Pickup QR Code (only for pickup orders that aren't yet verified) */}
           {(order as any).shippingMethod === "pickup" && !(order as any).pickupVerified && (
             <PickupCodeCard orderId={order.id} />

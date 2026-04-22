@@ -15,7 +15,7 @@ export const employeePermissions = [
 ] as const;
 export type EmployeePermission = typeof employeePermissions[number];
 
-export const orderStatuses = ["new", "pending_payment", "processing", "out_for_delivery", "shipped", "completed", "cancelled", "returned"] as const;
+export const orderStatuses = ["new", "pending_payment", "processing", "ready_for_pickup", "out_for_delivery", "shipped", "completed", "cancelled", "returned"] as const;
 export type OrderStatus = typeof orderStatuses[number];
 
 export const orderTypes = ["online", "pos"] as const;

@@ -838,6 +838,11 @@ export async function registerRoutes(
       // Notify customer of status change
       const statusLabels: Record<string, { title: string; body: string; icon: string; type: "info" | "success" | "warning" | "error" }> = {
         processing: { title: "⚙️ جاري تجهيز طلبك", body: `طلبك #${order.id.slice(-6).toUpperCase()} قيد التجهيز الآن.`, icon: "⚙️", type: "info" },
+        ready_for_pickup: {
+          title: "📦 طلبك جاهز للاستلام",
+          body: `طلبك #${order.id.slice(-6).toUpperCase()} جاهز في الفرع. أحضر رمز الاستلام عند الحضور.`,
+          icon: "📦", type: "success"
+        },
         out_for_delivery: {
           title: "🛵 السائق في طريقه إليك!",
           body: `طلبك #${order.id.slice(-6).toUpperCase()} خرج للتوصيل${deliveryDriverName ? ` مع ${deliveryDriverName}` : ""}. كن جاهزاً!`,
