@@ -232,7 +232,10 @@ export default function Home() {
                 className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
                 style={{ width: "max-content" }}
               >
-                {[...(products.slice(0, 14)), ...(products.slice(0, 14))].map((product: any, i: number) => (
+                {(() => {
+                  const base = products.slice(0, 14);
+                  return [...base, ...base, ...base, ...base];
+                })().map((product: any, i: number) => (
                   <div
                     key={`${product.id || product._id || i}-${i}`}
                     className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
@@ -355,7 +358,7 @@ export default function Home() {
                     className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
                     style={{ width: "max-content" }}
                   >
-                    {[...catProducts, ...catProducts].map((product: any, i: number) => (
+                    {[...catProducts, ...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (
                       <div
                         key={`${product.id || product._id || i}-${i}`}
                         className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
