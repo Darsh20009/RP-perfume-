@@ -40,6 +40,8 @@ export interface IStorage {
   
   // Orders
   getOrders(): Promise<Order[]>;
+  getOrdersByBranch(branchId: string, opts?: { onlyPickup?: boolean }): Promise<Order[]>;
+  verifyPickupCode(branchId: string, code: string, employeeId: string): Promise<Order>;
   createOrder(order: InsertOrder): Promise<Order>;
   getOrdersByUser(userId: string): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
@@ -377,8 +379,21 @@ export class MongoDBStorage implements IStorage {
       }
     }
 
+    // Generate a unique 6-digit pickup code for branch-pickup orders
+    let pickupCode: string | undefined;
+    if (insertOrder.shippingMethod === "pickup" && insertOrder.pickupBranch) {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const candidate = String(Math.floor(100000 + Math.random() * 900000));
+        const exists = await OrderModel.findOne({ pickupCode: candidate, pickupVerified: { $ne: true } }).lean();
+        if (!exists) { pickupCode = candidate; break; }
+      }
+      pickupCode = pickupCode || String(Date.now()).slice(-6);
+    }
+
     const order = await OrderModel.create({
       ...insertOrder,
+      pickupCode,
+      pickupVerified: false,
       status: insertOrder.status || "new",
       paymentStatus: insertOrder.paymentStatus || "pending"
     });
@@ -394,6 +409,60 @@ export class MongoDBStorage implements IStorage {
     });
 
     return result;
+  }
+
+  async getOrdersByBranch(branchId: string, opts?: { onlyPickup?: boolean }): Promise<Order[]> {
+    const filter: any = {};
+    if (opts?.onlyPickup) {
+      filter.shippingMethod = "pickup";
+      filter.pickupBranch = branchId;
+    } else {
+      filter.$or = [
+        { branchId: branchId },
+        { pickupBranch: branchId },
+      ];
+    }
+    const orders = await OrderModel.find(filter).sort({ createdAt: -1 }).limit(500).lean();
+    return orders.map(o => ({ ...o, id: o._id.toString() } as any));
+  }
+
+  async verifyPickupCode(branchId: string, code: string, employeeId: string): Promise<Order> {
+    const order = await OrderModel.findOne({
+      pickupCode: code,
+      pickupBranch: branchId,
+      pickupVerified: { $ne: true },
+    });
+    if (!order) {
+      const err: any = new Error("الكود غير صحيح أو سبق استخدامه أو ليس لهذا الفرع");
+      err.code = "PICKUP_INVALID";
+      throw err;
+    }
+    // Block pickup if payment is still pending (e.g., bank-transfer awaiting approval)
+    if (order.paymentStatus && order.paymentStatus !== "paid") {
+      const err: any = new Error(`لا يمكن التسليم — حالة الدفع: ${order.paymentStatus}`);
+      err.code = "PICKUP_INVALID";
+      throw err;
+    }
+    order.pickupVerified = true;
+    order.pickupVerifiedAt = new Date();
+    order.pickupVerifiedBy = employeeId;
+    if (order.status === "new" || order.status === "processing") {
+      order.status = "completed";
+      (order as any).statusHistory = [
+        ...((order as any).statusHistory || []),
+        { status: "completed", at: new Date(), note: `تم التسليم من الفرع — موظف: ${employeeId}` },
+      ];
+    }
+    await order.save();
+    await this.createAuditLog({
+      employeeId,
+      employeeName: "Branch Pickup",
+      action: "pickup_verified",
+      targetType: "order",
+      targetId: order._id.toString(),
+      details: `Pickup verified for order ${order._id} at branch ${branchId}`,
+    });
+    return { ...order.toObject(), id: order._id.toString() } as any;
   }
 
   async getOrdersByUser(userId: string): Promise<Order[]> {

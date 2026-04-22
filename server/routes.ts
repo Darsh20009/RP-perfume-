@@ -470,6 +470,23 @@ export async function registerRoutes(
     };
   };
 
+  // Branch staff access — requires assignment to a branch and a branch permission (or admin role).
+  const branchAccess = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    const isAdminRole = ["admin", "assistant_manager", "tech_support"].includes(user.role);
+    const perms: string[] = user.permissions || [];
+    const hasBranchPerm = perms.includes("branch.orders") || perms.includes("branch.inventory") || perms.includes("branch.scan") || perms.includes("branch.manage");
+    if (!isAdminRole && !hasBranchPerm) return res.status(403).json({ message: "ليس لديك صلاحية لوحة الفرع" });
+    // Determine effective branchId — admins may target any branch via ?branchId=
+    const queryBranch = (req.query.branchId as string) || (req.body && req.body.branchId);
+    const effectiveBranchId = isAdminRole ? (queryBranch || user.branchId || null) : user.branchId;
+    if (!effectiveBranchId) return res.status(400).json({ message: "لم يتم تحديد الفرع — اطلب من الإدارة إسناد فرع لحسابك" });
+    req.branchId = effectiveBranchId;
+    req.isBranchAdmin = isAdminRole;
+    next();
+  };
+
   // RBAC Page Protection Middleware for common admin sections
   const protectAdmin = (req: any, res: any, next: any) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -1710,6 +1727,103 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("[API] inventory.update error:", err?.message);
       res.status(500).json({ message: "خطأ في تحديث المخزون" });
+    }
+  });
+
+  // ─── Branch Dashboard API ─────────────────────────────────────────────────
+  // Each employee sees their assigned branch only. Admins may pass ?branchId=
+  app.get("/api/branch/me", branchAccess, async (req: any, res) => {
+    try {
+      const branches = await storage.getBranches();
+      const branch = branches.find((b: any) => String(b.id || b._id) === String(req.branchId));
+      res.json({
+        branchId: req.branchId,
+        branch: branch || null,
+        isBranchAdmin: !!req.isBranchAdmin,
+        availableBranches: req.isBranchAdmin ? branches : [],
+      });
+    } catch (err: any) {
+      console.error("[API] branch.me error:", err?.message);
+      res.status(500).json({ message: "خطأ" });
+    }
+  });
+
+  app.get("/api/branch/orders", branchAccess, async (req: any, res) => {
+    try {
+      const onlyPickup = req.query.scope === "pickup";
+      const orders = await storage.getOrdersByBranch(req.branchId, { onlyPickup });
+      res.json(orders);
+    } catch (err: any) {
+      console.error("[API] branch.orders error:", err?.message);
+      res.json([]);
+    }
+  });
+
+  app.post("/api/branch/orders/verify-pickup", branchAccess, async (req: any, res) => {
+    try {
+      const code = String(req.body?.code || "").replace(/\D/g, "").slice(0, 6);
+      if (code.length !== 6) return res.status(400).json({ message: "كود غير صحيح" });
+      const employeeId = (req.user as any).id || (req.user as any)._id;
+      const order = await storage.verifyPickupCode(req.branchId, code, String(employeeId));
+      // Notify customer
+      try {
+        await fireNotify(order.userId!, "✅ تم استلام طلبك من الفرع",
+          `تم تسليم طلبك #${order.id.slice(-6).toUpperCase()} بنجاح. شكراً لك!`,
+          { type: "success", link: `/orders/${order.id}`, icon: "🛍️", webPush: true });
+      } catch {}
+      res.json(order);
+    } catch (err: any) {
+      if (err?.code === "PICKUP_INVALID") return res.status(404).json({ message: err.message });
+      console.error("[API] branch.verify-pickup error:", err?.message);
+      res.status(500).json({ message: "خطأ في التحقق من الكود" });
+    }
+  });
+
+  app.get("/api/branch/inventory", branchAccess, async (req: any, res) => {
+    try {
+      const inventory = await storage.getBranchInventory(req.branchId);
+      res.json(inventory);
+    } catch (err: any) {
+      console.error("[API] branch.inventory error:", err?.message);
+      res.json([]);
+    }
+  });
+
+  app.patch("/api/branch/inventory/:id", branchAccess, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const perms: string[] = user.permissions || [];
+      const allowed = req.isBranchAdmin || perms.includes("branch.inventory") || perms.includes("branch.manage");
+      if (!allowed) return res.status(403).json({ message: "ليس لديك صلاحية تحديث المخزون" });
+      const stock = Math.max(0, Number(req.body?.stock) || 0);
+      const item = await storage.updateBranchStock(req.params.id, stock);
+      res.json(item);
+    } catch (err: any) {
+      console.error("[API] branch.inventory.update error:", err?.message);
+      res.status(500).json({ message: "خطأ في تحديث المخزون" });
+    }
+  });
+
+  // Get an order's pickup code (only owner or branch staff can fetch)
+  app.get("/api/orders/:id/pickup-code", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const order: any = await storage.getOrder(req.params.id);
+      if (!order) return res.sendStatus(404);
+      const user = req.user as any;
+      const isOwner = String(order.userId) === String(user.id || user._id);
+      const isBranchStaff = ["admin", "assistant_manager", "tech_support"].includes(user.role)
+        || (user.branchId && String(user.branchId) === String(order.pickupBranch));
+      if (!isOwner && !isBranchStaff) return res.sendStatus(403);
+      res.json({
+        pickupCode: order.pickupCode || null,
+        pickupBranch: order.pickupBranch || null,
+        pickupVerified: !!order.pickupVerified,
+        pickupVerifiedAt: order.pickupVerifiedAt || null,
+      });
+    } catch (err: any) {
+      console.error("[API] order.pickup-code error:", err?.message);
+      res.status(500).json({ message: "خطأ" });
     }
   });
 

@@ -78,7 +78,36 @@ export default function Checkout() {
   const [showMapForm, setShowMapForm] = useState(false);
   const [newAddress, setNewAddress] = useState({ street: "", city: "" });
   const [shippingCompany, setShippingCompany] = useState<string>("");
+  const [shippingMethod, setShippingMethod] = useState<"delivery" | "pickup">("delivery");
+  const [pickupBranchId, setPickupBranchId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: branches = [] } = useQuery<any[]>({
+    queryKey: ["/api/branches"],
+    queryFn: async () => {
+      const res = await fetch("/api/branches");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const selectedBranch = branches.find((b: any) => (b.id || b._id) === pickupBranchId);
+
+  // Out-of-stock check at selected pickup branch
+  const branchStockIssues = (() => {
+    if (shippingMethod !== "pickup" || !selectedBranch) return [] as string[];
+    const issues: string[] = [];
+    const branchInv: any[] = (selectedBranch as any).inventory || [];
+    for (const it of items) {
+      if (!it.variantSku) continue;
+      const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
+      const stock = rec ? Number(rec.stock || 0) : null;
+      if (stock !== null && stock < it.quantity) {
+        issues.push(`${it.title} — متوفر ${stock} فقط`);
+      }
+    }
+    return issues;
+  })();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: shippingCompanies = [] } = useQuery({
@@ -217,11 +246,16 @@ export default function Checkout() {
         if (!verifyRes.ok) throw new Error("كلمة المرور غير صحيحة");
       }
       const selectedAddr = user?.addresses?.find((a) => a.id === selectedAddressId);
-      const deliveryAddress = selectedAddr
-        ? `${selectedAddr.street}, ${selectedAddr.city}`
-        : `${newAddress.street}, ${newAddress.city}`;
-      if (!selectedAddr && !newAddress.street.trim()) {
+      const deliveryAddress = shippingMethod === "pickup"
+        ? `استلام من فرع: ${selectedBranch?.name || ""}`
+        : (selectedAddr ? `${selectedAddr.street}, ${selectedAddr.city}` : `${newAddress.street}, ${newAddress.city}`);
+      if (shippingMethod === "delivery" && !selectedAddr && !newAddress.street.trim()) {
         toast({ title: "العنوان مطلوب", description: "يرجى إدخال عنوان الشحن أو اختيار عنوان محفوظ", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+      if (shippingMethod === "pickup" && !pickupBranchId) {
+        toast({ title: "اختر الفرع", description: "يرجى اختيار فرع الاستلام", variant: "destructive" });
         setIsSubmitting(false);
         return;
       }
@@ -256,7 +290,8 @@ export default function Checkout() {
           cost: item.cost || 0,
           title: item.title,
         })),
-        shippingMethod: "delivery",
+        shippingMethod,
+        pickupBranch: shippingMethod === "pickup" ? pickupBranchId : undefined,
         paymentMethod,
         bankTransferReceipt: receiptUrl || undefined,
         status: paymentMethod === "bank_transfer" || paymentMethod === "tap" ? "pending_payment" : "new",
@@ -538,15 +573,89 @@ export default function Checkout() {
             {/* ── Step 2: Shipping ── */}
             <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden ${activeStep < 2 ? "opacity-60" : ""}`}>
               <StepHeader
-                step={2} title="طريقة الشحن"
-                summary={selectedShipping ? `${selectedShipping.name} — ${selectedShipping.price} ر.س` : null}
+                step={2} title="طريقة الاستلام"
+                summary={
+                  shippingMethod === "pickup"
+                    ? (selectedBranch ? `استلام من فرع: ${selectedBranch.name}` : "استلام من فرع")
+                    : (selectedShipping ? `${selectedShipping.name} — ${selectedShipping.price} ر.س` : null)
+                }
                 isActive={activeStep === 2}
-                isCompleted={activeStep > 2}
+                isCompleted={activeStep > 2 && (shippingMethod === "delivery" || !!pickupBranchId)}
               />
               {activeStep === 2 && (
                 <div className="px-6 pb-6 border-t border-gray-100">
                   <div className="pt-5 space-y-4">
-                    {shippingCompanies.length === 0 ? (
+                    {/* Delivery vs Pickup toggle */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        data-testid="button-method-delivery"
+                        onClick={() => setShippingMethod("delivery")}
+                        className={`p-4 border-2 rounded-lg text-right transition-all ${
+                          shippingMethod === "delivery" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <Truck className={`h-5 w-5 mb-2 ${shippingMethod === "delivery" ? "text-primary" : "text-gray-700"}`} />
+                        <p className="font-black text-sm">توصيل للمنزل</p>
+                        <p className="text-[10px] text-gray-700 font-bold mt-0.5">عبر شركة شحن</p>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="button-method-pickup"
+                        onClick={() => setShippingMethod("pickup")}
+                        className={`p-4 border-2 rounded-lg text-right transition-all ${
+                          shippingMethod === "pickup" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <MapPin className={`h-5 w-5 mb-2 ${shippingMethod === "pickup" ? "text-primary" : "text-gray-700"}`} />
+                        <p className="font-black text-sm">استلام من فرع</p>
+                        <p className="text-[10px] text-gray-700 font-bold mt-0.5">بدون رسوم شحن</p>
+                      </button>
+                    </div>
+
+                    {shippingMethod === "pickup" ? (
+                      <div className="space-y-3">
+                        {branches.length === 0 ? (
+                          <p className="text-sm text-gray-700 font-bold text-center py-4">لا توجد فروع متاحة حالياً</p>
+                        ) : (
+                          branches.map((br: any) => {
+                            const id = br.id || br._id;
+                            const isSelected = pickupBranchId === id;
+                            return (
+                              <div
+                                key={id}
+                                onClick={() => setPickupBranchId(id)}
+                                data-testid={`option-branch-${id}`}
+                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
+                                  isSelected ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                                }`}
+                              >
+                                <div className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                                  isSelected ? "border-primary" : "border-gray-300"
+                                }`}>
+                                  {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                </div>
+                                <MapPin className={`h-5 w-5 shrink-0 ${isSelected ? "text-primary" : "text-gray-700"}`} />
+                                <div className="flex-1">
+                                  <p className="font-black text-sm">{br.name}</p>
+                                  <p className="text-[11px] text-gray-700 font-bold mt-0.5">{br.address || br.city || ""}</p>
+                                  {br.workingHours && <p className="text-[10px] text-gray-700 mt-1">{br.workingHours}</p>}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                        {branchStockIssues.length > 0 && (
+                          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 text-right">
+                            <p className="text-sm font-black text-red-700 mb-1">⚠️ منتجات غير متوفرة في هذا الفرع:</p>
+                            <ul className="text-xs text-red-700 font-bold space-y-1 list-disc pr-5">
+                              {branchStockIssues.map((m, i) => <li key={i}>{m}</li>)}
+                            </ul>
+                            <p className="text-xs text-gray-800 mt-2 font-bold">جرّب فرعاً آخر أو اختر التوصيل للمنزل</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : shippingCompanies.length === 0 ? (
                       <p className="text-sm text-gray-700 font-bold text-center py-4">لا توجد شركات شحن متاحة</p>
                     ) : (
                       <div className="space-y-3">
@@ -580,7 +689,19 @@ export default function Checkout() {
                       </div>
                     )}
                     <Button
-                      onClick={() => setActiveStep(3)}
+                      data-testid="button-shipping-continue"
+                      disabled={shippingMethod === "pickup" && (!pickupBranchId || branchStockIssues.length > 0)}
+                      onClick={() => {
+                        if (shippingMethod === "pickup" && !pickupBranchId) {
+                          toast({ title: "اختر الفرع", description: "يرجى اختيار الفرع للاستلام", variant: "destructive" });
+                          return;
+                        }
+                        if (shippingMethod === "pickup" && branchStockIssues.length > 0) {
+                          toast({ title: "منتج غير متوفر", description: "بعض المنتجات غير متوفرة في هذا الفرع", variant: "destructive" });
+                          return;
+                        }
+                        setActiveStep(3);
+                      }}
                       className="w-full h-12 rounded-lg font-black text-sm uppercase tracking-widest"
                     >
                       متابعة

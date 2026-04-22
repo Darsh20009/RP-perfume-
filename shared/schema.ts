@@ -9,7 +9,9 @@ export const employeePermissions = [
   "products.view", "products.edit",
   "customers.view", "wallet.adjust",
   "reports.view", "staff.manage",
-  "pos.access", "settings.manage"
+  "pos.access", "settings.manage",
+  "branch.orders", "branch.inventory", "branch.scan", "branch.manage",
+  "inbox.access"
 ] as const;
 export type EmployeePermission = typeof employeePermissions[number];
 
@@ -197,6 +199,10 @@ export const insertOrderSchema = z.object({
     country: z.string().optional(),
   }).optional(),
   pickupBranch: z.string().optional(),
+  pickupCode: z.string().optional(),
+  pickupVerified: z.boolean().optional().default(false),
+  pickupVerifiedAt: z.date().optional(),
+  pickupVerifiedBy: z.string().optional(),
   paymentMethod: z.enum(["cod", "bank_transfer", "apple_pay", "card", "cash", "wallet", "tap", "stc_pay", "tamara", "tabby"]),
   bankTransferReceipt: z.string().optional(),
   shippingCompany: z.string().optional(),

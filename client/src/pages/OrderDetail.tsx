@@ -44,6 +44,59 @@ const paymentMethodLabel: Record<string, string> = {
   tamara: "Tamara — أقساط",
 };
 
+// ─── Pickup QR / Code Card ──────────────────────────────────────────────────
+function PickupCodeCard({ orderId }: { orderId: string }) {
+  const { data } = useQuery<{ pickupCode: string | null; pickupBranch: string | null }>({
+    queryKey: ["/api/orders", orderId, "pickup-code"],
+    queryFn: async () => {
+      const res = await fetch(`/api/orders/${orderId}/pickup-code`);
+      if (!res.ok) return { pickupCode: null, pickupBranch: null };
+      return res.json();
+    },
+  });
+  const [qrUrl, setQrUrl] = useState<string>("");
+  useEffect(() => {
+    if (!data?.pickupCode) return;
+    (async () => {
+      try {
+        const QR = (await import("qrcode")).default;
+        const url = await QR.toDataURL(`PICKUP:${orderId}:${data.pickupCode}`, {
+          width: 320, margin: 1, color: { dark: "#000000", light: "#ffffff" },
+        });
+        setQrUrl(url);
+      } catch {}
+    })();
+  }, [data?.pickupCode, orderId]);
+  if (!data?.pickupCode) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      className="bg-white border-2 border-primary/20 rounded-3xl p-6 shadow-sm text-center"
+    >
+      <p className="text-xs font-black uppercase tracking-widest text-primary mb-3">
+        كود الاستلام من الفرع
+      </p>
+      {qrUrl && (
+        <img
+          src={qrUrl}
+          alt="QR Code"
+          className="w-48 h-48 mx-auto rounded-xl border border-black/10"
+          data-testid="img-pickup-qr"
+        />
+      )}
+      <p
+        className="font-mono text-3xl font-black tracking-[0.3em] mt-4"
+        data-testid="text-pickup-code"
+      >
+        {data.pickupCode}
+      </p>
+      <p className="text-[11px] text-gray-700 font-bold mt-3 leading-relaxed">
+        أظهر هذا الكود أو امسح الـ QR لموظف الفرع عند الاستلام
+      </p>
+    </motion.div>
+  );
+}
+
 // ─── Image Carousel ─────────────────────────────────────────────────────────
 function ImageCarousel({ images }: { images: string[] }) {
   const [current, setCurrent] = useState(0);
@@ -307,6 +360,17 @@ export default function OrderDetail() {
 
         {/* ── Content ─── */}
         <div className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+          {/* Pickup QR Code (only for pickup orders that aren't yet verified) */}
+          {(order as any).shippingMethod === "pickup" && !(order as any).pickupVerified && (
+            <PickupCodeCard orderId={order.id} />
+          )}
+          {(order as any).shippingMethod === "pickup" && (order as any).pickupVerified && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-3xl p-5 text-center">
+              <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <p className="font-black text-green-800">تم استلام الطلب من الفرع ✓</p>
+            </div>
+          )}
 
           {/* Order header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl border border-black/5 p-6 shadow-sm">

@@ -56,6 +56,7 @@ const EmployeeInbox = lazy(() => import("@/pages/admin/AdminInbox"));
 const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPolicy"));
 const CustomPage = lazy(() => import("@/pages/CustomPage"));
 const Branches = lazy(() => import("@/pages/Branches"));
+const BranchDashboard = lazy(() => import("@/pages/BranchDashboard"));
 
 function LazyFallback() {
   return (
@@ -210,6 +211,9 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/pages/:slug" component={CustomPage} />
       <Route path="/branches" component={Branches} />
+      <Route path="/branch-dashboard">
+        <ProtectedRoute component={BranchDashboard} permission="branch.orders" />
+      </Route>
       <Route path="/admin/stores">
         <ProtectedRoute component={VendorsList} permission="staff.manage" />
       </Route>
