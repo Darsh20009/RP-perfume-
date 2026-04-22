@@ -203,6 +203,49 @@ export default function Home() {
       {/* ── TRUST STRIP (admin-controlled with hardcoded fallback) ─────── */}
       <PromoStripSection isRtl={isRtl} t={t} isAr={language === 'ar'} />
 
+      {/* ── NEWEST PRODUCTS — auto-scrolling marquee strip ─────── */}
+      {(products && products.length >= 5) && (
+        <section className="py-10 md:py-14 bg-[#faf8f5]">
+          <div className="container px-4">
+            <div className={`flex items-center justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] block mb-1">
+                  {language === 'ar' ? 'وصل حديثًا' : 'Just In'}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-bold text-[#1a2744]">
+                  {language === 'ar' ? 'أحدث المنتجات' : 'Latest Arrivals'}
+                </h2>
+              </div>
+              <Link href="/products">
+                <span className={`text-sm font-bold text-[#c9a96e] hover:text-[#b8944f] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
+                  {t('viewAll')}
+                  {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </span>
+              </Link>
+            </div>
+            <div
+              className="relative overflow-hidden group"
+              style={{ maskImage: "linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%)" }}
+              data-testid="strip-latest-products"
+            >
+              <div
+                className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
+                style={{ width: "max-content" }}
+              >
+                {[...(products.slice(0, 14)), ...(products.slice(0, 14))].map((product: any, i: number) => (
+                  <div
+                    key={`${product.id || product._id || i}-${i}`}
+                    className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── FLASH DEALS ────────────────────────────────── */}
       {flashDealProducts.length > 0 && (
         <section className="py-10 md:py-14 bg-white">
@@ -302,19 +345,41 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {catProducts.map((product: any, i: number) => (
-                  <motion.div
-                    key={product.id || product._id || i}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.08 }}
+              {catProducts.length >= 5 ? (
+                /* Auto-scrolling marquee strip — pauses on hover, supports drag-to-scroll */
+                <div
+                  className="relative overflow-hidden group"
+                  style={{ maskImage: "linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%)" }}
+                >
+                  <div
+                    className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
+                    style={{ width: "max-content" }}
                   >
-                    <ProductCard product={product} />
-                  </motion.div>
-                ))}
-              </div>
+                    {[...catProducts, ...catProducts].map((product: any, i: number) => (
+                      <div
+                        key={`${product.id || product._id || i}-${i}`}
+                        className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
+                      >
+                        <ProductCard product={product} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {catProducts.map((product: any, i: number) => (
+                    <motion.div
+                      key={product.id || product._id || i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.08 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         );

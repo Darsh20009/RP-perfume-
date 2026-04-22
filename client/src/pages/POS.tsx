@@ -230,12 +230,19 @@ export default function POS() {
         );
       }
       
+      // Prefer per-variant price (e.g. different sizes have different prices),
+      // then fall back to product base price. This was the bug where staff
+      // saw the wrong price after configuring per-variant pricing.
+      const variantPrice = Number((variant as any)?.price);
+      const finalPrice = Number.isFinite(variantPrice) && variantPrice > 0
+        ? variantPrice
+        : Number(product.price);
       const newItem = {
         productId: product.id,
         variantSku: variant.sku,
         name: product.name,
         variantName: (variant.sku === "default" || (!variant.color && !variant.size)) ? "افتراضي" : `${variant.color || ""} / ${variant.size || ""}`,
-        price: Number(product.price),
+        price: finalPrice,
         quantity: 1,
         image: variant.image || (product.images && product.images[0])
       };

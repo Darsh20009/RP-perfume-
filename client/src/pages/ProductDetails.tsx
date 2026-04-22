@@ -9,8 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
 import { InstallmentSection } from "@/components/payment/InstallmentSection";
-import { SizeAdvisor } from "@/components/ai/SizeAdvisor";
-import { OutfitSuggestions } from "@/components/ai/OutfitSuggestions";
 import { ProductInsightsCard } from "@/components/ProductInsightsCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -553,21 +551,7 @@ export default function ProductDetails() {
                 </div>
               </div>
 
-              {/* AI Size Advisor */}
-              {availableSizes.length > 0 && availableSizes[0] !== "One Size" && (
-                <SizeAdvisor
-                  productName={(product as any).title || product.name || ""}
-                  productCategory={(product as any).category || "ملابس"}
-                  availableSizes={availableSizes}
-                  onSizeSelect={(size) => setSelectedSize(size)}
-                />
-              )}
-
-              {/* AI Outfit Suggestions */}
-              <OutfitSuggestions
-                productName={(product as any).title || product.name || ""}
-                productCategory={(product as any).category || "ملابس"}
-              />
+              {/* Perfume advisor / outfit suggestions removed — RF Perfume is an oud & perfume store, not clothing. */}
 
               {/* Quantity */}
               <div>
