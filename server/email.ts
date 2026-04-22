@@ -361,7 +361,7 @@ export async function sendOrderStatusEmail(params: {
   to: string;
   customerName: string;
   orderRef: string;
-  status: "processing" | "shipped" | "completed" | "cancelled";
+  status: "processing" | "ready_for_pickup" | "shipped" | "completed" | "cancelled";
   trackingNumber?: string;
   shippingProvider?: string;
   reason?: string;
@@ -377,6 +377,21 @@ export async function sendOrderStatusEmail(params: {
       badgeText: "جاري التجهيز",
       message: `<p>يسعدنا إعلامك أن طلبك <span style="color:#1a2744;font-weight:900;">#${params.orderRef}</span> يتم تجهيزه الآن من قِبل فريقنا. سنُرسل لك إشعاراً فور شحنه.</p>`,
       cta: "متابعة الطلب",
+    },
+    ready_for_pickup: {
+      emoji: "📦",
+      title: "طلبك جاهز للاستلام من الفرع!",
+      subtitle: "توجّه لأقرب فرع وأحضر رمز الاستلام",
+      color: "#15803d",
+      bgColor: "#f0fdf4",
+      badgeClass: "status-shipped",
+      badgeText: "جاهز للاستلام",
+      message: `
+        <p>طلبك <span style="color:#1a2744;font-weight:900;">#${params.orderRef}</span> جاهز الآن في الفرع.</p>
+        <p>افتح صفحة الطلب من حسابك واعرض رمز QR للموظف عند الاستلام.</p>
+        <p style="font-size:12px;color:#666;">يمكنك إحضار وثيقة هوية أيضاً للتأكيد.</p>
+      `,
+      cta: "عرض رمز الاستلام",
     },
     shipped: {
       emoji: "🚚",

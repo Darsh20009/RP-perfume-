@@ -28,6 +28,7 @@ const statusConfig: Record<string, {
   pending:          { icon: Clock,         color: "text-amber-600",  bg: "bg-amber-50",   border: "border-amber-100",  step: 0, label: "قيد الانتظار" },
   pending_payment:  { icon: CreditCard,    color: "text-orange-600", bg: "bg-orange-50",  border: "border-orange-200", step: 1, label: "مراجعة إيصال الدفع" },
   processing:       { icon: Package,       color: "text-blue-600",   bg: "bg-blue-50",    border: "border-blue-100",   step: 2, label: "قيد التجهيز" },
+  ready_for_pickup: { icon: Package,       color: "text-emerald-600",bg: "bg-emerald-50", border: "border-emerald-100",step: 3, label: "📦 جاهز للاستلام" },
   out_for_delivery: { icon: Bike,          color: "text-violet-600", bg: "bg-violet-50",  border: "border-violet-100", step: 3, label: "خرج للتوصيل" },
   shipped:          { icon: Truck,         color: "text-purple-600", bg: "bg-purple-50",  border: "border-purple-100", step: 3, label: "تم الشحن" },
   completed:        { icon: CheckCircle,   color: "text-green-600",  bg: "bg-green-50",   border: "border-green-100",  step: 4, label: "تم التوصيل" },

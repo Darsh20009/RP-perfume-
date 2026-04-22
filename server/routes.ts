@@ -65,6 +65,7 @@ import { registerEmployeeAssistant } from "./employee-assistant";
 import { CartSessionModel, CancellationPolicyModel, OrderModel } from "./models";
 import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } from "./cancellation";
 import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
+import { startPickupExpiryWorker } from "./pickup-expiry";
 import { buildZatcaQrDataUrl } from "./zatca";
 import rateLimit from "express-rate-limit";
 import { enqueueJob, getQueueStats, resetQueueStats } from "./job-queue";
@@ -863,7 +864,7 @@ export async function registerRoutes(
         // Send status update email
         try {
           const customer = await storage.getUser(order.userId);
-          if (customer?.email && ["processing", "shipped", "completed", "cancelled", "out_for_delivery"].includes(status)) {
+          if (customer?.email && ["processing", "ready_for_pickup", "shipped", "completed", "cancelled", "out_for_delivery"].includes(status)) {
             await sendOrderStatusEmail({
               to: customer.email,
               customerName: customer.name || "عزيزي العميل",
@@ -4187,6 +4188,7 @@ export async function registerRoutes(
 
   // Boot the abandoned-cart background worker
   startAbandonedCartWorker();
+  startPickupExpiryWorker();
 
   return httpServer;
 }
