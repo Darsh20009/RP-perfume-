@@ -364,6 +364,22 @@ export class MongoDBStorage implements IStorage {
         throw err;
       }
       reserved.push({ productId: item.productId, variantSku: item.variantSku, quantity: item.quantity });
+      // Real-time low-stock alert when an order brings stock to ≤5 units
+      try {
+        const variant = (updated as any).variants.find((v: any) => v.sku === item.variantSku);
+        const newStock = Number(variant?.stock ?? 0);
+        if (newStock <= 5) {
+          const { fireNotifyAdmins } = await import("./notifications");
+          const title = newStock === 0 ? "🚨 نفذ المخزون" : "⚠️ مخزون منخفض";
+          const body = `${(updated as any).name || item.title || item.variantSku} — متبقّي ${newStock} فقط بعد طلب`;
+          fireNotifyAdmins(title, body, {
+            type: newStock === 0 ? "error" : "warning",
+            link: "/admin/inventory",
+            icon: newStock === 0 ? "🚨" : "⚠️",
+            webPush: true,
+          }).catch(() => {});
+        }
+      } catch {}
     }
 
     // 2. Handle Loyalty (atomic $inc — safe under load)

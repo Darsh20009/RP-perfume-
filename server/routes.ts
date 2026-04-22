@@ -1832,6 +1832,45 @@ export async function registerRoutes(
     }
   });
 
+  // Branch dashboard stats: today's pickups, pending pickups, low-stock count, last inventory update
+  app.get("/api/branch/stats", branchAccess, async (req: any, res) => {
+    try {
+      const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+      const orders = await storage.getOrdersByBranch(req.branchId);
+      const todayPickups = orders.filter((o: any) =>
+        o.pickupVerified && o.pickupVerifiedAt && new Date(o.pickupVerifiedAt) >= startOfDay
+      ).length;
+      const pendingPickups = orders.filter((o: any) =>
+        o.shippingMethod === "pickup" && !o.pickupVerified && o.status !== "cancelled"
+      ).length;
+      const inventory = await storage.getBranchInventory(req.branchId);
+      const lowStockCount = inventory.filter((i: any) => Number(i.stock || 0) <= 5).length;
+      const outOfStockCount = inventory.filter((i: any) => Number(i.stock || 0) === 0).length;
+
+      // Find last inventory update time from audit log
+      const logs = await storage.getAuditLogs(200).catch(() => [] as any[]);
+      const lastInvLog = logs.find((l: any) =>
+        (l.action === "update" && l.targetType === "inventory") ||
+        (l.action === "update" && (l.details || "").includes("stock"))
+      );
+      const lastUpdate = lastInvLog ? lastInvLog.createdAt : null;
+      const hoursSinceUpdate = lastUpdate ? Math.floor((Date.now() - new Date(lastUpdate).getTime()) / 3600000) : null;
+      const reminderDue = hoursSinceUpdate === null || hoursSinceUpdate >= 24;
+
+      res.json({
+        todayPickups, pendingPickups,
+        lowStockCount, outOfStockCount,
+        totalProducts: inventory.length,
+        lastInventoryUpdate: lastUpdate,
+        hoursSinceUpdate,
+        reminderDue,
+      });
+    } catch (err: any) {
+      console.error("[API] branch.stats error:", err?.message);
+      res.json({ todayPickups: 0, pendingPickups: 0, lowStockCount: 0, outOfStockCount: 0, totalProducts: 0, reminderDue: false });
+    }
+  });
+
   // Get an order's pickup code (only owner or branch staff can fetch)
   app.get("/api/orders/:id/pickup-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

@@ -15,6 +15,7 @@ import {
 import {
   ScanLine, Package, Printer, AlertTriangle, CheckCircle,
   Loader2, Search, RefreshCw, ShoppingBag, MapPin, Save,
+  Clock, TrendingUp, AlertCircle,
 } from "lucide-react";
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -299,6 +300,10 @@ export default function BranchDashboard() {
   const { data: branchInfo, isLoading } = useQuery<any>({
     queryKey: ["/api/branch/me"],
   });
+  const { data: stats } = useQuery<any>({
+    queryKey: ["/api/branch/stats"],
+    refetchInterval: 60_000,
+  });
 
   if (!user) {
     setLocation("/login");
@@ -353,6 +358,57 @@ export default function BranchDashboard() {
               <RefreshCw className="h-4 w-4 ml-1" />
               تحديث
             </Button>
+          </div>
+
+          {/* Daily reminder banner */}
+          {stats?.reminderDue && (
+            <Card className="p-4 bg-amber-50 border-2 border-amber-300 no-print">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-black text-amber-900 text-sm">
+                    {stats.hoursSinceUpdate === null
+                      ? "تذكير: لم يتم تحديث المخزون بعد"
+                      : `تذكير: مرّ ${stats.hoursSinceUpdate} ساعة منذ آخر تحديث للمخزون`}
+                  </p>
+                  <p className="text-xs text-amber-800 font-bold mt-0.5">
+                    يرجى مراجعة المخزون وتحديثه يومياً للحفاظ على الدقة
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 no-print">
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-700 text-xs font-bold mb-1">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                تسليمات اليوم
+              </div>
+              <p className="text-2xl font-black" data-testid="stat-today-pickups">{stats?.todayPickups ?? 0}</p>
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-700 text-xs font-bold mb-1">
+                <ShoppingBag className="h-4 w-4 text-blue-600" />
+                بانتظار الاستلام
+              </div>
+              <p className="text-2xl font-black" data-testid="stat-pending-pickups">{stats?.pendingPickups ?? 0}</p>
+            </Card>
+            <Card className={`p-4 ${stats?.lowStockCount ? "border-amber-300 bg-amber-50/30" : ""}`}>
+              <div className="flex items-center gap-2 text-gray-700 text-xs font-bold mb-1">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                مخزون منخفض
+              </div>
+              <p className="text-2xl font-black" data-testid="stat-low-stock">{stats?.lowStockCount ?? 0}</p>
+            </Card>
+            <Card className={`p-4 ${stats?.outOfStockCount ? "border-red-300 bg-red-50/30" : ""}`}>
+              <div className="flex items-center gap-2 text-gray-700 text-xs font-bold mb-1">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                نفذ المخزون
+              </div>
+              <p className="text-2xl font-black" data-testid="stat-out-of-stock">{stats?.outOfStockCount ?? 0}</p>
+            </Card>
           </div>
 
           {/* Scanner always on top */}

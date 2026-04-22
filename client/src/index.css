@@ -205,3 +205,40 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Print mode (invoice/receipt printing) ─────────────────────────── */
+@media print {
+  /* Hide site chrome */
+  header, footer, nav,
+  .no-print,
+  [data-sidebar],
+  button[aria-label="Open menu"],
+  [class*="sticky"]:not(.print-keep) {
+    display: none !important;
+  }
+  body, html {
+    background: white !important;
+    color: black !important;
+  }
+  .container, main, .min-h-screen {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+  /* Ensure rounded cards print as plain blocks */
+  .shadow-sm, .shadow, .shadow-lg, .shadow-md {
+    box-shadow: none !important;
+  }
+  .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
+    border-radius: 4px !important;
+  }
+  /* Make sure colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Page break helpers */
+  .page-break { page-break-after: always; }
+  a { color: inherit !important; text-decoration: none !important; }
+}
