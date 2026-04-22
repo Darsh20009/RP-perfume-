@@ -8,6 +8,139 @@ import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
 import { simpleParser } from "mailparser";
 import { MailAccountModel, MailMessageModel } from "./models";
+import { SITE, ASSETS } from "./site-config";
+
+// ─── Branded email wrapper ─────────────────────────────────────────────────────
+const BRANDED_MARKER = "<!--RFP-BRANDED-EMAIL-->";
+
+/** Detect if content is already wrapped (avoid double-wrapping replies/forwards). */
+function isAlreadyBranded(html?: string): boolean {
+  if (!html) return false;
+  return html.includes(BRANDED_MARKER) || /<!doctype\s+html/i.test(html);
+}
+
+/** Convert plain text or simple HTML into branded RTL HTML email body. */
+function normalizeBody(html?: string, text?: string): string {
+  if (html && html.trim()) {
+    // Already has paragraph/div tags — keep as-is. Otherwise wrap line breaks.
+    if (/<\s*(p|div|table|br|h[1-6]|ul|ol|blockquote)\b/i.test(html)) return html;
+    return html.replace(/\r?\n/g, "<br/>");
+  }
+  if (text && text.trim()) {
+    const escaped = text
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/\r?\n/g, "<br/>");
+    return escaped;
+  }
+  return "";
+}
+
+/** Wrap any outgoing email body in the official RF Perfume branded HTML template. */
+export function wrapInboxHtml(params: {
+  senderName: string;
+  senderEmail: string;
+  subject: string;
+  body: string;
+}): string {
+  const { senderName, senderEmail, subject, body } = params;
+  const safeSubject = (subject || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `${BRANDED_MARKER}<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>${safeSubject}</title>
+  <style type="text/css">
+    body, table, td, p, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+    body { margin: 0 !important; padding: 0 !important; background-color: #f5f5f0; direction: rtl; }
+    table { border-collapse: collapse !important; }
+    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; display: block; }
+    a { color: #1a2744; text-decoration: none; }
+    .body-content p { margin: 0 0 14px; line-height: 1.85; font-size: 15px; color: #1a1a1a; }
+    .body-content a { color: #c9a96e; font-weight: 700; text-decoration: underline; }
+    .body-content blockquote { margin: 14px 0; padding: 12px 18px; border-right: 3px solid #c9a96e; background: #faf8f3; color: #4a4a4a; }
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; }
+      .px-content { padding-left: 22px !important; padding-right: 22px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f5f0;direction:rtl;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+  <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="background-color:#f5f5f0;">
+    <tr>
+      <td align="center" style="padding:28px 14px;">
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" class="container" style="max-width:600px;background-color:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <!-- Header with logo -->
+          <tr>
+            <td align="center" bgcolor="#0f1a2e" style="background:#0f1a2e;background-image:linear-gradient(135deg,#0f1a2e 0%,#1a2744 50%,#243154 100%);padding:32px 24px 26px;border-bottom:3px solid #c9a96e;">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin:0 auto 12px;">
+                <tr>
+                  <td align="center" valign="middle" bgcolor="#000000" style="background-color:#000000;border:1px solid #c9a96e;border-radius:10px;padding:8px 16px;">
+                    <img src="${ASSETS.LOGO_SQUARE}" alt="RF Perfume" width="120" height="90" style="display:block;width:120px;height:90px;border:0;outline:none;" />
+                  </td>
+                </tr>
+              </table>
+              <div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:0.18em;line-height:1.2;margin-top:10px;">${SITE.BRAND_AR}</div>
+              <div style="color:#c9a96e;font-size:10px;font-weight:700;letter-spacing:0.4em;text-transform:uppercase;margin-top:6px;">${SITE.BRAND_EN}</div>
+            </td>
+          </tr>
+          <!-- Sender strip -->
+          <tr>
+            <td style="padding:14px 28px;background:#faf8f3;border-bottom:1px solid rgba(201,169,110,0.25);">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%">
+                <tr>
+                  <td style="font-size:11px;color:rgba(0,0,0,0.5);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">من / From</td>
+                  <td align="left" style="font-size:12px;color:#1a2744;font-weight:800;direction:ltr;text-align:left;">${senderName} &lt;${senderEmail}&gt;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td class="px-content body-content" style="padding:38px 32px 24px;color:#1a1a1a;direction:rtl;text-align:right;font-size:15px;line-height:1.85;">
+              ${body}
+            </td>
+          </tr>
+          <!-- Signature -->
+          <tr>
+            <td style="padding:0 32px 28px;">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;">
+                <tr>
+                  <td style="font-size:13px;color:#1a2744;font-weight:900;line-height:1.5;">${senderName}</td>
+                </tr>
+                <tr>
+                  <td style="font-size:11px;color:rgba(0,0,0,0.55);font-weight:600;direction:ltr;text-align:right;padding-top:2px;">${senderEmail}</td>
+                </tr>
+                <tr>
+                  <td style="font-size:11px;color:rgba(0,0,0,0.55);font-weight:600;padding-top:6px;">
+                    <a href="${SITE.URL}" style="color:#c9a96e;font-weight:800;text-decoration:none;">${SITE.DOMAIN}</a>
+                    <span style="color:rgba(0,0,0,0.2);margin:0 6px;">|</span>
+                    <span>${SITE.BRAND_AR} &mdash; ${SITE.BRAND_EN}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background:#0f1a2e;padding:22px 28px;">
+              <p style="margin:0;color:rgba(255,255,255,0.55);font-size:11px;font-weight:600;line-height:1.7;">
+                &copy; ${new Date().getFullYear()} ${SITE.BRAND_AR} &mdash; جميع الحقوق محفوظة
+              </p>
+              <p style="margin:6px 0 0;color:rgba(255,255,255,0.35);font-size:10px;">
+                <a href="${SITE.URL}" style="color:#c9a96e;text-decoration:none;font-weight:700;">${SITE.DOMAIN}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
 
 // ─── Encryption ────────────────────────────────────────────────────────────────
 const ENC_KEY_RAW = process.env.INBOX_ENC_KEY || process.env.SESSION_SECRET || "";
@@ -249,14 +382,27 @@ export async function sendFromAccount(accountId: string, params: {
     secure: (account.smtpPort || 465) === 465,
     auth: { user: account.email, pass: password },
   });
+
+  // Always wrap outgoing emails in the official RF Perfume branded template
+  // (logo, header, signature, footer) — unless content is already a full HTML doc.
+  const senderName = account.displayName || account.email;
+  const finalHtml = isAlreadyBranded(params.html)
+    ? params.html!
+    : wrapInboxHtml({
+        senderName,
+        senderEmail: account.email,
+        subject: params.subject,
+        body: normalizeBody(params.html, params.text),
+      });
+
   const info = await transporter.sendMail({
-    from: `"${account.displayName || account.email}" <${account.email}>`,
+    from: `"${senderName}" <${account.email}>`,
     to: params.to.join(", "),
     cc: params.cc?.join(", "),
     bcc: params.bcc?.join(", "),
     subject: params.subject,
-    html: params.html,
-    text: params.text || (params.html ? params.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() : ""),
+    html: finalHtml,
+    text: params.text || finalHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
     inReplyTo: params.inReplyTo,
     references: params.references,
     attachments: params.attachments,
