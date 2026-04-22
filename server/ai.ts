@@ -1,49 +1,18 @@
-import { isGroqConfigured } from "./groq";
-import { detectLang } from "./groq";
+import { isGroqConfigured, detectLang, groqChatFor } from "./groq";
 
-const GROQ_KEYS = [
-  process.env.GROQ_API_KEY_1,
-  process.env.GROQ_API_KEY_2,
-  process.env.GROQ_API_KEY_3,
-  process.env.GROQ_API_KEY_4,
-].filter(Boolean) as string[];
-
-let keyIndex = 0;
-function getNextKey(): string {
-  if (GROQ_KEYS.length === 0) throw new Error("No Groq API keys configured");
-  const key = GROQ_KEYS[keyIndex % GROQ_KEYS.length];
-  keyIndex++;
-  return key;
-}
-
-async function groqJSON(prompt: string, maxTokens = 500, temperature = 0.4): Promise<any> {
+async function groqJSON(prompt: string, maxTokens = 500, _temperature = 0.4): Promise<any> {
   if (!isGroqConfigured()) {
     throw new Error("AI service not configured");
   }
-  const key = getNextKey();
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: maxTokens,
-      temperature,
-      response_format: { type: "json_object" },
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("[AI] Groq API error:", res.status, text);
-    throw new Error("AI request failed");
+  // ai.ts powers customer-facing helpers (size advisor, product descriptions, outfit etc.)
+  const raw = await groqChatFor("customer", [{ role: "user", content: prompt }], maxTokens);
+  try {
+    // Try to find a JSON object in the response (some models wrap it in prose).
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+  } catch {
+    return {};
   }
-
-  const data: any = await res.json();
-  return JSON.parse(data.choices[0].message.content || "{}");
 }
 
 /** Resolves a target language: explicit param > auto-detect from text > default Arabic */

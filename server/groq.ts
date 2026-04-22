@@ -1,20 +1,35 @@
-const GROQ_KEYS = [
+type Audience = "customer" | "employee";
+
+const LEGACY_KEYS = [
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
   process.env.GROQ_API_KEY_4,
 ].filter(Boolean) as string[];
 
-let keyIndex = 0;
-function getNextKey(): string {
-  if (GROQ_KEYS.length === 0) throw new Error("No Groq API keys configured");
-  const key = GROQ_KEYS[keyIndex % GROQ_KEYS.length];
-  keyIndex++;
+const CUSTOMER_KEYS = [
+  process.env.GROQ_API_KEY_CUSTOMER,
+  ...LEGACY_KEYS,
+].filter(Boolean) as string[];
+
+const EMPLOYEE_KEYS = [
+  process.env.GROQ_API_KEY_EMPLOYEE,
+  ...LEGACY_KEYS,
+].filter(Boolean) as string[];
+
+const ALL_KEYS = Array.from(new Set([...CUSTOMER_KEYS, ...EMPLOYEE_KEYS]));
+
+const idx: Record<Audience, number> = { customer: 0, employee: 0 };
+function getNextKey(audience: Audience): string {
+  const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
+  if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
+  const key = pool[idx[audience] % pool.length];
+  idx[audience]++;
   return key;
 }
 
 export function isGroqConfigured(): boolean {
-  return GROQ_KEYS.length > 0;
+  return ALL_KEYS.length > 0;
 }
 
 interface ChatMessage {
@@ -22,32 +37,24 @@ interface ChatMessage {
   content: string;
 }
 
-async function groqChat(messages: ChatMessage[], maxTokens = 1024): Promise<string> {
-  const key = getNextKey();
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    }),
-  });
+async function groqChat(
+  messages: ChatMessage[],
+  maxTokens = 1024,
+  audience: Audience = "customer",
+): Promise<string> {
+  const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
+  if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("[Groq] API error:", res.status, text);
-    if (res.status === 429) {
-      const fallbackKey = getNextKey();
-      const retry = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  let lastErr: any = null;
+  // Try each key in the pool once before giving up.
+  for (let attempt = 0; attempt < pool.length; attempt++) {
+    const key = getNextKey(audience);
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${fallbackKey}`,
+          Authorization: `Bearer ${key}`,
         },
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
@@ -56,15 +63,25 @@ async function groqChat(messages: ChatMessage[], maxTokens = 1024): Promise<stri
           temperature: 0.7,
         }),
       });
-      if (!retry.ok) throw new Error("Groq rate limited on all keys");
-      const data = await retry.json();
-      return data.choices?.[0]?.message?.content || "";
-    }
-    throw new Error(`Groq API error: ${res.status}`);
-  }
 
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || "";
+      if (res.ok) {
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || "";
+      }
+
+      const text = await res.text();
+      console.error(`[Groq] ${audience} key#${attempt} HTTP ${res.status}:`, text.slice(0, 200));
+      // Retry on 401/429/5xx; fail fast on others.
+      if (![401, 403, 429, 500, 502, 503, 504].includes(res.status)) {
+        throw new Error(`Groq API error ${res.status}`);
+      }
+      lastErr = new Error(`Groq API error ${res.status}`);
+    } catch (err: any) {
+      console.error(`[Groq] ${audience} key#${attempt} threw:`, err?.message || err);
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error("Groq request failed on all keys");
 }
 
 /** Heuristic: detects whether the latest user message is mostly Arabic or Latin script */
@@ -189,7 +206,7 @@ ${extraRules}`;
     { role: "user", content: userMessage },
   ];
 
-  const raw = await groqChat(messages);
+  const raw = await groqChat(messages, 1024, "customer");
 
   // Extract product references
   const refs: AdvisorProductRef[] = [];
@@ -270,7 +287,7 @@ export async function supportAssistant(
     { role: "user", content: userMessage },
   ];
 
-  const response = await groqChat(messages);
+  const response = await groqChat(messages, 1024, "customer");
   const needsEscalation = response.includes("[ESCALATE]");
   const cleanResponse = response.replace("[ESCALATE]", "").trim();
 
@@ -323,5 +340,15 @@ ${context?.role ? `\n**User role:** ${context.role}` : ""}`;
     { role: "user", content: userMessage },
   ];
 
-  return groqChat(messages);
+  return groqChat(messages, 1024, "employee");
+}
+
+// Exported for other server modules (e.g. employee-assistant, ai.ts) that
+// need raw access to a chat call routed to the right audience pool.
+export async function groqChatFor(
+  audience: Audience,
+  messages: ChatMessage[],
+  maxTokens = 1024,
+): Promise<string> {
+  return groqChat(messages, maxTokens, audience);
 }

@@ -11,7 +11,9 @@ import { sendEmail } from "./email";
 import { sendPushToUser, pushToUser } from "./notifications";
 import { detectLang } from "./groq";
 
+// Employee assistant uses the dedicated employee key first, then any legacy keys.
 const GROQ_KEYS = [
+  process.env.GROQ_API_KEY_EMPLOYEE,
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
@@ -19,12 +21,6 @@ const GROQ_KEYS = [
 ].filter(Boolean) as string[];
 
 let keyIndex = 0;
-function getNextKey(): string {
-  if (GROQ_KEYS.length === 0) throw new Error("Groq not configured");
-  const key = GROQ_KEYS[keyIndex % GROQ_KEYS.length];
-  keyIndex++;
-  return key;
-}
 
 // ─── Tool Definitions ───────────────────────────────────────────────────────
 
