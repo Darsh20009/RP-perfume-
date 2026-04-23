@@ -229,7 +229,7 @@ export default function Home() {
               dir="ltr"
             >
               <div
-                className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
+                className="flex gap-3 animate-marquee-products group-hover:[animation-play-state:paused] py-2"
                 style={{ width: "max-content" }}
               >
                 {(() => {
@@ -352,7 +352,7 @@ export default function Home() {
                 /* Auto-scrolling marquee strip — pauses on hover */
                 <div className="relative overflow-hidden group" dir="ltr">
                   <div
-                    className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
+                    className="flex gap-3 animate-marquee-products group-hover:[animation-play-state:paused] py-2"
                     style={{ width: "max-content" }}
                   >
                     {[...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (

@@ -174,6 +174,17 @@
   animation: marquee 30s linear infinite;
 }
 
+/* Slower marquee for product strips — uses -33.333% with exactly 3 copies for a perfect seamless loop */
+@keyframes marquee-products {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
+}
+
+.animate-marquee-products {
+  animation: marquee-products 80s linear infinite;
+  will-change: transform;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
