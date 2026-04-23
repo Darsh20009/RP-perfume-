@@ -225,7 +225,6 @@ export default function Home() {
             </div>
             <div
               className="relative overflow-hidden group"
-              style={{ maskImage: "linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%)" }}
               data-testid="strip-latest-products"
             >
               <div
@@ -233,8 +232,8 @@ export default function Home() {
                 style={{ width: "max-content" }}
               >
                 {(() => {
-                  const base = products.slice(0, 14);
-                  return [...base, ...base, ...base, ...base];
+                  const base = (products || []);
+                  return [...base, ...base, ...base];
                 })().map((product: any, i: number) => (
                   <div
                     key={`${product.id || product._id || i}-${i}`}
@@ -349,16 +348,13 @@ export default function Home() {
               </div>
 
               {catProducts.length >= 5 ? (
-                /* Auto-scrolling marquee strip — pauses on hover, supports drag-to-scroll */
-                <div
-                  className="relative overflow-hidden group"
-                  style={{ maskImage: "linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%)" }}
-                >
+                /* Auto-scrolling marquee strip — pauses on hover */
+                <div className="relative overflow-hidden group">
                   <div
                     className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
                     style={{ width: "max-content" }}
                   >
-                    {[...catProducts, ...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (
+                    {[...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (
                       <div
                         key={`${product.id || product._id || i}-${i}`}
                         className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
