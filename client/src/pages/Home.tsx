@@ -226,6 +226,7 @@ export default function Home() {
             <div
               className="relative overflow-hidden group"
               data-testid="strip-latest-products"
+              dir="ltr"
             >
               <div
                 className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
@@ -349,7 +350,7 @@ export default function Home() {
 
               {catProducts.length >= 5 ? (
                 /* Auto-scrolling marquee strip — pauses on hover */
-                <div className="relative overflow-hidden group">
+                <div className="relative overflow-hidden group" dir="ltr">
                   <div
                     className="flex gap-3 animate-marquee group-hover:[animation-play-state:paused] py-2"
                     style={{ width: "max-content" }}
