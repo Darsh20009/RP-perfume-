@@ -333,7 +333,7 @@ export default function Products() {
                   }}
                   className={`flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-200 ${isActive ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
                 >
-                  <div className={`relative w-14 h-14 rounded-2xl overflow-hidden transition-all duration-300 ${isActive ? "ring-2 ring-foreground ring-offset-2 scale-110" : "hover:scale-105"}`}>
+                  <div className={`relative w-14 h-14 rounded-2xl overflow-hidden transition-all duration-300 ${isActive ? "ring-2 ring-foreground ring-offset-2 scale-110" : ""}`}>
                     <img src={cat.img} alt={isRtl ? cat.label_ar : cat.label_en} className="w-full h-full object-cover" />
                     {isActive && <div className="absolute inset-0 bg-foreground/20" />}
                   </div>
@@ -471,7 +471,7 @@ export default function Products() {
                               key={color}
                               onClick={() => toggleColor(color)}
                               title={color}
-                              className={`relative w-8 h-8 rounded-full border-2 transition-all ${active ? "border-foreground scale-110" : "border-border/30 hover:border-foreground/40 hover:scale-105"}`}
+                              className={`relative w-8 h-8 rounded-full border-2 transition-all ${active ? "border-foreground scale-110" : "border-border/30 hover:border-foreground/40 "}`}
                               style={{ backgroundColor: hex }}
                             >
                               {active && (

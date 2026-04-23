@@ -174,7 +174,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
             <img
               src={LOGO_LIGHT}
               alt="عطور آر اف"
-              className="relative h-12 w-auto object-contain transition-transform group-hover:scale-110 drop-shadow-lg"
+              className="relative h-12 w-auto object-contain transition-transform  drop-shadow-lg"
               draggable={false}
             />
           </motion.button>
@@ -366,7 +366,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                               aria-label={`فتح ${p.name}`}
                             >
                               {p.image ? (
-                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                <img src={p.image} alt={p.name} className="w-full h-full object-cover  transition-transform duration-500" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                   <Sparkles className="h-6 w-6 text-[#c9a96e]" />

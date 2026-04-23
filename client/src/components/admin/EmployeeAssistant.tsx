@@ -108,7 +108,7 @@ export function EmployeeAssistant() {
         data-testid="button-open-assistant"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 rounded-full blur-xl opacity-60 group-hover:opacity-90 transition-opacity animate-pulse" />
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#1a2744] via-[#243154] to-[#1a2744] border-2 border-amber-400/50 shadow-2xl flex items-center justify-center group-hover:scale-110 active:scale-95 transition-transform">
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#1a2744] via-[#243154] to-[#1a2744] border-2 border-amber-400/50 shadow-2xl flex items-center justify-center  active:scale-95 transition-transform">
           <Sparkles className="w-7 h-7 text-amber-300" />
           <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-[#1a2744] flex items-center justify-center">
             <Wand2 className="w-2.5 h-2.5 text-[#1a2744]" />

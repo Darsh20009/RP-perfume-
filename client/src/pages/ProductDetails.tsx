@@ -326,7 +326,7 @@ export default function ProductDetails() {
                     animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
                     exit={{ x: slideDirection > 0 ? -400 : 400, opacity: 0, scale: 0.85, rotate: slideDirection > 0 ? -5 : 5 }}
                     transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
-                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-1000"
+                    className="max-w-full max-h-full object-contain  transition-transform duration-1000"
                     data-testid={`img-product-${currentImageIndex}`}
                   />
                 </AnimatePresence>
@@ -674,7 +674,7 @@ export default function ProductDetails() {
                       onMouseEnter={() => setHoverRating(s)}
                       onMouseLeave={() => setHoverRating(0)}
                       onClick={() => setReviewRating(s)}
-                      className="p-0.5 transition-transform hover:scale-110"
+                      className="p-0.5 transition-transform "
                       data-testid={`button-star-${s}`}
                     >
                       <Star className={`w-7 h-7 transition-colors ${s <= (hoverRating || reviewRating) ? "fill-amber-400 text-amber-400" : "text-slate-700"}`} />
@@ -778,7 +778,7 @@ export default function ProductDetails() {
                             key={url + i}
                             type="button"
                             onClick={() => setLightboxImage(url)}
-                            className="w-20 h-20 rounded-lg overflow-hidden border border-black/5 hover:border-amber-400 transition-all hover:scale-105"
+                            className="w-20 h-20 rounded-lg overflow-hidden border border-black/5 hover:border-amber-400 transition-all "
                             data-testid={`button-review-img-${review.id}-${i}`}
                           >
                             <img src={url} alt="" className="w-full h-full object-cover" />

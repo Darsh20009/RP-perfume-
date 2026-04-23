@@ -424,7 +424,7 @@ export default function POS() {
                 <Card key={product.id} className="rounded-none border-black/5 hover-elevate overflow-hidden group">
                   <div className="aspect-square relative overflow-hidden bg-black/5">
                     {product.images[0] ? (
-                      <img src={product.images[0]} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <img src={product.images[0]} className="w-full h-full object-cover transition-transform " />
                     ) : (
                       <Package className="w-12 h-12 absolute inset-0 m-auto text-black/10" />
                     )}

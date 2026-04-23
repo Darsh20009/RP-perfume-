@@ -69,7 +69,7 @@ export function SupportChat() {
       {!isOpen && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] shadow-xl flex items-center justify-center hover:scale-110 transition-all active:scale-95"
+          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] shadow-xl flex items-center justify-center  transition-all active:scale-95"
           title="الدعم الفني"
         >
           <Headphones className="h-6 w-6 text-white" />

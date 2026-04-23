@@ -177,7 +177,7 @@ export default function Home() {
                         <img
                           src={cat.image}
                           alt={isRtl ? (cat.nameAr || cat.name) : cat.name}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700"
                           loading="lazy"
                         />
                       ) : (
@@ -316,7 +316,7 @@ export default function Home() {
                       <img
                         src={cat.image}
                         alt={isRtl ? (cat.nameAr || cat.name) : cat.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700"
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -438,7 +438,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#1a2744]"
             >
-              <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-tr from-[#1a2744]/85 via-[#1a2744]/40 to-transparent" />
               <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #c9a96e 0%, transparent 50%)" }} />
               <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-32 h-32 object-contain opacity-15 rotate-12" />
@@ -458,7 +458,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#3d2817]"
             >
-              <img src="/images/banners/promo-luxury-2.png" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <img src="/images/banners/promo-luxury-2.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-tl from-[#3d2817]/85 via-[#3d2817]/30 to-transparent" />
               <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 80%, #c9a96e 0%, transparent 50%)" }} />
               <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-32 h-32 object-contain opacity-15 -rotate-12" />
@@ -487,8 +487,8 @@ export default function Home() {
             ].map((stat: any, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 className="flex flex-col items-center"
@@ -690,7 +690,7 @@ function PromoStripSection({ isRtl, t, isAr }: { isRtl: boolean; t: (k: string) 
           {list.map((badge: any, i: number) => {
             const Icon = (LucideIcons as any)[badge.icon] || Truck;
             const inner = (
-              <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""} ${badge.link ? "cursor-pointer hover:scale-[1.02] transition-transform" : ""}`}>
+              <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""} ${badge.link ? "cursor-pointer  transition-transform" : ""}`}>
                 <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${badge.color || "#c9a96e"}1f` }}>
                   <Icon className="w-5 h-5" style={{ color: badge.color || "#c9a96e" }} />
                 </div>

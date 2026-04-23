@@ -255,7 +255,7 @@ export default function AdminReviews() {
                           key={url + i}
                           type="button"
                           onClick={() => setLightbox(url)}
-                          className="w-16 h-16 rounded-md overflow-hidden border border-slate-200 hover:border-amber-400 hover:scale-105 transition-all"
+                          className="w-16 h-16 rounded-md overflow-hidden border border-slate-200 hover:border-amber-400  transition-all"
                           data-testid={`button-img-${r.id}-${i}`}
                         >
                           <img src={url} alt="" className="w-full h-full object-cover" />

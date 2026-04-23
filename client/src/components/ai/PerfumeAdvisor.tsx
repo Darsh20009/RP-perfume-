@@ -105,7 +105,7 @@ export function PerfumeAdvisor() {
       {!isOpen && !showPrompt && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-24 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#c9a96e] to-[#b8944f] shadow-xl flex items-center justify-center hover:scale-110 transition-all active:scale-95"
+          className="fixed bottom-24 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#c9a96e] to-[#b8944f] shadow-xl flex items-center justify-center  transition-all active:scale-95"
         >
           <Sparkles className="h-6 w-6 text-white" />
         </button>

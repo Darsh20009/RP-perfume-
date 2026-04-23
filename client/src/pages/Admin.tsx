@@ -341,7 +341,7 @@ const OverviewPanel = memo(() => {
       {/* Main Revenue Card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="border-none shadow-xl bg-gradient-to-br from-[#1a2744] to-[#243556] text-white relative overflow-hidden group rounded-[2rem]">
-          <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
+          <div className="absolute -right-10 -bottom-10 opacity-5  transition-transform duration-700">
             <DollarSign className="w-64 h-64 text-[#c9a96e]" />
           </div>
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
@@ -1627,7 +1627,7 @@ const CategoriesTable = memo(() => {
     <div className={`rounded-2xl border overflow-hidden bg-white shadow-sm hover:shadow-md transition-all group ${isSubCat ? "border-indigo-100 ring-1 ring-indigo-100" : "border-slate-200"}`}>
       <div className={`relative bg-slate-100 overflow-hidden ${isSubCat ? "aspect-square" : "aspect-[4/3]"}`}>
         {cat.image ? (
-          <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={cat.image} alt={cat.name} className="w-full h-full object-cover  transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Tag className={`text-slate-300 ${isSubCat ? "w-5 h-5" : "w-8 h-8"}`} />

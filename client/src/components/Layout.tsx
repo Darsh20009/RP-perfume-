@@ -282,7 +282,7 @@ export function Layout({ children }: { children: ReactNode }) {
                         { href: "https://www.snapchat.com/add/rfperfume", icon: SiSnapchat, bg: "bg-[#FFFC00]", labelColor: "text-black", label: "SC" },
                       ].map(({ href, icon: Icon, bg, labelColor, label }) => (
                         <a key={label} href={href} target="_blank" rel="noreferrer"
-                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl ${bg} text-white hover:scale-105 active:scale-95 transition-transform shadow-sm`}
+                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl ${bg} text-white  active:scale-95 transition-transform shadow-sm`}
                         >
                           <Icon className={`h-5 w-5 ${labelColor || 'text-white'}`} />
                           <span className={`text-[9px] font-black ${labelColor || 'text-white'}`}>{label}</span>
@@ -581,7 +581,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     target="_blank"
                     rel="noreferrer"
                     data-testid={`link-social-${s.platform}-${i}`}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full hover:scale-105 transition-transform shadow-lg ${meta.cls}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full  transition-transform shadow-lg ${meta.cls}`}
                   >
                     <Icon className="h-4 w-4" />
                     <span className="font-bold">{s.handle || meta.label}</span>
@@ -595,22 +595,22 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mt-12 pt-8 border-t border-gray-200">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-700 mb-5">{t('availablePayments')}</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
-              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="Mada / Visa / Mastercard / Amex">
+              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Mada / Visa / Mastercard / Amex">
                 <img src="/uploads/card-brands-logo.png" alt="Card Brands" className="h-7 w-auto object-contain" />
               </div>
-              <div className="h-10 px-4 rounded-xl bg-gray-900 flex items-center gap-1.5 hover:scale-105 transition-transform shadow-sm cursor-default" title="Apple Pay">
+              <div className="h-10 px-4 rounded-xl bg-gray-900 flex items-center gap-1.5  transition-transform shadow-sm cursor-default" title="Apple Pay">
                 <svg viewBox="0 0 20 24" className="h-4 w-auto fill-white flex-shrink-0">
                   <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z"/>
                 </svg>
                 <span className="text-white font-semibold text-sm">Pay</span>
               </div>
-              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="STC Pay">
+              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="STC Pay">
                 <img src="/uploads/stcpay-logo.png" alt="STC Pay" className="h-7 w-auto object-contain" />
               </div>
-              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="Tabby">
+              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Tabby">
                 <img src="/uploads/tabby-logo.png" alt="Tabby" className="h-7 w-auto object-contain" />
               </div>
-              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center hover:scale-105 transition-transform shadow-sm cursor-default" title="Tamara">
+              <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Tamara">
                 <img src="/uploads/tamara-logo.png" alt="Tamara" className="h-7 w-auto object-contain" />
               </div>
             </div>
@@ -623,7 +623,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 href="https://qr.saudibusiness.gov.sa/viewcr?nCrNumber=et1BNw5nU2a6R1GygbnoPA=="
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-col items-center gap-2 text-center group hover:scale-105 transition-transform"
+                className="flex flex-col items-center gap-2 text-center group  transition-transform"
               >
                 <img 
                   src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png" 
