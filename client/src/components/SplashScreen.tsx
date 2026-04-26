@@ -15,7 +15,14 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
     };
 
     if (video) {
+      // Failure-only fallback: dismiss quickly if the video can't load.
+      // Cleared as soon as canplaythrough fires so successful playback runs to its natural end.
+      const failFallback = setTimeout(dismiss, 1500);
+      // Hard cap to prevent any worst-case hang (e.g. video stalls mid-play).
+      const hardCap = setTimeout(dismiss, 5000);
+
       const onCanPlay = () => {
+        clearTimeout(failFallback);
         setVideoLoaded(true);
         video.play().catch(() => {});
       };
@@ -24,15 +31,14 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       video.addEventListener("canplaythrough", onCanPlay);
       video.addEventListener("ended", onEnded);
 
-      const fallback = setTimeout(dismiss, 3500);
-
       return () => {
         video.removeEventListener("canplaythrough", onCanPlay);
         video.removeEventListener("ended", onEnded);
-        clearTimeout(fallback);
+        clearTimeout(failFallback);
+        clearTimeout(hardCap);
       };
     } else {
-      const t = setTimeout(dismiss, 3500);
+      const t = setTimeout(dismiss, 1500);
       return () => clearTimeout(t);
     }
   }, []);

@@ -99,6 +99,8 @@ export function ProductCard({ product }: ProductCardProps) {
                 <img
                   src={images[currentImageIndex]}
                   alt={product.name}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover  transition-transform duration-700"
                 />
               </motion.div>

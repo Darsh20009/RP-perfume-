@@ -1,6 +1,6 @@
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, lazy, Suspense } from "react";
 import { Link, useLocation } from "wouter";
 import { ShoppingBag, User, Menu, LogOut, Phone, Mail, Instagram, Download, Globe, Wallet, Home, Package, LayoutDashboard, ChevronRight, X, Shield, Tag, Heart, Store } from "lucide-react";
 import { SiTiktok, SiSnapchat, SiWhatsapp, SiX } from "react-icons/si";
@@ -11,7 +11,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useLanguage } from "@/hooks/use-language";
 import { NotificationBell } from "@/components/notification-bell";
 import { useQuery } from "@tanstack/react-query";
-import { UnifiedChat } from "@/components/ai/UnifiedChat";
+const UnifiedChat = lazy(() => import("@/components/ai/UnifiedChat").then(m => ({ default: m.UnifiedChat })));
 import { AuthModal } from "@/components/AuthModal";
 import {
   DropdownMenu,
@@ -505,8 +505,10 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <main className="flex-1">{children}</main>
 
-      {/* Unified luxury floating widget (AI + Support + WhatsApp) */}
-      <UnifiedChat />
+      {/* Unified luxury floating widget (AI + Support + WhatsApp) — lazy-loaded after first paint */}
+      <Suspense fallback={null}>
+        <UnifiedChat />
+      </Suspense>
 
       {/* Auth Modal */}
       {!user && <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} defaultTab={authModalTab} />}
