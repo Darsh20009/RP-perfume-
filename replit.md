@@ -26,7 +26,7 @@ A full-stack Arabic luxury perfume e-commerce platform. Built with React + Expre
 - **STC Checkout:** White/purple theme (ivory bg, purple gradient accents)
 - **Logos:** Login/Register use `logo-light-nobg.png` (dark text, transparent bg for light pages)
 - **Footer:** White bg with gray borders/text, logo-light.png, payment logos
-- **Email:** rf-purfume@outlook.com
+- **Email:** support@rfperfume.sa
 - **Admin:** phone `567891011`, password `123456`
 
 ## Key Features

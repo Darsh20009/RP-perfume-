@@ -168,7 +168,7 @@ export default function AdminEmail() {
           <p className="text-xs font-black text-amber-900 mb-2">💡 نصائح للإرسال</p>
           <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
             <li>تحقق من مجلد الرسائل غير المرغوب بها (Spam) إذا لم يصل البريد</li>
-            <li>البريد المُرسَل من <span className="font-mono font-bold">rf-purfume@outlook.com</span> — أضِفه لجهات الاتصال</li>
+            <li>البريد المُرسَل من <span className="font-mono font-bold">support@rfperfume.sa</span> — أضِفه لجهات الاتصال</li>
             <li>القوالب تحمل تصميم RF Perfume الفاخر (RTL + ألوان العلامة)</li>
             <li>لا تستخدم هذه الصفحة لإرسال رسائل جماعية — هي للاختبار فقط</li>
           </ul>
@@ -189,7 +189,7 @@ function OutlookSetupGuide() {
   const { toast } = useToast();
   const [open, setOpen] = useState(true);
 
-  const ACCOUNT_EMAIL = "rf-purfume@outlook.com";
+  const ACCOUNT_EMAIL = "support@rfperfume.sa";
   const SENDER_DOMAIN = "noreply@rfperfume.sa";
 
   const copy = (text: string, label: string) => {

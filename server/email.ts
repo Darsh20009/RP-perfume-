@@ -151,7 +151,7 @@ function baseTemplate(title: string, content: string): string {
                   <td style="padding:0 10px;color:rgba(255,255,255,0.2);">|</td>
                   <td style="padding:0 10px;"><a href="${SITE.URL}/orders" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">طلباتي</a></td>
                   <td style="padding:0 10px;color:rgba(255,255,255,0.2);">|</td>
-                  <td style="padding:0 10px;"><a href="mailto:rf-purfume@outlook.com" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">الدعم</a></td>
+                  <td style="padding:0 10px;"><a href="mailto:support@rfperfume.sa" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;letter-spacing:0.15em;text-decoration:none;">الدعم</a></td>
                 </tr>
               </table>
               <p style="margin:16px 0 0;color:rgba(255,255,255,0.3);font-size:10px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
@@ -333,7 +333,7 @@ export async function sendOrderConfirmationEmail(params: {
     ${ctaButton(`${SITE.URL}/orders`, "متابعة طلبي")}
 
     <p style="margin:24px 0 0;padding-top:24px;border-top:1px solid rgba(0,0,0,0.06);font-size:12px;color:rgba(0,0,0,0.55);line-height:1.7;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-      هل لديك استفسار؟ تواصل معنا على <a href="mailto:rf-purfume@outlook.com" style="color:#1a2744;font-weight:800;text-decoration:none;">rf-purfume@outlook.com</a>
+      هل لديك استفسار؟ تواصل معنا على <a href="mailto:support@rfperfume.sa" style="color:#1a2744;font-weight:800;text-decoration:none;">support@rfperfume.sa</a>
     </p>
   `;
 
@@ -437,7 +437,7 @@ export async function sendOrderStatusEmail(params: {
       badgeText: "ملغي",
       message: `
         <p>تم إلغاء طلبك <span style="color:#1a2744;font-weight:900;">#${params.orderRef}</span>.${params.reason ? ` السبب: ${params.reason}.` : ""}</p>
-        <p>إذا كنت قد دفعت ولم تتلقَّ استرداداً، يرجى التواصل معنا فوراً على <a href="mailto:rf-purfume@outlook.com" style="color:#000;font-weight:800">rf-purfume@outlook.com</a></p>
+        <p>إذا كنت قد دفعت ولم تتلقَّ استرداداً، يرجى التواصل معنا فوراً على <a href="mailto:support@rfperfume.sa" style="color:#000;font-weight:800">support@rfperfume.sa</a></p>
       `,
       cta: "تواصل معنا",
     },

@@ -310,7 +310,7 @@ export function Layout({ children }: { children: ReactNode }) {
                           <p className="text-[10px] font-black" dir="ltr">966 55 132 9821</p>
                         </div>
                       </a>
-                      <a href="mailto:rf-purfume@outlook.com" className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors active:scale-95">
+                      <a href="mailto:support@rfperfume.sa" className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors active:scale-95">
                         <Mail className="h-4 w-4 text-primary shrink-0" />
                         <div>
                           <p className="text-[9px] text-muted-foreground font-bold">{t('email')}</p>
@@ -551,7 +551,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 </div>
               </a>
               <a 
-                href="mailto:rf-purfume@outlook.com" 
+                href="mailto:support@rfperfume.sa" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#DFB369]/5 hover:text-[#DFB369] transition-all group"
@@ -559,7 +559,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <span className="bg-[#DFB369]/10 p-2.5 rounded-lg text-[#DFB369] group-hover:bg-[#DFB369] group-hover:text-white transition-colors"><Mail className="h-4 w-4" /></span>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-gray-700 font-medium">{t('email')}</span>
-                  <span dir="ltr" className="font-bold text-gray-600">rf-purfume@outlook.com</span>
+                  <span dir="ltr" className="font-bold text-gray-600">support@rfperfume.sa</span>
                 </div>
               </a>
               <div className="flex items-center gap-3 p-2">

@@ -17,7 +17,7 @@ export const SITE = {
   /** Brand name (English) */
   BRAND_EN: "RF Perfume",
   /** Support email shown to customers */
-  SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || "rf-purfume@outlook.com",
+  SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || "support@rfperfume.sa",
   /** No-reply sender used by SMTP2GO */
   NOREPLY_EMAIL: process.env.EMAIL_SENDER || "noreply@rfperfume.sa",
   /** Internal-only emails (auto-generated for phone-only signups) */

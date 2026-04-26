@@ -28,7 +28,7 @@ export async function seed() {
     role: "admin",
     name: "عطور آر اف",
     username: "567891011",
-    email: "rf-purfume@outlook.com",
+    email: "support@rfperfume.sa",
     walletBalance: "0",
     addresses: [],
     permissions: [

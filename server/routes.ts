@@ -1318,7 +1318,7 @@ export async function registerRoutes(
   app.get("/api/admin/email/status", checkPermission("settings.manage"), (_req, res) => {
     res.json({
       configured: !!process.env.SMTP2GO_API_KEY,
-      sender: "rf-purfume@outlook.com",
+      sender: "support@rfperfume.sa",
       senderName: "عطور آر اف",
       provider: "SMTP2GO",
     });

@@ -4,7 +4,7 @@ import type { WebSocket } from "ws";
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BMuRKYfA848bkr9LPDIi0BiXwbgcisqOp2NPzDDDsbc2aVpx1FtvUWxQj8YsP7stW5sdIRgh45NWvLNzu7gqRnE";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "IoOFkWsX7Ga7_EQjA_cA0cxE7ChrFHENkNKpE6eyR10";
-const VAPID_MAILTO = process.env.VAPID_MAILTO || "rf-purfume@outlook.com";
+const VAPID_MAILTO = process.env.VAPID_MAILTO || "support@rfperfume.sa";
 
 webpush.setVapidDetails(`mailto:${VAPID_MAILTO}`, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 

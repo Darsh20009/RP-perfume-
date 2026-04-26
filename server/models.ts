@@ -399,7 +399,7 @@ const storeSettingsSchema = new Schema(
     storeName: { type: String, default: "عطور آر اف" },
     storeNameAr: { type: String, default: "عطور آر اف" },
     storePhone: { type: String, default: "" },
-    storeEmail: { type: String, default: "rf-purfume@outlook.com" },
+    storeEmail: { type: String, default: "support@rfperfume.sa" },
     storeAddress: { type: String, default: "" },
     vatNumber: { type: String, default: "" },
     crNumber: { type: String, default: "0000203202" },
