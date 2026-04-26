@@ -16,6 +16,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { MarketingBanners } from "@/components/marketing-banners";
 const logoImg = "/images/logos/logo-dark.png";
 import { useQuery } from "@tanstack/react-query";
+import brandCtaImg from "@assets/Screenshot_2026-04-16_at_2.09.21_PM_1777231488177.png";
 
 const heroSlides: Array<{ img: string; webp?: string }> = [
   { img: "/images/banners/banner-hero-opt.png", webp: "/images/banners/banner-hero.webp" },
@@ -426,14 +427,16 @@ export default function Home() {
               viewport={{ once: true }}
               className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#0F0F0F]"
             >
-              <img src="/images/banners/promo-luxury-2.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-tl from-[#0F0F0F]/85 via-[#0F0F0F]/30 to-transparent" />
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 80%, #DFB369 0%, transparent 50%)" }} />
-              <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-32 h-32 object-contain opacity-15 -rotate-12" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <img src={brandCtaImg} alt="عطور آر اف - فخامتك تكمل بي عطور رفيف" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+              {/* Top inset shadow — makes the image look recessed/integrated into the page */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/70 via-black/25 to-transparent" />
+              {/* Soft bottom shade for button readability */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
+              {/* Subtle inner ring to enhance depth */}
+              <div className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_2px_18px_rgba(0,0,0,0.55)]" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#DFB369] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#DFB369] transition-colors flex items-center gap-1 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full">
                     {t('shopNow')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                   </span>
                 </Link>
