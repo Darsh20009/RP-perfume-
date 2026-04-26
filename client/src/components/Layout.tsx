@@ -680,6 +680,20 @@ export function Layout({ children }: { children: ReactNode }) {
             <p className="mt-2 text-xs text-gray-700">
               rfperfume.sa
             </p>
+            <p className="mt-4 text-xs text-gray-600 flex items-center justify-center gap-1.5 flex-wrap">
+              <span>صُنع بـ</span>
+              <span className="text-[#850935] text-base leading-none animate-pulse" aria-label="حب">♥</span>
+              <span>عبر</span>
+              <a
+                href="https://qiroxstudio.sa"
+                target="_blank"
+                rel="noreferrer"
+                data-testid="link-qirox-studio"
+                className="font-black text-[#DFB369] hover:text-[#850935] transition-colors underline-offset-4 hover:underline"
+              >
+                Qirox Studio
+              </a>
+            </p>
           </div>
         </div>
       </footer>
