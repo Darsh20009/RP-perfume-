@@ -228,20 +228,21 @@ export function ProductCard({ product }: ProductCardProps) {
                   flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
                 }
               }}
-              className={`mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 ${
+              className={`mt-2 sm:mt-3 w-full flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${
                 addedToCart
                   ? "bg-green-500 text-white"
                   : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
               }`}
+              data-testid={`button-add-cart-${product.id}`}
             >
               {addedToCart ? (
                 <>
-                  <Check className="w-4 h-4" />
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                   {t('added')}
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="w-4 h-4" />
+                  <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
                   {t('addToCart')}
                 </>
               )}
