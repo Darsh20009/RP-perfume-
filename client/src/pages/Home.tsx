@@ -167,46 +167,76 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CATEGORY CARDS (option-b style) ──────────── */}
+      {/* ── CATEGORIES WITH PRODUCTS ──────────── */}
       {dbCategories && dbCategories.length > 0 && (
-        <section className="py-8 md:py-12 bg-white">
-          <div className="container px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {dbCategories.map((cat: any, i: number) => (
-                <motion.div
+        <div className="bg-white">
+          {dbCategories
+            .filter((cat: any) => !cat.parentId)
+            .map((cat: any, i: number) => {
+              const catProducts = getProductsForCategory(cat.id);
+              if (catProducts.length === 0) return null;
+              const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
+              return (
+                <section
                   key={cat.id || i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
+                  className={`py-10 md:py-14 ${i % 2 === 0 ? "bg-white" : "bg-[#FAF8F4]"}`}
+                  data-testid={`section-category-${cat.slug}`}
                 >
-                  <Link href={`/products?category=${cat.slug}`}>
-                    <div className="relative overflow-hidden rounded-xl aspect-[3/4] group cursor-pointer bg-[#F5F2ED]">
-                      {cat.image ? (
-                        <img
-                          src={cat.image}
-                          alt={isRtl ? (cat.nameAr || cat.name) : cat.name}
-                          className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-[#F5F2ED] flex items-center justify-center">
-                          <Tag className="w-12 h-12 text-[#DFB369]/30" />
+                  <div className="container px-4">
+                    {/* Category header: image + title + view all */}
+                    <Link href={`/products?category=${cat.slug}`}>
+                      <div
+                        className={`relative overflow-hidden rounded-2xl mb-6 cursor-pointer group h-32 md:h-44 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
+                      >
+                        {cat.image && (
+                          <img
+                            src={cat.image}
+                            alt={catName}
+                            className="absolute inset-0 w-full h-full object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                        <div
+                          className={`absolute inset-0 flex items-center px-6 md:px-10 ${isRtl ? "justify-end text-right" : "justify-start text-left"}`}
+                        >
+                          <div>
+                            <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1.5">
+                              {isRtl ? "تشكيلة" : "Collection"}
+                            </span>
+                            <h2 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">
+                              {catName}
+                            </h2>
+                            <span
+                              className={`mt-3 inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-[#DFB369] hover:text-white transition-colors ${isRtl ? "flex-row-reverse" : ""}`}
+                            >
+                              {t("viewAll")}
+                              {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                        <h3 className="text-white text-sm md:text-base font-bold drop-shadow-lg">
-                          {isRtl ? (cat.nameAr || cat.name) : cat.name}
-                        </h3>
                       </div>
+                    </Link>
+
+                    {/* Products grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                      {catProducts.map((p: any, idx: number) => (
+                        <motion.div
+                          key={p.id || p._id || idx}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <ProductCard product={p} />
+                        </motion.div>
+                      ))}
                     </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
+                  </div>
+                </section>
+              );
+            })}
+        </div>
       )}
 
       {/* ── TRUST STRIP (admin-controlled with hardcoded fallback) ─────── */}
