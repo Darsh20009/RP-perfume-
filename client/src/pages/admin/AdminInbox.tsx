@@ -196,9 +196,15 @@ export default function AdminInbox() {
               <Mail className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-black text-[#2B2B60] mb-2">صندوق بريد الموظفين</h2>
-            <p className="text-sm text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
+            <p className="text-sm text-slate-500 max-w-md mx-auto mb-3 leading-relaxed">
               أضف صناديق بريد الموظفين (مثل <span className="font-mono font-bold text-[#DFB369]">sales@rfperfume.sa</span>) لقراءة وإرسال الرسائل من داخل لوحة التحكم مباشرة.
             </p>
+            <div className="max-w-md mx-auto mb-6 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-right">
+              <p className="text-[12px] text-emerald-800 leading-relaxed">
+                <CheckCircle2 className="inline w-4 h-4 ml-1 -mt-0.5" />
+                <strong>بمجرد ربط الصندوق</strong>، أي بريد يصلك من <strong>أي شخص خارج المنصّة</strong> (Gmail, Hotmail, Yahoo … إلخ) سيظهر هنا تلقائياً، وتُحدَّث القائمة كل دقيقتين.
+              </p>
+            </div>
             <div className="flex gap-3 justify-center flex-wrap mb-8">
               <Button onClick={() => setAccountDialogOpen(true)} className="bg-[#2B2B60] hover:bg-[#2B2B60]/90 text-white rounded-xl px-6 h-12 gap-2 font-black">
                 <Plus className="w-4 h-4" /> إضافة صندوق بريد

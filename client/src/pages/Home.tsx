@@ -12,6 +12,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
 import { useAuth } from "@/hooks/use-auth";
+import { useAuthProviders } from "@/hooks/use-auth-providers";
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { MarketingBanners } from "@/components/marketing-banners";
 const logoImg = "/images/logos/logo-dark.png";
@@ -60,7 +61,31 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { data: products, isLoading } = useProducts();
   const { t, tx, language } = useLanguage();
+  const { toast } = useToast();
+  const { googleEnabled, appleEnabled, anyEnabled } = useAuthProviders();
   const isRtl = language === "ar";
+
+  // Show a friendly toast if redirected back with an OAuth error
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("auth_error");
+    if (err) {
+      const map: Record<string, string> = {
+        invalid_state: "انتهت صلاحية الجلسة، حاول مرة أخرى",
+        missing_code: "تم إلغاء عملية تسجيل الدخول",
+        access_denied: "تم رفض الوصول",
+      };
+      toast({
+        title: "تعذّر تسجيل الدخول",
+        description: map[err] || "حدث خطأ أثناء تسجيل الدخول، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+      params.delete("auth_error");
+      const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [toast]);
   const { data: dbCategories } = useQuery<any[]>({ queryKey: ["/api/categories"] });
   const [heroIdx, setHeroIdx] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
@@ -186,7 +211,7 @@ export default function Home() {
                     {/* Category image (top) */}
                     <Link href={`/products?category=${cat.slug}`}>
                       <div
-                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-32 md:h-44 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
+                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-44 sm:h-52 md:h-64 lg:h-72 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
                       >
                         {cat.image && (
                           <img
@@ -196,6 +221,8 @@ export default function Home() {
                             loading="lazy"
                           />
                         )}
+                        {/* Bottom fade for text readability if needed */}
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
                       </div>
                     </Link>
 
@@ -602,54 +629,62 @@ export default function Home() {
                 </Button>
               </Link>
             ) : (
-              <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+              <div className="flex flex-col items-center gap-4 max-w-md mx-auto px-2">
                 {/* Primary: Sign up now */}
                 <Link href="/register" className="w-full">
                   <Button
                     size="lg"
-                    className="w-full h-14 md:h-16 text-xs md:text-sm font-bold uppercase tracking-[0.3em] rounded-lg bg-[#DFB369] text-[#0F0F0F] hover:bg-white hover:text-[#2B2B60] border-none shadow-2xl shadow-[#DFB369]/30 transition-all duration-500"
+                    className="w-full h-14 md:h-16 text-[11px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-lg bg-[#DFB369] text-[#0F0F0F] hover:bg-white hover:text-[#2B2B60] border-none shadow-2xl shadow-[#DFB369]/30 transition-all duration-500"
                     data-testid="button-cta-register"
                   >
-                    <LucideIcons.UserPlus className={`${isRtl ? "ml-3" : "mr-3"} h-5 w-5`} />
+                    <LucideIcons.UserPlus className={`${isRtl ? "ml-2 sm:ml-3" : "mr-2 sm:mr-3"} h-4 w-4 sm:h-5 sm:w-5`} />
                     {tx("سجّل الآن مجاناً", "Sign Up Now — Free")}
                   </Button>
                 </Link>
 
-                {/* Divider */}
-                <div className="flex items-center gap-3 w-full">
-                  <div className="flex-1 h-px bg-white/15" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                    {tx("أو سجّل بسرعة عبر", "or quick sign-in")}
-                  </span>
-                  <div className="flex-1 h-px bg-white/15" />
-                </div>
+                {anyEnabled && (
+                  <>
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="flex-1 h-px bg-white/15" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">
+                        {tx("أو سجّل بسرعة عبر", "or quick sign-in")}
+                      </span>
+                      <div className="flex-1 h-px bg-white/15" />
+                    </div>
 
-                {/* Google + Apple */}
-                <div className="grid grid-cols-2 gap-3 w-full">
-                  <a
-                    href="/api/auth/google/start"
-                    className="h-12 bg-white text-[#2B2B60] rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#DFB369] hover:text-white transition-all"
-                    data-testid="button-cta-google"
-                  >
-                    <svg viewBox="0 0 48 48" className="h-4 w-4">
-                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                    </svg>
-                    Google
-                  </a>
-                  <Link
-                    href="/login"
-                    className="h-12 bg-black text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
-                    data-testid="button-cta-apple"
-                  >
-                    <svg viewBox="0 0 20 24" className="h-4 w-auto fill-current">
-                      <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z" />
-                    </svg>
-                    Apple
-                  </Link>
-                </div>
+                    {/* Google + Apple — only render the providers that are configured */}
+                    <div className={`grid ${googleEnabled && appleEnabled ? "grid-cols-2" : "grid-cols-1"} gap-3 w-full`}>
+                      {googleEnabled && (
+                        <a
+                          href="/api/auth/google/start"
+                          className="h-12 bg-white text-[#2B2B60] rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#DFB369] hover:text-white transition-all"
+                          data-testid="button-cta-google"
+                        >
+                          <svg viewBox="0 0 48 48" className="h-4 w-4">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                          </svg>
+                          Google
+                        </a>
+                      )}
+                      {appleEnabled && (
+                        <Link
+                          href="/login"
+                          className="h-12 bg-black text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
+                          data-testid="button-cta-apple"
+                        >
+                          <svg viewBox="0 0 20 24" className="h-4 w-auto fill-current">
+                            <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z" />
+                          </svg>
+                          Apple
+                        </Link>
+                      )}
+                    </div>
+                  </>
+                )}
 
                 {/* Already have an account */}
                 <Link
