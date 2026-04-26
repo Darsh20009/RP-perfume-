@@ -99,7 +99,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
       className="relative overflow-hidden rounded-[2.5rem] shadow-2xl"
       style={{
         background:
-          "radial-gradient(ellipse at top right, rgba(201,169,110,0.25), transparent 60%), radial-gradient(ellipse at bottom left, rgba(70,90,140,0.4), transparent 60%), linear-gradient(135deg, #0f1729 0%, #1a2744 50%, #243556 100%)",
+          "radial-gradient(ellipse at top right, rgba(201,169,110,0.25), transparent 60%), radial-gradient(ellipse at bottom left, rgba(70,90,140,0.4), transparent 60%), linear-gradient(135deg, #0f1729 0%, #2B2B60 50%, #243556 100%)",
       }}
     >
       {/* Animated background orbs */}
@@ -117,8 +117,8 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
       />
 
       {/* Decorative golden ring */}
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-[#c9a96e]/10 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-[#c9a96e]/5 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-[#DFB369]/10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-[#DFB369]/5 pointer-events-none" />
 
       {/* Floating perfume bottles — desktop only */}
       <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
@@ -156,7 +156,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
       {[...Array(8)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-[#c9a96e] pointer-events-none"
+          className="absolute w-1 h-1 rounded-full bg-[#DFB369] pointer-events-none"
           style={{
             top: `${15 + (i * 11) % 70}%`,
             left: `${10 + (i * 17) % 80}%`,
@@ -175,7 +175,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
       ))}
 
       {/* Top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 px-6 md:px-10 py-8 md:py-10 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -183,18 +183,18 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
         <div className="space-y-4 text-right">
           <div className="flex items-center gap-3 justify-end">
             <div className="flex flex-col items-end leading-tight">
-              <span className="text-[10px] font-bold tracking-[0.3em] text-[#c9a96e] uppercase">{greetingAr}</span>
+              <span className="text-[10px] font-bold tracking-[0.3em] text-[#DFB369] uppercase">{greetingAr}</span>
               <span className="text-[9px] font-semibold tracking-widest text-white/40 uppercase" dir="ltr">{greetingEn}</span>
             </div>
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-[#c9a96e]/30 blur-xl" />
+              <div className="absolute inset-0 rounded-2xl bg-[#DFB369]/30 blur-xl" />
               <img src="/brand-logo.png" alt="عطور آر اف" className="relative w-14 h-14 object-contain drop-shadow-[0_4px_12px_rgba(201,169,110,0.5)]" />
             </div>
           </div>
 
           <div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none">
-              <span className="bg-gradient-to-l from-[#c9a96e] via-[#e8d4a3] to-[#c9a96e] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-l from-[#DFB369] via-[#e8d4a3] to-[#DFB369] bg-clip-text text-transparent">
                 لوحة تحكم عطور آر اف
               </span>
             </h1>
@@ -205,11 +205,11 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
 
           <div className="flex items-center gap-3 justify-end flex-wrap">
             <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-              <Clock className="w-3.5 h-3.5 text-[#c9a96e]" />
+              <Clock className="w-3.5 h-3.5 text-[#DFB369]" />
               <span className="text-xs font-bold text-white/90" dir="ltr">{timeAr}</span>
             </div>
             <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-              <CalendarClock className="w-3.5 h-3.5 text-[#c9a96e]" />
+              <CalendarClock className="w-3.5 h-3.5 text-[#DFB369]" />
               <span className="text-xs font-bold text-white/90">{dateAr}</span>
             </div>
             <div className="flex items-center gap-2 bg-emerald-500/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-400/20">
@@ -223,12 +223,12 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
         <div className="grid grid-cols-2 gap-3 md:max-w-sm md:ml-auto">
           <motion.div
             whileHover={{ scale: 1.04, y: -2 }}
-            className="relative overflow-hidden bg-gradient-to-br from-[#c9a96e]/20 to-[#c9a96e]/5 backdrop-blur-xl rounded-2xl p-4 border border-[#c9a96e]/30"
+            className="relative overflow-hidden bg-gradient-to-br from-[#DFB369]/20 to-[#DFB369]/5 backdrop-blur-xl rounded-2xl p-4 border border-[#DFB369]/30"
           >
             <div className="absolute -top-4 -right-4 opacity-10">
-              <ShoppingCart className="w-20 h-20 text-[#c9a96e]" />
+              <ShoppingCart className="w-20 h-20 text-[#DFB369]" />
             </div>
-            <p className="text-[9px] font-bold tracking-widest uppercase text-[#c9a96e]/80 mb-1">إجمالي الطلبات</p>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-[#DFB369]/80 mb-1">إجمالي الطلبات</p>
             <p className="text-2xl md:text-3xl font-black text-white leading-none">{totalOrders.toLocaleString("ar-SA")}</p>
             <p className="text-[9px] font-semibold text-white/40 mt-1" dir="ltr">Total Orders</p>
           </motion.div>
@@ -253,7 +253,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
       {/* Bottom credit bar — Powered by Qirox */}
       <div className="relative z-10 border-t border-white/5 bg-black/20 backdrop-blur-md px-6 md:px-10 py-3 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 tracking-wider">
-          <Shield className="w-3 h-3 text-[#c9a96e]/60" />
+          <Shield className="w-3 h-3 text-[#DFB369]/60" />
           <span>محمي بأعلى معايير الأمان</span>
           <span className="text-white/20">•</span>
           <span dir="ltr">Enterprise-grade Security</span>
@@ -263,11 +263,11 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
           href="https://qirox.com"
           target="_blank"
           rel="noopener"
-          className="group flex items-center gap-2 bg-gradient-to-r from-[#c9a96e]/10 to-transparent px-3 py-1.5 rounded-full border border-[#c9a96e]/20 hover:border-[#c9a96e]/40 transition-all"
+          className="group flex items-center gap-2 bg-gradient-to-r from-[#DFB369]/10 to-transparent px-3 py-1.5 rounded-full border border-[#DFB369]/20 hover:border-[#DFB369]/40 transition-all"
         >
           <span className="text-[10px] font-bold text-white/50 tracking-widest uppercase">Powered by</span>
           <img src="/qirox-logo-new.png" alt="Qirox" className="h-4 object-contain opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/qirox-logo.png"; }} />
-          <span className="text-[10px] font-black text-[#c9a96e]">Qirox</span>
+          <span className="text-[10px] font-black text-[#DFB369]">Qirox</span>
         </a>
       </div>
     </motion.div>
@@ -340,21 +340,21 @@ const OverviewPanel = memo(() => {
 
       {/* Main Revenue Card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="border-none shadow-xl bg-gradient-to-br from-[#1a2744] to-[#243556] text-white relative overflow-hidden group rounded-[2rem]">
+        <Card className="border-none shadow-xl bg-gradient-to-br from-[#2B2B60] to-[#243556] text-white relative overflow-hidden group rounded-[2rem]">
           <div className="absolute -right-10 -bottom-10 opacity-5  transition-transform duration-700">
-            <DollarSign className="w-64 h-64 text-[#c9a96e]" />
+            <DollarSign className="w-64 h-64 text-[#DFB369]" />
           </div>
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
           <CardContent className="relative z-10 flex flex-col items-center text-center space-y-4 py-8">
-            <div className="flex items-center gap-3 bg-[#c9a96e]/10 px-4 py-2 rounded-full border border-[#c9a96e]/20">
-              <Wallet className="w-4 h-4 text-[#c9a96e]" />
-              <span className="text-xs font-bold tracking-wide text-[#c9a96e]">إجمالي مبيعات المتجر</span>
+            <div className="flex items-center gap-3 bg-[#DFB369]/10 px-4 py-2 rounded-full border border-[#DFB369]/20">
+              <Wallet className="w-4 h-4 text-[#DFB369]" />
+              <span className="text-xs font-bold tracking-wide text-[#DFB369]">إجمالي مبيعات المتجر</span>
             </div>
             <div className="space-y-1">
               <div className="text-5xl font-black tracking-tighter">
                 {Number(displayStats.allTime.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-[#c9a96e] font-bold text-sm">ريال سعودي</div>
+              <div className="text-[#DFB369] font-bold text-sm">ريال سعودي</div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl mt-2">
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
@@ -387,40 +387,40 @@ const OverviewPanel = memo(() => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border border-slate-200 shadow-sm bg-white flex flex-col items-center text-center space-y-3 p-6">
-          <div className="p-3 bg-[#c9a96e]/10 text-[#c9a96e] rounded-2xl">
+          <div className="p-3 bg-[#DFB369]/10 text-[#DFB369] rounded-2xl">
             <ShoppingCart className="w-6 h-6" />
           </div>
           <p className="text-slate-500 text-xs font-bold">إجمالي الطلبات</p>
-          <div className="text-4xl font-black text-[#1a2744]">{displayStats.totalOrders}</div>
+          <div className="text-4xl font-black text-[#2B2B60]">{displayStats.totalOrders}</div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-slate-400">اليوم:</span>
-            <Badge className="bg-[#c9a96e]/10 text-[#c9a96e] hover:bg-[#c9a96e]/10 rounded-lg font-black text-[10px]">{displayStats.dailyOrders}</Badge>
+            <Badge className="bg-[#DFB369]/10 text-[#DFB369] hover:bg-[#DFB369]/10 rounded-lg font-black text-[10px]">{displayStats.dailyOrders}</Badge>
           </div>
         </Card>
 
         <Card className="border border-slate-200 shadow-sm bg-white flex flex-col items-center text-center space-y-3 p-6">
-          <div className="p-3 bg-[#c9a96e]/10 text-[#c9a96e] rounded-2xl">
+          <div className="p-3 bg-[#DFB369]/10 text-[#DFB369] rounded-2xl">
             <TrendingUp className="w-6 h-6" />
           </div>
           <p className="text-slate-500 text-xs font-bold">صافي الأرباح</p>
-          <div className="text-3xl font-black text-[#c9a96e]">
+          <div className="text-3xl font-black text-[#DFB369]">
             {Number(displayStats.netProfit).toLocaleString()}
             <span className="text-xs font-medium mr-1">ر.س</span>
           </div>
           <div className="w-full space-y-1">
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#c9a96e] w-[67%]" />
+              <div className="h-full bg-[#DFB369] w-[67%]" />
             </div>
             <p className="text-[10px] font-bold text-slate-400">67% من إجمالي المبيعات</p>
           </div>
         </Card>
 
         <Card className="border border-slate-200 shadow-sm bg-white flex flex-col items-center text-center space-y-3 p-6">
-          <div className="p-3 bg-[#c9a96e]/10 text-[#c9a96e] rounded-2xl">
+          <div className="p-3 bg-[#DFB369]/10 text-[#DFB369] rounded-2xl">
             <Users className="w-6 h-6" />
           </div>
           <p className="text-slate-500 text-xs font-bold">قاعدة العملاء</p>
-          <div className="text-4xl font-black text-[#1a2744]">{displayStats.totalCustomers}</div>
+          <div className="text-4xl font-black text-[#2B2B60]">{displayStats.totalCustomers}</div>
           <div className="flex -space-x-2 space-x-reverse">
             {[1, 2, 3].map(i => (
               <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-slate-200" />
@@ -433,16 +433,16 @@ const OverviewPanel = memo(() => {
       {/* Quick Action Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="border border-slate-200 shadow-sm bg-white p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-[#c9a96e]/10 text-[#c9a96e] rounded-xl shrink-0">
+          <div className="p-2.5 bg-[#DFB369]/10 text-[#DFB369] rounded-xl shrink-0">
             <RotateCcw className="w-5 h-5" />
           </div>
           <div>
             <p className="text-[10px] text-slate-500 font-bold uppercase">مرتجعات معلقة</p>
-            <p className="text-2xl font-black text-[#c9a96e]">{displayStats.pendingReturns}</p>
+            <p className="text-2xl font-black text-[#DFB369]">{displayStats.pendingReturns}</p>
           </div>
         </Card>
         <Card className="border border-slate-200 shadow-sm bg-white p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-[#c9a96e]/10 text-[#c9a96e] rounded-xl shrink-0">
+          <div className="p-2.5 bg-[#DFB369]/10 text-[#DFB369] rounded-xl shrink-0">
             <Store className="w-5 h-5" />
           </div>
           <div>
@@ -451,21 +451,21 @@ const OverviewPanel = memo(() => {
           </div>
         </Card>
         <Card className="border border-slate-200 shadow-sm bg-white p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-[#c9a96e]/10 text-[#c9a96e] rounded-xl shrink-0">
+          <div className="p-2.5 bg-[#DFB369]/10 text-[#DFB369] rounded-xl shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
             <p className="text-[10px] text-slate-500 font-bold uppercase">عملاء جدد (30 يوم)</p>
-            <p className="text-2xl font-black text-[#1a2744]">{displayStats.newCustomers30}</p>
+            <p className="text-2xl font-black text-[#2B2B60]">{displayStats.newCustomers30}</p>
           </div>
         </Card>
         <Card className={`border border-slate-200 shadow-sm p-4 flex items-center gap-3 bg-white`}>
-          <div className={`p-2.5 rounded-xl shrink-0 ${Number(displayStats.revenueGrowth) >= 0 ? "bg-[#c9a96e]/10 text-[#c9a96e]" : "bg-red-500/10 text-red-400"}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${Number(displayStats.revenueGrowth) >= 0 ? "bg-[#DFB369]/10 text-[#DFB369]" : "bg-red-500/10 text-red-400"}`}>
             {Number(displayStats.revenueGrowth) >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
           </div>
           <div>
             <p className="text-[10px] text-slate-500 font-bold uppercase">نمو الإيرادات</p>
-            <p className={`text-2xl font-black ${Number(displayStats.revenueGrowth) >= 0 ? "text-[#c9a96e]" : "text-red-400"}`}>
+            <p className={`text-2xl font-black ${Number(displayStats.revenueGrowth) >= 0 ? "text-[#DFB369]" : "text-red-400"}`}>
               {Number(displayStats.revenueGrowth) >= 0 ? "+" : ""}{displayStats.revenueGrowth}%
             </p>
           </div>
@@ -478,7 +478,7 @@ const OverviewPanel = memo(() => {
         <Card className="border border-slate-200 shadow-sm bg-white p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-base font-black text-[#1a2744]">نمو المبيعات</h3>
+              <h3 className="text-base font-black text-[#2B2B60]">نمو المبيعات</h3>
               <p className="text-slate-500 text-xs font-bold">أداء الإيرادات خلال الأسبوع</p>
             </div>
           </div>
@@ -487,15 +487,15 @@ const OverviewPanel = memo(() => {
               <AreaChart data={weekData}>
                 <defs>
                   <linearGradient id="colorRevAdmin" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#c9a96e" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#DFB369" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#DFB369" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700 }} />
                 <YAxis hide />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(201,169,110,0.2)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.3)', fontSize: 12, background: '#1e1d1a', color: '#fff' }} />
-                <Area type="monotone" dataKey="revenue" stroke="#c9a96e" strokeWidth={3} fillOpacity={1} fill="url(#colorRevAdmin)" />
+                <Area type="monotone" dataKey="revenue" stroke="#DFB369" strokeWidth={3} fillOpacity={1} fill="url(#colorRevAdmin)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -503,7 +503,7 @@ const OverviewPanel = memo(() => {
 
         {/* Status Pie Chart */}
         <Card className="border border-slate-200 shadow-sm bg-white p-6">
-          <h3 className="text-base font-black text-[#1a2744] text-center mb-1">توزيع الحالات</h3>
+          <h3 className="text-base font-black text-[#2B2B60] text-center mb-1">توزيع الحالات</h3>
           <p className="text-slate-500 text-xs font-bold text-center mb-4">نظرة عامة على الطلبات</p>
           <div className="flex flex-col items-center">
             <div className="h-[180px] w-full relative">
@@ -525,7 +525,7 @@ const OverviewPanel = memo(() => {
                 </RePieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black text-[#1a2744]">{displayStats.totalOrdersCount}</span>
+                <span className="text-2xl font-black text-[#2B2B60]">{displayStats.totalOrdersCount}</span>
                 <span className="text-[10px] font-bold text-slate-500">إجمالي</span>
               </div>
             </div>
@@ -551,7 +551,7 @@ const OverviewPanel = memo(() => {
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="rounded-[2rem] border border-slate-200 shadow-sm bg-white overflow-hidden">
           <div className="p-5 flex items-center justify-between border-b border-slate-100">
-            <h3 className="text-base font-black text-[#1a2744]">آخر الطلبات</h3>
+            <h3 className="text-base font-black text-[#2B2B60]">آخر الطلبات</h3>
           </div>
           <div className="p-4 space-y-2">
             {displayStats.recentOrders.length === 0 ? (
@@ -560,16 +560,16 @@ const OverviewPanel = memo(() => {
               <div key={idx} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
-                    <ShoppingCart className="w-4 h-4 text-[#c9a96e]" />
+                    <ShoppingCart className="w-4 h-4 text-[#DFB369]" />
                   </div>
                   <div>
-                    <p className="font-black text-xs text-[#c9a96e]">#{order.id}</p>
+                    <p className="font-black text-xs text-[#DFB369]">#{order.id}</p>
                     <p className="text-[10px] font-bold text-slate-400">{new Date(order.createdAt).toLocaleDateString('ar-SA')}</p>
                   </div>
                 </div>
                 <div className="text-left">
-                  <p className="font-black text-sm text-[#1a2744]">{order.total} ر.س</p>
-                  <Badge className="bg-[#c9a96e]/10 text-[#c9a96e] border-none rounded-lg text-[9px] font-black h-4 px-1.5">مكتمل</Badge>
+                  <p className="font-black text-sm text-[#2B2B60]">{order.total} ر.س</p>
+                  <Badge className="bg-[#DFB369]/10 text-[#DFB369] border-none rounded-lg text-[9px] font-black h-4 px-1.5">مكتمل</Badge>
                 </div>
               </div>
             ))}
@@ -577,9 +577,9 @@ const OverviewPanel = memo(() => {
         </Card>
 
         <Card className="rounded-[2rem] border border-slate-200 shadow-sm bg-white p-5">
-          <h3 className="text-base font-black text-[#1a2744] mb-5 flex items-center gap-2">
-            <div className="p-2 bg-[#c9a96e]/10 rounded-xl">
-              <CheckCircle2 className="w-4 h-4 text-[#c9a96e]" />
+          <h3 className="text-base font-black text-[#2B2B60] mb-5 flex items-center gap-2">
+            <div className="p-2 bg-[#DFB369]/10 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-[#DFB369]" />
             </div>
             الأكثر مبيعاً
           </h3>
@@ -595,16 +595,16 @@ const OverviewPanel = memo(() => {
                       alt={product.name}
                       className="w-14 h-14 rounded-2xl object-cover shadow-sm"
                     />
-                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-[#c9a96e] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-[#DFB369] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
                       {idx + 1}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-[#1a2744] text-sm truncate">{product.name}</p>
+                    <p className="font-black text-[#2B2B60] text-sm truncate">{product.name}</p>
                     <p className="text-[10px] font-bold text-slate-400">{product.quantity} عملية بيع</p>
                   </div>
                   <div className="text-left shrink-0">
-                    <p className="font-black text-[#c9a96e] text-sm">{Number(product.revenue).toLocaleString()}</p>
+                    <p className="font-black text-[#DFB369] text-sm">{Number(product.revenue).toLocaleString()}</p>
                     <p className="text-[9px] font-bold text-slate-400">ر.س</p>
                   </div>
                 </div>
@@ -633,9 +633,9 @@ const LowStockWidget = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="rounded-[2rem] border border-[#c9a96e]/10 shadow-sm bg-white overflow-hidden">
+      <Card className="rounded-[2rem] border border-[#DFB369]/10 shadow-sm bg-white overflow-hidden">
         <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-          <div className="p-2 bg-[#c9a96e]/10 rounded-xl">
+          <div className="p-2 bg-[#DFB369]/10 rounded-xl">
             <AlertCircle className="w-4 h-4 text-amber-500" />
           </div>
           <div>
@@ -2585,9 +2585,9 @@ const OrdersManagement = memo(() => {
     <div className="space-y-5 -m-6 p-6 bg-gradient-to-br from-[#0f172a] via-[#1a2235] to-[#0f172a] min-h-[calc(100vh-7rem)] rounded-none text-white" dir="rtl">
       {/* ── Delivery Driver Dialog ── */}
       <Dialog open={!!driverDialog} onOpenChange={(o) => !o && setDriverDialog(null)}>
-        <DialogContent className="rounded-2xl max-w-sm bg-white border border-slate-200 text-[#1a2744]" dir="rtl">
+        <DialogContent className="rounded-2xl max-w-sm bg-white border border-slate-200 text-[#2B2B60]" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="font-black text-right flex items-center gap-2 text-[#1a2744]">
+            <DialogTitle className="font-black text-right flex items-center gap-2 text-[#2B2B60]">
               <div className="p-1.5 rounded-lg bg-violet-500/10">
                 <Bike className="h-4 w-4 text-violet-500" />
               </div>
@@ -5069,10 +5069,10 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
           <img src={logoDarkImg} alt="عطور آر اف" className="w-9 h-9 rounded-xl object-cover shrink-0" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="font-black text-sm text-[#1a2744] tracking-tight whitespace-nowrap">عطور آر اف</p>
+              <p className="font-black text-sm text-[#2B2B60] tracking-tight whitespace-nowrap">عطور آر اف</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <PulseRing color="bg-[#c9a96e]" />
-                <span className="text-[9px] text-[#c9a96e] font-bold uppercase tracking-widest">لوحة التحكم</span>
+                <PulseRing color="bg-[#DFB369]" />
+                <span className="text-[9px] text-[#DFB369] font-bold uppercase tracking-widest">لوحة التحكم</span>
               </div>
             </div>
           )}
@@ -5089,7 +5089,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
           {/* Desktop collapse toggle */}
           <button
             onClick={() => setCollapsed(c => !c)}
-            className={`${collapsed ? "mx-auto" : "mr-auto"} p-1.5 rounded-lg text-slate-400 hover:text-[#c9a96e] hover:bg-slate-50 transition-all hidden lg:block`}
+            className={`${collapsed ? "mx-auto" : "mr-auto"} p-1.5 rounded-lg text-slate-400 hover:text-[#DFB369] hover:bg-slate-50 transition-all hidden lg:block`}
           >
             <Menu className="w-4 h-4" />
           </button>
@@ -5097,13 +5097,13 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
 
       {/* User Info */}
       {!collapsed && (
-        <div className="relative z-10 mx-3 mt-3 p-3 rounded-xl bg-[#faf8f5] border border-slate-200">
+        <div className="relative z-10 mx-3 mt-3 p-3 rounded-xl bg-[#FFFFFF] border border-slate-200">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#c9a96e] to-[#b8944f] flex items-center justify-center text-xs font-black text-white shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#DFB369] to-[#c89853] flex items-center justify-center text-xs font-black text-white shrink-0">
               {user?.name?.charAt(0) || "A"}
             </div>
             <div className="overflow-hidden">
-              <p className="font-bold text-xs text-[#1a2744] truncate">{user?.name || "المدير"}</p>
+              <p className="font-bold text-xs text-[#2B2B60] truncate">{user?.name || "المدير"}</p>
               <p className="text-[9px] text-slate-400 tabular-nums">{time.toLocaleTimeString("ar-SA")}</p>
             </div>
           </div>
@@ -5126,12 +5126,12 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
                   title={collapsed ? item.label : undefined}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group
                     ${isActive
-                      ? "bg-[#c9a96e]/10 text-[#c9a96e] border border-[#c9a96e]/20"
-                      : "text-slate-500 hover:text-[#1a2744] hover:bg-slate-50"
+                      ? "bg-[#DFB369]/10 text-[#DFB369] border border-[#DFB369]/20"
+                      : "text-slate-500 hover:text-[#2B2B60] hover:bg-slate-50"
                     }`}
                 >
-                  {isActive && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#c9a96e] rounded-l-full" />}
-                  <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#c9a96e]" : "group-hover:text-slate-600"}`} />
+                  {isActive && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#DFB369] rounded-l-full" />}
+                  <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#DFB369]" : "group-hover:text-slate-600"}`} />
                   {!collapsed && <span className="text-xs font-bold truncate">{item.label}</span>}
                   {!collapsed && (item as any).badge > 0 && (
                     <span className="mr-auto px-1.5 py-0.5 rounded-full bg-amber-400 text-black text-[9px] font-black animate-pulse">
@@ -5242,21 +5242,21 @@ export default function Admin() {
   }, [authLoading, isStaff, setLocation]);
 
   if (authLoading) return (
-    <div className="flex h-screen items-center justify-center bg-[#faf8f5]">
+    <div className="flex h-screen items-center justify-center bg-[#FFFFFF]">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-2 border-slate-200 border-t-[#c9a96e] rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-slate-200 border-t-[#DFB369] rounded-full animate-spin" />
         <p className="text-slate-400 text-xs tracking-widest uppercase">جاري التحميل</p>
       </div>
     </div>
   );
   if (!isStaff) return (
-    <div className="flex h-screen items-center justify-center bg-[#faf8f5]">
-      <div className="w-12 h-12 border-2 border-slate-200 border-t-[#c9a96e] rounded-full animate-spin" />
+    <div className="flex h-screen items-center justify-center bg-[#FFFFFF]">
+      <div className="w-12 h-12 border-2 border-slate-200 border-t-[#DFB369] rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="flex h-screen w-full bg-[#faf8f5] text-[#1a2744] overflow-hidden" dir="rtl">
+    <div className="flex h-screen w-full bg-[#FFFFFF] text-[#2B2B60] overflow-hidden" dir="rtl">
       {/* Sidebar */}
       <AdminSidebar
         activeTab={activeTab}
@@ -5275,13 +5275,13 @@ export default function Admin() {
             {/* Hamburger — mobile only */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 -mr-1 rounded-xl text-[#1a2744] hover:bg-slate-50 transition-all lg:hidden shrink-0"
+              className="p-2 -mr-1 rounded-xl text-[#2B2B60] hover:bg-slate-50 transition-all lg:hidden shrink-0"
               aria-label="فتح القائمة"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="min-w-0">
-              <h1 className="text-sm font-black text-[#1a2744] tracking-tight truncate">{pageTitles[activeTab] || "لوحة التحكم"}</h1>
+              <h1 className="text-sm font-black text-[#2B2B60] tracking-tight truncate">{pageTitles[activeTab] || "لوحة التحكم"}</h1>
               <p className="text-[9px] text-slate-400 tabular-nums truncate hidden sm:block">{time.toLocaleDateString("ar-SA", { weekday: "long", month: "long", day: "numeric" })}</p>
             </div>
           </div>
@@ -5299,13 +5299,13 @@ export default function Admin() {
             )}
             <button
               onClick={() => queryClient.invalidateQueries()}
-              className="p-2 rounded-xl text-slate-400 hover:text-[#c9a96e] hover:bg-slate-50 transition-all"
+              className="p-2 rounded-xl text-slate-400 hover:text-[#DFB369] hover:bg-slate-50 transition-all"
               title="تحديث البيانات"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <Link href="/">
-              <div className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all cursor-pointer text-xs font-bold">
+              <div className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-[#DFB369] hover:bg-[#DFB369]/5 transition-all cursor-pointer text-xs font-bold">
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">المتجر</span>
               </div>

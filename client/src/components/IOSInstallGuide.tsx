@@ -56,7 +56,7 @@ export function IOSInstallGuide() {
             data-testid="dialog-ios-install"
           >
             {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#1a2744] via-[#243154] to-[#1a2744] px-6 pt-6 pb-8 text-white">
+            <div className="relative bg-gradient-to-br from-[#2B2B60] via-[#243154] to-[#2B2B60] px-6 pt-6 pb-8 text-white">
               <button
                 onClick={close}
                 className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
@@ -251,7 +251,7 @@ function Step({
       <div
         className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-black text-[11px] transition-all ${
           active
-            ? "bg-[#1a2744] text-white shadow-lg"
+            ? "bg-[#2B2B60] text-white shadow-lg"
             : "bg-stone-100 text-stone-400"
         }`}
       >

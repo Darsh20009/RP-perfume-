@@ -108,10 +108,10 @@ export function EmployeeAssistant() {
         data-testid="button-open-assistant"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 rounded-full blur-xl opacity-60 group-hover:opacity-90 transition-opacity animate-pulse" />
-        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#1a2744] via-[#243154] to-[#1a2744] border-2 border-amber-400/50 shadow-2xl flex items-center justify-center  active:scale-95 transition-transform">
+        <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#2B2B60] via-[#243154] to-[#2B2B60] border-2 border-amber-400/50 shadow-2xl flex items-center justify-center  active:scale-95 transition-transform">
           <Sparkles className="w-7 h-7 text-amber-300" />
-          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-[#1a2744] flex items-center justify-center">
-            <Wand2 className="w-2.5 h-2.5 text-[#1a2744]" />
+          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-[#2B2B60] flex items-center justify-center">
+            <Wand2 className="w-2.5 h-2.5 text-[#2B2B60]" />
           </div>
         </div>
       </motion.button>
@@ -136,10 +136,10 @@ export function EmployeeAssistant() {
               data-testid="dialog-assistant"
             >
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#1a2744] via-[#243154] to-[#1a2744] px-5 py-4 text-white border-b-2 border-amber-400/30">
+              <div className="relative bg-gradient-to-br from-[#2B2B60] via-[#243154] to-[#2B2B60] px-5 py-4 text-white border-b-2 border-amber-400/30">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-5 h-5 text-[#1a2744]" />
+                    <Sparkles className="w-5 h-5 text-[#2B2B60]" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-black text-base tracking-tight">لمسة 🌸</h3>
@@ -235,7 +235,7 @@ export function EmployeeAssistant() {
                   <Button
                     type="submit"
                     disabled={busy || !input.trim()}
-                    className="rounded-2xl h-11 w-11 p-0 bg-gradient-to-br from-[#1a2744] to-[#243154] hover:opacity-90"
+                    className="rounded-2xl h-11 w-11 p-0 bg-gradient-to-br from-[#2B2B60] to-[#243154] hover:opacity-90"
                     data-testid="button-send-assistant"
                   >
                     {busy ? (
@@ -275,7 +275,7 @@ function MessageBubble({ msg }: { msg: Message }) {
         <div
           className={`inline-block px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
             isUser
-              ? "bg-[#1a2744] text-white rounded-tr-sm"
+              ? "bg-[#2B2B60] text-white rounded-tr-sm"
               : "bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm"
           }`}
         >

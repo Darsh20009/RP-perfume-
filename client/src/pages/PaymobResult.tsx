@@ -25,7 +25,7 @@ export default function PaymobResult() {
         {status === "loading" && (
           <>
             <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
-              <Loader2 className="h-10 w-10 text-[#c9a96e] animate-spin" />
+              <Loader2 className="h-10 w-10 text-[#DFB369] animate-spin" />
             </div>
             <h2 className="text-xl font-black text-gray-800">جاري التحقق من الدفع...</h2>
             <p className="text-sm text-gray-800 font-bold">يرجى الانتظار</p>
@@ -49,7 +49,7 @@ export default function PaymobResult() {
             <div className="space-y-3 pt-4">
               <Button
                 onClick={() => setLocation("/orders")}
-                className="w-full h-12 bg-black text-white font-black uppercase tracking-widest text-[11px] rounded-xl hover:bg-[#c9a96e]"
+                className="w-full h-12 bg-black text-white font-black uppercase tracking-widest text-[11px] rounded-xl hover:bg-[#DFB369]"
               >
                 متابعة طلباتي
               </Button>
@@ -76,7 +76,7 @@ export default function PaymobResult() {
             <div className="space-y-3 pt-4">
               <Button
                 onClick={() => setLocation("/checkout")}
-                className="w-full h-12 bg-black text-white font-black uppercase tracking-widest text-[11px] rounded-xl hover:bg-[#c9a96e]"
+                className="w-full h-12 bg-black text-white font-black uppercase tracking-widest text-[11px] rounded-xl hover:bg-[#DFB369]"
               >
                 إعادة المحاولة
               </Button>

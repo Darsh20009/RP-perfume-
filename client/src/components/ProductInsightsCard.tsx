@@ -33,18 +33,18 @@ export function ProductInsightsCard({ productId }: { productId: string }) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a2744] via-[#243558] to-[#1a2744] text-white p-6 md:p-8 shadow-2xl"
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2B2B60] via-[#243558] to-[#2B2B60] text-white p-6 md:p-8 shadow-2xl"
       dir={isAr ? "rtl" : "ltr"}
       data-testid="product-insights-card"
     >
-      <div className="absolute -top-12 -end-12 w-64 h-64 rounded-full bg-[#c9a96e]/15 blur-3xl pointer-events-none" />
+      <div className="absolute -top-12 -end-12 w-64 h-64 rounded-full bg-[#DFB369]/15 blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start gap-3 mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#c9a96e] to-[#a88550] flex items-center justify-center shadow-lg shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#DFB369] to-[#a88550] flex items-center justify-center shadow-lg shrink-0">
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] mb-1">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1">
               <Sparkles className="w-3 h-3" /> {isAr ? "تحليل ذكي" : "AI Insight"}
             </span>
             <h3 className="text-lg font-black">{isAr ? "ملف العطر" : "Scent Profile"}</h3>
@@ -55,10 +55,10 @@ export function ProductInsightsCard({ productId }: { productId: string }) {
 
         {data.scentNotes?.length > 0 && (
           <div className="mb-5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#c9a96e] mb-2">{isAr ? "النوتات العطرية" : "Scent Notes"}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#DFB369] mb-2">{isAr ? "النوتات العطرية" : "Scent Notes"}</p>
             <div className="flex flex-wrap gap-2">
               {data.scentNotes.map((n, i) => (
-                <span key={i} className="px-3 py-1.5 rounded-full bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[11px] font-bold text-[#c9a96e]">{n}</span>
+                <span key={i} className="px-3 py-1.5 rounded-full bg-[#DFB369]/15 border border-[#DFB369]/30 text-[11px] font-bold text-[#DFB369]">{n}</span>
               ))}
             </div>
           </div>
@@ -68,7 +68,7 @@ export function ProductInsightsCard({ productId }: { productId: string }) {
           {data.longevity && (
             <div className="bg-white/5 rounded-lg p-3 border border-white/10">
               <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-3.5 h-3.5 text-[#c9a96e]" />
+                <Clock className="w-3.5 h-3.5 text-[#DFB369]" />
                 <p className="text-[9px] font-bold uppercase tracking-widest text-white/60">{isAr ? "الثبات" : "Longevity"}</p>
               </div>
               <p className="text-xs font-bold">{data.longevity}</p>
@@ -77,7 +77,7 @@ export function ProductInsightsCard({ productId }: { productId: string }) {
           {data.sillage && (
             <div className="bg-white/5 rounded-lg p-3 border border-white/10">
               <div className="flex items-center gap-2 mb-1">
-                <Wind className="w-3.5 h-3.5 text-[#c9a96e]" />
+                <Wind className="w-3.5 h-3.5 text-[#DFB369]" />
                 <p className="text-[9px] font-bold uppercase tracking-widest text-white/60">{isAr ? "البصمة" : "Sillage"}</p>
               </div>
               <p className="text-xs font-bold">{data.sillage}</p>
@@ -87,9 +87,9 @@ export function ProductInsightsCard({ productId }: { productId: string }) {
 
         {data.occasions?.length > 0 && (
           <div className="mb-5 flex items-start gap-2">
-            <Calendar className="w-4 h-4 text-[#c9a96e] shrink-0 mt-0.5" />
+            <Calendar className="w-4 h-4 text-[#DFB369] shrink-0 mt-0.5" />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#c9a96e] mb-1">{isAr ? "مناسب لـ" : "Best For"}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#DFB369] mb-1">{isAr ? "مناسب لـ" : "Best For"}</p>
               <p className="text-xs text-white/80">{data.occasions.join(" · ")}</p>
             </div>
           </div>

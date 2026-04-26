@@ -497,28 +497,28 @@ export function Layout({ children }: { children: ReactNode }) {
             </p>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('categories')}</h3>
+            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('categories')}</h3>
             <ul className="space-y-3 text-sm text-gray-800">
-              <li><Link href="/products" className="hover:text-[#c9a96e] transition-colors">{t('allProducts')}</Link></li>
+              <li><Link href="/products" className="hover:text-[#DFB369] transition-colors">{t('allProducts')}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('help')}</h3>
+            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('help')}</h3>
             <ul className="space-y-3 text-sm text-gray-800">
-              <li><Link href="/terms" className="hover:text-[#c9a96e] transition-colors">{t('terms')}</Link></li>
-              <li><Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#c9a96e] transition-colors">{language === 'ar' ? 'فروعنا' : 'Our Branches'}</Link></li>
+              <li><Link href="/terms" className="hover:text-[#DFB369] transition-colors">{t('terms')}</Link></li>
+              <li><Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'فروعنا' : 'Our Branches'}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-6 text-[#c9a96e]">{t('contactUs')}</h3>
+            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('contactUs')}</h3>
             <div className="space-y-4 text-sm text-gray-800">
               <a 
                 href="tel:+966551329821" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#c9a96e]/5 hover:text-[#c9a96e] transition-all group"
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#DFB369]/5 hover:text-[#DFB369] transition-all group"
               >
-                <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e] group-hover:bg-[#c9a96e] group-hover:text-white transition-colors"><Phone className="h-4 w-4" /></span>
+                <span className="bg-[#DFB369]/10 p-2.5 rounded-lg text-[#DFB369] group-hover:bg-[#DFB369] group-hover:text-white transition-colors"><Phone className="h-4 w-4" /></span>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-gray-700 font-medium">{t('callUs')}</span>
                   <span dir="ltr" className="font-bold text-gray-600">966 55 132 9821</span>
@@ -528,19 +528,19 @@ export function Layout({ children }: { children: ReactNode }) {
                 href="mailto:rf-purfume@outlook.com" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#c9a96e]/5 hover:text-[#c9a96e] transition-all group"
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#DFB369]/5 hover:text-[#DFB369] transition-all group"
               >
-                <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e] group-hover:bg-[#c9a96e] group-hover:text-white transition-colors"><Mail className="h-4 w-4" /></span>
+                <span className="bg-[#DFB369]/10 p-2.5 rounded-lg text-[#DFB369] group-hover:bg-[#DFB369] group-hover:text-white transition-colors"><Mail className="h-4 w-4" /></span>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-gray-700 font-medium">{t('email')}</span>
                   <span dir="ltr" className="font-bold text-gray-600">rf-purfume@outlook.com</span>
                 </div>
               </a>
               <div className="flex items-center gap-3 p-2">
-                <span className="bg-[#c9a96e]/10 p-2.5 rounded-lg text-[#c9a96e]"><SiWhatsapp className="h-4 w-4" /></span>
+                <span className="bg-[#DFB369]/10 p-2.5 rounded-lg text-[#DFB369]"><SiWhatsapp className="h-4 w-4" /></span>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-gray-700 font-medium">{t('whatsapp')}</span>
-                  <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" dir="ltr" className="font-bold text-gray-600 hover:text-[#c9a96e] transition-colors">966 55 132 9821</a>
+                  <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" dir="ltr" className="font-bold text-gray-600 hover:text-[#DFB369] transition-colors">966 55 132 9821</a>
                 </div>
               </div>
             </div>
@@ -561,15 +561,15 @@ export function Layout({ children }: { children: ReactNode }) {
               const active = list.filter((s: any) => s.isActive !== false && s.url).sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
               const styles: Record<string, { cls: string; Icon: any; label: string }> = {
                 instagram: { cls: 'bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white', Icon: Instagram, label: 'Instagram' },
-                twitter:   { cls: 'bg-[#1a2744] text-white', Icon: SiX, label: 'X' },
+                twitter:   { cls: 'bg-[#2B2B60] text-white', Icon: SiX, label: 'X' },
                 snapchat:  { cls: 'bg-[#FFFC00] text-black', Icon: SiSnapchat, label: 'Snapchat' },
-                tiktok:    { cls: 'bg-[#1a2744] text-white', Icon: SiTiktok, label: 'TikTok' },
+                tiktok:    { cls: 'bg-[#2B2B60] text-white', Icon: SiTiktok, label: 'TikTok' },
                 whatsapp:  { cls: 'bg-[#25D366] text-white', Icon: SiWhatsapp, label: 'WhatsApp' },
                 facebook:  { cls: 'bg-[#1877F2] text-white', Icon: Globe, label: 'Facebook' },
                 youtube:   { cls: 'bg-[#FF0000] text-white', Icon: Globe, label: 'YouTube' },
                 telegram:  { cls: 'bg-[#26A5E4] text-white', Icon: Globe, label: 'Telegram' },
                 linkedin:  { cls: 'bg-[#0A66C2] text-white', Icon: Globe, label: 'LinkedIn' },
-                website:   { cls: 'bg-[#c9a96e] text-white', Icon: Globe, label: 'Website' },
+                website:   { cls: 'bg-[#DFB369] text-white', Icon: Globe, label: 'Website' },
               };
               return active.map((s: any, i: number) => {
                 const meta = styles[s.platform] || styles.website;
@@ -634,16 +634,16 @@ export function Layout({ children }: { children: ReactNode }) {
                 <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                   {t('commercialReg')}
                 </div>
-                <div className="text-xs text-[#c9a96e] font-black group-hover:underline">1010978041</div>
+                <div className="text-xs text-[#DFB369] font-black group-hover:underline">1010978041</div>
               </a>
               <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-[#c9a96e]/10 flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-[#c9a96e]" />
+                <div className="w-12 h-12 rounded-full bg-[#DFB369]/10 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-[#DFB369]" />
                 </div>
                 <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                   {t('taxNumber')}
                 </div>
-                <div className="text-xs text-[#c9a96e] font-black">312037024200003</div>
+                <div className="text-xs text-[#DFB369] font-black">312037024200003</div>
               </div>
             </div>
           </div>

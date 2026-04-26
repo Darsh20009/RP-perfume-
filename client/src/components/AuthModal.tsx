@@ -310,7 +310,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
         <div className="px-6 pt-6 pb-2 text-center">
           <img src={logoImg} alt="عطور آر اف" className="h-14 w-auto mx-auto mb-3 object-contain" />
-          <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent mx-auto" />
+          <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#DFB369] to-transparent mx-auto" />
         </div>
 
         {/* ─── Forgot Password panels ────────────────────────────────────── */}
@@ -319,19 +319,19 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             <div className="flex items-center justify-between mb-2">
               <button
                 onClick={resetForgotState}
-                className="text-[11px] font-bold text-gray-500 hover:text-[#1a2744]"
+                className="text-[11px] font-bold text-gray-500 hover:text-[#2B2B60]"
                 data-testid="button-forgot-back"
               >
                 {isAr ? "← " : "← "}{t("back")}
               </button>
-              <h3 className="text-sm font-black text-[#1a2744]">{t("passwordRecovery")}</h3>
+              <h3 className="text-sm font-black text-[#2B2B60]">{t("passwordRecovery")}</h3>
             </div>
 
             {forgotStep === "otp" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  {isAr ? <>أرسلنا كوداً مكوّناً من ٦ أرقام إلى بريدك <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. أدخله أدناه:</>
-                       : <>We sent a 6-digit code to your email <span className="font-bold text-[#1a2744]">{forgotMaskedEmail}</span>. Enter it below:</>}
+                  {isAr ? <>أرسلنا كوداً مكوّناً من ٦ أرقام إلى بريدك <span className="font-bold text-[#2B2B60]">{forgotMaskedEmail}</span>. أدخله أدناه:</>
+                       : <>We sent a 6-digit code to your email <span className="font-bold text-[#2B2B60]">{forgotMaskedEmail}</span>. Enter it below:</>}
                 </p>
                 <input
                   type="text"
@@ -340,19 +340,19 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   value={forgotCode}
                   onChange={e => setForgotCode(e.target.value.replace(/\D/g, ""))}
                   placeholder="------"
-                  className="w-full h-14 text-center bg-[#faf8f5] border border-gray-200 rounded-xl text-xl tracking-[0.5em] font-black text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                  className="w-full h-14 text-center bg-[#FFFFFF] border border-gray-200 rounded-xl text-xl tracking-[0.5em] font-black text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none"
                   data-testid="input-forgot-otp"
                 />
                 <button
                   onClick={() => submitForgotVerify({ code: forgotCode })}
                   disabled={forgotLoading || forgotCode.length !== 6}
-                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  className="w-full h-12 bg-[#DFB369] text-white rounded-xl font-bold text-sm hover:bg-[#c89853] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-verify-otp"
                 >
                   {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("verifyCode")}
                 </button>
                 <div className="flex items-center justify-between text-[11px]">
-                  <button onClick={startForgot} disabled={forgotLoading} className="text-[#c9a96e] font-bold hover:underline">
+                  <button onClick={startForgot} disabled={forgotLoading} className="text-[#DFB369] font-bold hover:underline">
                     {t("resendCode")}
                   </button>
                   {forgotAllowVerifyToo && (
@@ -370,13 +370,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   {tx("لاستعادة حسابك، أكّد هويتك بإحدى الطريقتين:", "To recover your account, verify your identity using one of these methods:")}
                 </p>
                 <div>
-                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("fullNameAsAccount")}</label>
+                  <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("fullNameAsAccount")}</label>
                   <input
                     type="text"
                     value={forgotName}
                     onChange={e => setForgotName(e.target.value)}
                     placeholder={t("fullNamePlaceholder")}
-                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none"
                     data-testid="input-forgot-name"
                   />
                 </div>
@@ -386,13 +386,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("previousOrderNumber")}</label>
+                  <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("previousOrderNumber")}</label>
                   <input
                     type="text"
                     value={forgotOrder}
                     onChange={e => setForgotOrder(e.target.value)}
                     placeholder={tx("مثال: 123456", "e.g. 123456")}
-                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none"
                     data-testid="input-forgot-order"
                   />
                 </div>
@@ -402,7 +402,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                     ...(forgotOrder.trim() ? { orderNumber: forgotOrder.trim() } : {}),
                   })}
                   disabled={forgotLoading || (!forgotName.trim() && !forgotOrder.trim())}
-                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  className="w-full h-12 bg-[#DFB369] text-white rounded-xl font-bold text-sm hover:bg-[#c89853] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-verify-identity"
                 >
                   {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("verifyAndContinue")}
@@ -422,13 +422,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                     onChange={e => setForgotNewPassword(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") submitForgotReset(); }}
                     placeholder="••••••••"
-                    className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 pr-12 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none"
+                    className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 pr-12 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none"
                     data-testid="input-forgot-new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#1a2744]"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#2B2B60]"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -436,7 +436,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 <button
                   onClick={submitForgotReset}
                   disabled={forgotLoading || forgotNewPassword.length < 6}
-                  className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] disabled:opacity-40 flex items-center justify-center"
+                  className="w-full h-12 bg-[#DFB369] text-white rounded-xl font-bold text-sm hover:bg-[#c89853] disabled:opacity-40 flex items-center justify-center"
                   data-testid="button-forgot-save"
                 >
                   {forgotLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : t("saveNewPassword")}
@@ -449,16 +449,16 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
         {/* ─── Normal Login / Register UI (hidden during forgot flow) ──── */}
         {!forgotStep && (
         <>
-        <div className="flex mx-6 bg-[#faf8f5] rounded-xl p-1 mb-4">
+        <div className="flex mx-6 bg-[#FFFFFF] rounded-xl p-1 mb-4">
           <button
             onClick={() => setTab("login")}
-            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "login" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
+            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "login" ? "bg-white text-[#2B2B60] shadow-sm" : "text-gray-700"}`}
           >
             {t("signIn")}
           </button>
           <button
             onClick={() => setTab("register")}
-            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "register" ? "bg-white text-[#1a2744] shadow-sm" : "text-gray-700"}`}
+            className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${tab === "register" ? "bg-white text-[#2B2B60] shadow-sm" : "text-gray-700"}`}
           >
             {t("newAccount")}
           </button>
@@ -485,7 +485,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           <button
             onClick={handleGoogleSignIn}
             disabled={!!socialLoading}
-            className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm text-[#1a2744] flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="w-full h-12 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm text-[#2B2B60] flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             {socialLoading === "google" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -512,20 +512,20 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
         <div className="px-6 pb-6 space-y-3">
           {tab === "register" && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("fullName")}</label>
+              <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("fullName")}</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder={t("fullNamePlaceholder")}
-                className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none transition-all"
+                className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none transition-all"
               />
             </div>
           )}
 
           <div>
-            <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("phoneNumber")}</label>
-            <div dir="ltr" className="flex items-center h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 focus-within:border-[#c9a96e] focus-within:ring-2 focus-within:ring-[#c9a96e]/20 transition-all">
+            <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("phoneNumber")}</label>
+            <div dir="ltr" className="flex items-center h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 focus-within:border-[#DFB369] focus-within:ring-2 focus-within:ring-[#DFB369]/20 transition-all">
               <span className="text-sm font-bold text-gray-700 border-r border-gray-200 pr-2 ml-2">+966</span>
               <input
                 type="tel"
@@ -534,28 +534,28 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                 onKeyDown={e => { if (e.key === "Enter" && tab === "login") handlePhoneLogin(); }}
                 placeholder="5x xxx xxxx"
                 maxLength={11}
-                className="flex-1 h-full bg-transparent border-none outline-none text-sm font-bold tracking-wider text-[#1a2744] placeholder:text-gray-700"
+                className="flex-1 h-full bg-transparent border-none outline-none text-sm font-bold tracking-wider text-[#2B2B60] placeholder:text-gray-700"
               />
             </div>
           </div>
 
           {tab === "register" && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("email")} <span className="text-gray-700">({t("optional")})</span></label>
+              <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("email")} <span className="text-gray-700">({t("optional")})</span></label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="example@email.com"
                 dir="ltr"
-                className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none transition-all"
+                className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none transition-all"
               />
             </div>
           )}
 
           {(isStaff || tab === "register") && (
             <div>
-              <label className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest mb-1 block">{t("password")}</label>
+              <label className="text-[10px] font-bold text-[#DFB369] uppercase tracking-widest mb-1 block">{t("password")}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -568,12 +568,12 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                     }
                   }}
                   placeholder="••••••••"
-                  className="w-full h-12 bg-[#faf8f5] border border-gray-200 rounded-xl px-4 pr-12 text-sm text-[#1a2744] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 outline-none transition-all"
+                  className="w-full h-12 bg-[#FFFFFF] border border-gray-200 rounded-xl px-4 pr-12 text-sm text-[#2B2B60] focus:border-[#DFB369] focus:ring-2 focus:ring-[#DFB369]/20 outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#1a2744] transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-[#2B2B60] transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -584,7 +584,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           <button
             onClick={tab === "login" ? handlePhoneLogin : handlePhoneRegister}
             disabled={isLoggingIn || isRegistering || phone.length < 9 || (tab === "register" && (!name.trim() || password.length < 6))}
-            className="w-full h-12 bg-[#c9a96e] text-white rounded-xl font-bold text-sm hover:bg-[#b8944f] transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#c9a96e]/20"
+            className="w-full h-12 bg-[#DFB369] text-white rounded-xl font-bold text-sm hover:bg-[#c89853] transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#DFB369]/20"
           >
             {(isLoggingIn || isRegistering) ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -595,7 +595,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
             <button
               onClick={startForgot}
               disabled={forgotLoading}
-              className="w-full text-center text-[11px] font-bold text-[#c9a96e] hover:underline pt-1 disabled:opacity-50"
+              className="w-full text-center text-[11px] font-bold text-[#DFB369] hover:underline pt-1 disabled:opacity-50"
               data-testid="button-forgot-password"
             >
               {t("forgotPassword")}
@@ -604,9 +604,9 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
           <p className="text-center text-[10px] text-gray-700 pt-1">
             {tab === "login" ? (
-              <>{t("noAccountYet")} <button onClick={() => setTab("register")} className="text-[#c9a96e] font-bold hover:underline">{t("createNewAccount")}</button></>
+              <>{t("noAccountYet")} <button onClick={() => setTab("register")} className="text-[#DFB369] font-bold hover:underline">{t("createNewAccount")}</button></>
             ) : (
-              <>{t("haveAccount")} <button onClick={() => setTab("login")} className="text-[#c9a96e] font-bold hover:underline">{t("signInShort")}</button></>
+              <>{t("haveAccount")} <button onClick={() => setTab("login")} className="text-[#DFB369] font-bold hover:underline">{t("signInShort")}</button></>
             )}
           </p>
         </div>

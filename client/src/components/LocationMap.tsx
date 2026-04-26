@@ -62,7 +62,7 @@ export function LocationMap({
       });
 
       annotation = new mk.MarkerAnnotation(center, {
-        color: "#c9a96e",
+        color: "#DFB369",
         glyphColor: "#fff",
         draggable: true,
       });

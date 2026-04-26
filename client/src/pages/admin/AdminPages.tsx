@@ -83,50 +83,50 @@ export default function AdminPages() {
     <div className="space-y-6" data-testid="admin-pages">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-2xl font-black text-[#1a2744]">صفحات المتجر</h2>
+          <h2 className="text-2xl font-black text-[#2B2B60]">صفحات المتجر</h2>
           <p className="text-sm text-slate-500 mt-1">صفحات مخصّصة (مَن نحن، سياسة الإرجاع، حملات…) تظهر في القائمة وفي روابط مباشرة.</p>
         </div>
-        <Button onClick={startCreate} className="bg-[#1a2744] hover:bg-[#243454] text-white" data-testid="button-add-page">
+        <Button onClick={startCreate} className="bg-[#2B2B60] hover:bg-[#3A3A75] text-white" data-testid="button-add-page">
           <Plus className="w-4 h-4 me-2" /> صفحة جديدة
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#c9a96e]" /></div>
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#DFB369]" /></div>
       ) : pages.length === 0 ? (
-        <div className="text-center py-20 bg-[#faf8f5] rounded-2xl border border-dashed border-[#c9a96e]/30">
-          <FileText className="w-12 h-12 mx-auto text-[#c9a96e]/40 mb-3" />
+        <div className="text-center py-20 bg-[#FFFFFF] rounded-2xl border border-dashed border-[#DFB369]/30">
+          <FileText className="w-12 h-12 mx-auto text-[#DFB369]/40 mb-3" />
           <p className="font-bold text-slate-700">لا توجد صفحات بعد</p>
           <p className="text-xs text-slate-500 mt-1">أنشئ صفحات تسويقية أو معلوماتية بالكامل من هنا</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {pages.map((p) => (
-            <div key={p.id} className={`bg-white rounded-2xl border-2 p-5 hover:shadow-lg transition-all ${p.isActive ? "border-[#e8e2d9]" : "border-slate-200 opacity-60"}`} data-testid={`page-card-${p.id}`}>
+            <div key={p.id} className={`bg-white rounded-2xl border-2 p-5 hover:shadow-lg transition-all ${p.isActive ? "border-[#E8E5E0]" : "border-slate-200 opacity-60"}`} data-testid={`page-card-${p.id}`}>
               <div className="flex items-start gap-4">
                 {p.heroImage ? (
                   <img src={p.heroImage} alt="" className="w-24 h-24 rounded-xl object-cover" />
                 ) : (
-                  <div className="w-24 h-24 rounded-xl bg-[#faf8f5] flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-[#c9a96e]/40" />
+                  <div className="w-24 h-24 rounded-xl bg-[#FFFFFF] flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-[#DFB369]/40" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-black text-[#1a2744]">{p.titleAr || p.titleEn}</h3>
+                    <h3 className="font-black text-[#2B2B60]">{p.titleAr || p.titleEn}</h3>
                     {p.showInNav && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">في القائمة</span>}
                     {!p.isActive && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">متوقف</span>}
                   </div>
                   <p className="text-xs text-slate-500 mt-1 line-clamp-1">{p.excerptAr || p.excerptEn || "—"}</p>
                   <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
                     <span className="font-mono">/pages/{p.slug}</span>
-                    <a href={`/pages/${p.slug}`} target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] hover:underline flex items-center gap-1">
+                    <a href={`/pages/${p.slug}`} target="_blank" rel="noopener noreferrer" className="text-[#DFB369] hover:underline flex items-center gap-1">
                       معاينة <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={() => startEdit(p)} className="p-2 text-slate-500 hover:text-[#c9a96e] rounded-lg hover:bg-[#faf8f5]" data-testid={`button-edit-page-${p.id}`}><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => startEdit(p)} className="p-2 text-slate-500 hover:text-[#DFB369] rounded-lg hover:bg-[#FFFFFF]" data-testid={`button-edit-page-${p.id}`}><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => { if (confirm("حذف هذه الصفحة؟")) del.mutate(p.id); }} className="p-2 text-slate-500 hover:text-red-500 rounded-lg hover:bg-red-50" data-testid={`button-delete-page-${p.id}`}><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function AdminPages() {
               <Label>صورة الغلاف</Label>
               <div className="flex items-center gap-3 mt-2">
                 {form.heroImage && <img src={form.heroImage} className="w-20 h-20 rounded-lg object-cover" alt="" />}
-                <label className="flex-1 cursor-pointer border-2 border-dashed border-[#c9a96e]/30 rounded-lg px-4 py-3 hover:border-[#c9a96e] flex items-center gap-2 text-sm text-slate-500">
+                <label className="flex-1 cursor-pointer border-2 border-dashed border-[#DFB369]/30 rounded-lg px-4 py-3 hover:border-[#DFB369] flex items-center gap-2 text-sm text-slate-500">
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
                   {form.heroImage ? "استبدال الصورة" : "رفع صورة الغلاف"}
                   <input type="file" accept="image/*" onChange={handleHeroUpload} className="hidden" />
@@ -195,7 +195,7 @@ export default function AdminPages() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#e8e2d9]">
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#E8E5E0]">
               <div className="flex items-center gap-2">
                 <Switch checked={form.showInNav} onCheckedChange={(v) => setForm({ ...form, showInNav: v })} />
                 <Label>عرض في القائمة الرئيسية</Label>
@@ -208,7 +208,7 @@ export default function AdminPages() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-            <Button onClick={() => upsert.mutate()} disabled={upsert.isPending || !form.titleAr.trim() || !form.slug.trim()} className="bg-[#1a2744] hover:bg-[#243454] text-white" data-testid="button-save-page">
+            <Button onClick={() => upsert.mutate()} disabled={upsert.isPending || !form.titleAr.trim() || !form.slug.trim()} className="bg-[#2B2B60] hover:bg-[#3A3A75] text-white" data-testid="button-save-page">
               {upsert.isPending && <Loader2 className="w-4 h-4 animate-spin me-2" />}
               {editing ? "حفظ" : "إنشاء الصفحة"}
             </Button>

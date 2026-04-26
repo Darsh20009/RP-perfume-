@@ -190,17 +190,17 @@ export default function AdminInbox() {
   if (!accountsLoading && accounts.length === 0) {
     return (
       <div className="space-y-6" dir="rtl">
-        <Card className="rounded-2xl border-2 border-dashed border-[#c9a96e]/40 bg-gradient-to-br from-[#faf8f5] to-white">
+        <Card className="rounded-2xl border-2 border-dashed border-[#DFB369]/40 bg-gradient-to-br from-[#FFFFFF] to-white">
           <CardContent className="p-10 text-center">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-[#c9a96e] to-[#b8944f] flex items-center justify-center mb-5 shadow-lg">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-[#DFB369] to-[#c89853] flex items-center justify-center mb-5 shadow-lg">
               <Mail className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-black text-[#1a2744] mb-2">صندوق بريد الموظفين</h2>
+            <h2 className="text-2xl font-black text-[#2B2B60] mb-2">صندوق بريد الموظفين</h2>
             <p className="text-sm text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
-              أضف صناديق بريد الموظفين (مثل <span className="font-mono font-bold text-[#c9a96e]">sales@rfperfume.sa</span>) لقراءة وإرسال الرسائل من داخل لوحة التحكم مباشرة.
+              أضف صناديق بريد الموظفين (مثل <span className="font-mono font-bold text-[#DFB369]">sales@rfperfume.sa</span>) لقراءة وإرسال الرسائل من داخل لوحة التحكم مباشرة.
             </p>
             <div className="flex gap-3 justify-center flex-wrap mb-8">
-              <Button onClick={() => setAccountDialogOpen(true)} className="bg-[#1a2744] hover:bg-[#1a2744]/90 text-white rounded-xl px-6 h-12 gap-2 font-black">
+              <Button onClick={() => setAccountDialogOpen(true)} className="bg-[#2B2B60] hover:bg-[#2B2B60]/90 text-white rounded-xl px-6 h-12 gap-2 font-black">
                 <Plus className="w-4 h-4" /> إضافة صندوق بريد
               </Button>
             </div>
@@ -211,8 +211,8 @@ export default function AdminInbox() {
                 { icon: Sparkles, t: "مزامنة تلقائية", d: "كل دقيقتين تلقائياً" },
               ].map((f, i) => (
                 <div key={i} className="p-4 rounded-xl bg-white border border-slate-200">
-                  <f.icon className="w-5 h-5 text-[#c9a96e] mb-2" />
-                  <p className="text-xs font-black text-[#1a2744]">{f.t}</p>
+                  <f.icon className="w-5 h-5 text-[#DFB369] mb-2" />
+                  <p className="text-xs font-black text-[#2B2B60]">{f.t}</p>
                   <p className="text-[10px] text-slate-500 mt-1">{f.d}</p>
                 </div>
               ))}
@@ -229,16 +229,16 @@ export default function AdminInbox() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1a2744] to-[#243154] flex items-center justify-center">
-            <Mail className="w-5 h-5 text-[#c9a96e]" />
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#2B2B60] to-[#243154] flex items-center justify-center">
+            <Mail className="w-5 h-5 text-[#DFB369]" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-[#1a2744]">صندوق بريد الموظفين</h2>
+            <h2 className="text-lg font-black text-[#2B2B60]">صندوق بريد الموظفين</h2>
             <p className="text-[10px] text-slate-500">قراءة وإرسال الرسائل عبر النطاق المخصص</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setComposeOpen(true)} disabled={!accountId} className="bg-[#c9a96e] hover:bg-[#b8944f] text-white rounded-xl gap-2 h-10 font-black">
+          <Button onClick={() => setComposeOpen(true)} disabled={!accountId} className="bg-[#DFB369] hover:bg-[#c89853] text-white rounded-xl gap-2 h-10 font-black">
             <Plus className="w-4 h-4" /> رسالة جديدة
           </Button>
           <Button onClick={() => setAccountDialogOpen(true)} variant="outline" className="rounded-xl gap-2 h-10 font-black border-slate-300">
@@ -261,18 +261,18 @@ export default function AdminInbox() {
                   onClick={() => { setActiveAccountId(a.id); setOpenMessageId(""); }}
                   data-testid={`button-account-${a.id}`}
                   className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-right transition-all ${
-                    a.id === accountId ? "bg-[#c9a96e]/10 border border-[#c9a96e]/30" : "hover:bg-slate-50"
+                    a.id === accountId ? "bg-[#DFB369]/10 border border-[#DFB369]/30" : "hover:bg-slate-50"
                   }`}
                 >
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0" style={{ background: a.color }}>
                     {a.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-[#1a2744] truncate">{a.displayName}</p>
+                    <p className="text-xs font-black text-[#2B2B60] truncate">{a.displayName}</p>
                     <p className="text-[9px] text-slate-400 truncate font-mono">{a.email}</p>
                   </div>
                   {a.unreadCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-[#c9a96e] text-white text-[9px] font-black">
+                    <span className="px-1.5 py-0.5 rounded-full bg-[#DFB369] text-white text-[9px] font-black">
                       {a.unreadCount}
                     </span>
                   )}
@@ -291,7 +291,7 @@ export default function AdminInbox() {
                     onClick={() => { setActiveFolder(f.id); setOpenMessageId(""); }}
                     data-testid={`button-folder-${f.id}`}
                     className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-right transition-all ${
-                      f.id === activeFolder ? "bg-[#1a2744] text-white" : "text-slate-600 hover:bg-slate-50"
+                      f.id === activeFolder ? "bg-[#2B2B60] text-white" : "text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     <f.icon className="w-3.5 h-3.5 shrink-0" />
@@ -345,7 +345,7 @@ export default function AdminInbox() {
                     key={f.id}
                     onClick={() => setFilter(f.id as any)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                      filter === f.id ? "bg-[#1a2744] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      filter === f.id ? "bg-[#2B2B60] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                     }`}
                   >
                     {f.label}
@@ -354,7 +354,7 @@ export default function AdminInbox() {
                 <button
                   onClick={() => syncMutation.mutate()}
                   disabled={syncMutation.isPending || !accountId}
-                  className="mr-auto p-1.5 rounded-lg text-slate-400 hover:text-[#c9a96e] hover:bg-slate-50 transition-all disabled:opacity-40"
+                  className="mr-auto p-1.5 rounded-lg text-slate-400 hover:text-[#DFB369] hover:bg-slate-50 transition-all disabled:opacity-40"
                   title="مزامنة"
                   data-testid="button-sync-inbox"
                 >
@@ -370,7 +370,7 @@ export default function AdminInbox() {
                 <div className="p-10 text-center">
                   <Inbox className="w-10 h-10 mx-auto text-slate-200 mb-3" />
                   <p className="text-xs text-slate-400">لا توجد رسائل</p>
-                  <button onClick={() => syncMutation.mutate()} className="mt-3 text-[10px] text-[#c9a96e] font-bold hover:underline">
+                  <button onClick={() => syncMutation.mutate()} className="mt-3 text-[10px] text-[#DFB369] font-bold hover:underline">
                     اضغط للمزامنة الآن
                   </button>
                 </div>
@@ -381,7 +381,7 @@ export default function AdminInbox() {
                     onClick={() => openMessage_(m)}
                     data-testid={`button-message-${m.id}`}
                     className={`w-full text-right px-3 py-3 border-b border-slate-100 transition-all ${
-                      openMessageId === m.id ? "bg-[#c9a96e]/5 border-r-2 border-r-[#c9a96e]" : "hover:bg-slate-50"
+                      openMessageId === m.id ? "bg-[#DFB369]/5 border-r-2 border-r-[#DFB369]" : "hover:bg-slate-50"
                     } ${!m.isRead ? "bg-blue-50/40" : ""}`}
                   >
                     <div className="flex items-start gap-2">
@@ -393,12 +393,12 @@ export default function AdminInbox() {
                       </button>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <p className={`text-xs truncate ${!m.isRead ? "font-black text-[#1a2744]" : "font-semibold text-slate-700"}`}>
+                          <p className={`text-xs truncate ${!m.isRead ? "font-black text-[#2B2B60]" : "font-semibold text-slate-700"}`}>
                             {m.fromName || m.fromEmail}
                           </p>
                           <span className="text-[9px] text-slate-400 shrink-0 tabular-nums">{fmtTime(m.date)}</span>
                         </div>
-                        <p className={`text-[11px] truncate ${!m.isRead ? "font-bold text-[#1a2744]" : "text-slate-500"}`}>
+                        <p className={`text-[11px] truncate ${!m.isRead ? "font-bold text-[#2B2B60]" : "text-slate-500"}`}>
                           {m.subject || "(بدون موضوع)"}
                         </p>
                         <p className="text-[10px] text-slate-400 truncate mt-0.5">{m.snippet}</p>
@@ -424,7 +424,7 @@ export default function AdminInbox() {
               <>
                 <div className="p-4 border-b border-slate-100 flex items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-black text-[#1a2744] text-base mb-1">{openMessage.subject || "(بدون موضوع)"}</h3>
+                    <h3 className="font-black text-[#2B2B60] text-base mb-1">{openMessage.subject || "(بدون موضوع)"}</h3>
                     <p className="text-xs text-slate-600">
                       <span className="font-bold">{openMessage.fromName || openMessage.fromEmail}</span>
                       <span className="text-slate-400 mr-2 font-mono text-[10px]">&lt;{openMessage.fromEmail}&gt;</span>
@@ -487,7 +487,7 @@ export default function AdminInbox() {
       <Dialog open={composeOpen} onOpenChange={setComposeOpen}>
         <DialogContent className="max-w-2xl" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-right font-black text-[#1a2744]">رسالة جديدة</DialogTitle>
+            <DialogTitle className="text-right font-black text-[#2B2B60]">رسالة جديدة</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -513,7 +513,7 @@ export default function AdminInbox() {
           </div>
           <DialogFooter>
             <Button onClick={() => setComposeOpen(false)} variant="outline">إلغاء</Button>
-            <Button onClick={handleSend} disabled={sendMutation.isPending} className="bg-[#1a2744] text-white gap-2" data-testid="button-send-message">
+            <Button onClick={handleSend} disabled={sendMutation.isPending} className="bg-[#2B2B60] text-white gap-2" data-testid="button-send-message">
               {sendMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               إرسال
             </Button>
@@ -615,7 +615,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="text-right font-black text-[#1a2744]">إدارة صناديق البريد</DialogTitle>
+          <DialogTitle className="text-right font-black text-[#2B2B60]">إدارة صناديق البريد</DialogTitle>
         </DialogHeader>
 
         {!showAddForm && accounts.length > 0 && (
@@ -630,7 +630,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
                       {a.email.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
-                      <p className="font-black text-[#1a2744] text-sm">{a.displayName}</p>
+                      <p className="font-black text-[#2B2B60] text-sm">{a.displayName}</p>
                       <p className="text-[10px] text-slate-500 font-mono">{a.email}</p>
                     </div>
                     <Badge className="bg-slate-200 text-slate-700">{a.provider}</Badge>
@@ -662,7 +662,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
                         onClick={() => assignMutation.mutate({ id: a.id, userId: currentAssign })}
                         disabled={assignMutation.isPending || pending === undefined || pending === (a.userId || "")}
                         size="sm"
-                        className="h-8 gap-1 bg-[#1a2744] text-white text-[10px] font-bold"
+                        className="h-8 gap-1 bg-[#2B2B60] text-white text-[10px] font-bold"
                         data-testid={`button-save-assign-${a.id}`}
                       >
                         <Save className="w-3 h-3" /> حفظ
@@ -677,7 +677,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
                 </div>
               );
             })}
-            <Button onClick={() => setShowAddForm(true)} className="w-full bg-[#c9a96e] hover:bg-[#b8944f] text-white rounded-xl gap-2 h-11 font-black" data-testid="button-show-add-form">
+            <Button onClick={() => setShowAddForm(true)} className="w-full bg-[#DFB369] hover:bg-[#c89853] text-white rounded-xl gap-2 h-11 font-black" data-testid="button-show-add-form">
               <Plus className="w-4 h-4" /> إضافة صندوق جديد
             </Button>
           </div>
@@ -693,11 +693,11 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
                     key={p.id}
                     onClick={() => handleProviderChange(p.id)}
                     className={`p-3 rounded-xl border-2 text-right transition-all ${
-                      provider === p.id ? "border-[#c9a96e] bg-[#c9a96e]/10" : "border-slate-200 hover:border-slate-300"
+                      provider === p.id ? "border-[#DFB369] bg-[#DFB369]/10" : "border-slate-200 hover:border-slate-300"
                     }`}
                     data-testid={`button-provider-${p.id}`}
                   >
-                    <p className="font-black text-xs text-[#1a2744]">{p.label}</p>
+                    <p className="font-black text-xs text-[#2B2B60]">{p.label}</p>
                     <p className="text-[9px] text-slate-400 mt-0.5 font-mono">{p.desc}</p>
                   </button>
                 ))}
@@ -778,7 +778,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
               <Button
                 onClick={() => addMutation.mutate()}
                 disabled={!form.email || !form.password || addMutation.isPending}
-                className="flex-1 bg-[#1a2744] hover:bg-[#1a2744]/90 text-white rounded-xl gap-2 font-black h-11"
+                className="flex-1 bg-[#2B2B60] hover:bg-[#2B2B60]/90 text-white rounded-xl gap-2 font-black h-11"
                 data-testid="button-save-account"
               >
                 {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -787,7 +787,7 @@ function AccountDialog({ open, onOpenChange, accounts = [] }: { open: boolean; o
             </div>
 
             {accounts.length > 0 && (
-              <button onClick={() => setShowAddForm(false)} className="text-xs text-slate-400 hover:text-[#1a2744] font-bold">
+              <button onClick={() => setShowAddForm(false)} className="text-xs text-slate-400 hover:text-[#2B2B60] font-bold">
                 ← عودة للقائمة
               </button>
             )}

@@ -131,7 +131,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
   }, [input, isLoading, activeTab, messages, user, setMessages]);
 
   const isAdvisor = activeTab === "advisor";
-  const accentColor = isAdvisor ? "#c9a96e" : "#1a2744";
+  const accentColor = isAdvisor ? "#DFB369" : "#2B2B60";
 
   return (
     <div className="fixed bottom-6 left-0 z-50" dir="rtl">
@@ -150,13 +150,13 @@ export const UnifiedChat = memo(function UnifiedChat() {
             style={{
               borderTopRightRadius: 22,
               borderBottomRightRadius: 22,
-              background: "linear-gradient(135deg, #1a2744 0%, #243154 50%, #1a2744 100%)",
+              background: "linear-gradient(135deg, #2B2B60 0%, #243154 50%, #2B2B60 100%)",
             }}
           >
             {/* Gold border on the right edge */}
             <span
               className="absolute right-0 top-0 bottom-0 w-1"
-              style={{ background: "linear-gradient(to bottom, #d4b87a, #c9a96e, #b8944f)" }}
+              style={{ background: "linear-gradient(to bottom, #ecc78a, #DFB369, #c89853)" }}
             />
             {/* Inner gold ring */}
             <span
@@ -190,10 +190,10 @@ export const UnifiedChat = memo(function UnifiedChat() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -30, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="ml-3 w-[320px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(26,39,68,0.18)] border border-[#c9a96e]/15 overflow-hidden"
+            className="ml-3 w-[320px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(26,39,68,0.18)] border border-[#DFB369]/15 overflow-hidden"
           >
             {/* Header */}
-            <div className="relative px-5 py-5" style={{ background: "linear-gradient(135deg, #1a2744 0%, #243154 100%)" }}>
+            <div className="relative px-5 py-5" style={{ background: "linear-gradient(135deg, #2B2B60 0%, #243154 100%)" }}>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-white font-black text-base tracking-tight">كيف يمكننا خدمتك؟</h4>
@@ -207,7 +207,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   <X className="h-4 w-4 text-white" />
                 </button>
               </div>
-              <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
+              <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
             </div>
 
             {/* Options */}
@@ -215,28 +215,28 @@ export const UnifiedChat = memo(function UnifiedChat() {
               {/* AI Advisor */}
               <button
                 onClick={() => openChat("advisor")}
-                className="group w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#c9a96e]/5 transition-all active:scale-[0.98] border border-transparent hover:border-[#c9a96e]/20"
+                className="group w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#DFB369]/5 transition-all active:scale-[0.98] border border-transparent hover:border-[#DFB369]/20"
               >
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md" style={{ background: "linear-gradient(135deg, #d4b87a, #b8944f)" }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md" style={{ background: "linear-gradient(135deg, #ecc78a, #c89853)" }}>
                   <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-right min-w-0">
-                  <p className="font-black text-sm text-[#1a2744]">مستشار العطور</p>
+                  <p className="font-black text-sm text-[#2B2B60]">مستشار العطور</p>
                   <p className="text-[11px] text-gray-400 font-medium truncate">اعثر على عطرك المثالي بالذكاء</p>
                 </div>
-                <span className="text-[9px] font-black text-[#c9a96e] bg-[#c9a96e]/10 px-2 py-1 rounded-full">AI</span>
+                <span className="text-[9px] font-black text-[#DFB369] bg-[#DFB369]/10 px-2 py-1 rounded-full">AI</span>
               </button>
 
               {/* Support */}
               <button
                 onClick={() => openChat("support")}
-                className="group w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#1a2744]/5 transition-all active:scale-[0.98] border border-transparent hover:border-[#1a2744]/20"
+                className="group w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#2B2B60]/5 transition-all active:scale-[0.98] border border-transparent hover:border-[#2B2B60]/20"
               >
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md" style={{ background: "linear-gradient(135deg, #243154, #0f1a2e)" }}>
                   <Headphones className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-right min-w-0">
-                  <p className="font-black text-sm text-[#1a2744]">الدعم الفني</p>
+                  <p className="font-black text-sm text-[#2B2B60]">الدعم الفني</p>
                   <p className="text-[11px] text-gray-400 font-medium truncate">طلباتك واستفساراتك على مدار الساعة</p>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -253,7 +253,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   <SiWhatsapp className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-right min-w-0">
-                  <p className="font-black text-sm text-[#1a2744]">واتساب</p>
+                  <p className="font-black text-sm text-[#2B2B60]">واتساب</p>
                   <p className="text-[11px] text-gray-400 font-medium truncate">حوار مباشر مع فريق المبيعات</p>
                 </div>
                 <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">سريع</span>
@@ -261,9 +261,9 @@ export const UnifiedChat = memo(function UnifiedChat() {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 bg-gradient-to-l from-[#faf8f5] to-white border-t border-[#c9a96e]/10 text-center">
+            <div className="px-4 py-3 bg-gradient-to-l from-[#FFFFFF] to-white border-t border-[#DFB369]/10 text-center">
               <p className="text-[10px] text-gray-400 font-bold tracking-wide">
-                عطور آر اف <span className="text-[#c9a96e]">·</span> RF Perfume
+                عطور آر اف <span className="text-[#DFB369]">·</span> RF Perfume
               </p>
             </div>
           </motion.div>
@@ -282,7 +282,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setView("closed")}
-              className="sm:hidden fixed inset-0 bg-[#1a2744]/40 backdrop-blur-sm z-40"
+              className="sm:hidden fixed inset-0 bg-[#2B2B60]/40 backdrop-blur-sm z-40"
               aria-hidden="true"
             />
           <motion.div
@@ -291,7 +291,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="sm:ml-3 w-full sm:w-[400px] sm:max-w-[calc(100vw-1.5rem)] bg-white rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(26,39,68,0.15)] sm:shadow-[0_20px_60px_rgba(26,39,68,0.18)] sm:border sm:border-[#c9a96e]/15 overflow-hidden flex flex-col fixed sm:relative inset-x-0 bottom-0 sm:inset-auto z-50"
+            className="sm:ml-3 w-full sm:w-[400px] sm:max-w-[calc(100vw-1.5rem)] bg-white rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(26,39,68,0.15)] sm:shadow-[0_20px_60px_rgba(26,39,68,0.18)] sm:border sm:border-[#DFB369]/15 overflow-hidden flex flex-col fixed sm:relative inset-x-0 bottom-0 sm:inset-auto z-50"
             style={{ height: "min(92dvh, 720px)", paddingBottom: "env(safe-area-inset-bottom)" }}
           >
             {/* Header */}
@@ -301,11 +301,11 @@ export const UnifiedChat = memo(function UnifiedChat() {
                 aria-label="رجوع"
                 className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12L10 8L6 4" stroke="#1a2744" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12L10 8L6 4" stroke="#2B2B60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
               <div className="flex items-center gap-2.5">
                 <div>
-                  <h4 className="font-black text-sm text-[#1a2744] text-center">
+                  <h4 className="font-black text-sm text-[#2B2B60] text-center">
                     {isAdvisor ? "آر اف — مستشار العطور" : "الدعم الفني"}
                   </h4>
                   <div className="flex items-center justify-center gap-1.5">
@@ -313,7 +313,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                     <span className="text-[10px] text-gray-400 font-bold">متصل الآن</span>
                   </div>
                 </div>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center shadow-md" style={{ background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#b8944f" : "#0f1a2e"})` }}>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center shadow-md" style={{ background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#c89853" : "#0f1a2e"})` }}>
                   {isAdvisor ? <Sparkles className="h-4 w-4 text-white" /> : <Headphones className="h-4 w-4 text-white" />}
                 </div>
               </div>
@@ -327,7 +327,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#faf8f5]/40">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#FFFFFF]/40">
               {messages.map((msg, i) => (
                 <div key={i} className="space-y-2">
                   <div className={`flex ${msg.role === "user" ? "justify-start" : "justify-end"}`}>
@@ -335,9 +335,9 @@ export const UnifiedChat = memo(function UnifiedChat() {
                       className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line shadow-sm ${
                         msg.role === "user"
                           ? `text-white rounded-tr-none`
-                          : "bg-white text-[#1a2744] rounded-tl-none border border-gray-100"
+                          : "bg-white text-[#2B2B60] rounded-tl-none border border-gray-100"
                       }`}
-                      style={msg.role === "user" ? { background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#b8944f" : "#0f1a2e"})` } : undefined}
+                      style={msg.role === "user" ? { background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#c89853" : "#0f1a2e"})` } : undefined}
                     >
                       {msg.content}
                     </div>
@@ -352,31 +352,31 @@ export const UnifiedChat = memo(function UnifiedChat() {
                           initial={{ opacity: 0, x: 50, scale: 0.9 }}
                           animate={{ opacity: 1, x: 0, scale: 1 }}
                           transition={{ delay: idx * 0.12, type: "spring", stiffness: 200, damping: 18 }}
-                          className="bg-white rounded-2xl border border-[#c9a96e]/30 p-3 shadow-md hover:shadow-xl hover:border-[#c9a96e] transition-all group overflow-hidden relative"
+                          className="bg-white rounded-2xl border border-[#DFB369]/30 p-3 shadow-md hover:shadow-xl hover:border-[#DFB369] transition-all group overflow-hidden relative"
                           data-testid={`card-recommended-${p.id}`}
                         >
-                          <div className="absolute -top-1 -right-1 bg-gradient-to-br from-[#c9a96e] to-[#b8944f] text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg shadow">
+                          <div className="absolute -top-1 -right-1 bg-gradient-to-br from-[#DFB369] to-[#c89853] text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg shadow">
                             توصية آر اف ✨
                           </div>
                           <div className="flex items-stretch gap-3">
                             <button
                               type="button"
                               onClick={() => { setLocation(`/products/${p.id}`); setView("closed"); }}
-                              className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#faf8f5] to-[#f0ebe0] relative"
+                              className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#FFFFFF] to-[#f0ebe0] relative"
                               aria-label={`فتح ${p.name}`}
                             >
                               {p.image ? (
                                 <img src={p.image} alt={p.name} className="w-full h-full object-cover  transition-transform duration-500" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Sparkles className="h-6 w-6 text-[#c9a96e]" />
+                                  <Sparkles className="h-6 w-6 text-[#DFB369]" />
                                 </div>
                               )}
                             </button>
                             <div className="flex-1 min-w-0 text-right flex flex-col justify-between">
                               <div>
-                                <p className="font-black text-sm text-[#1a2744] line-clamp-2 leading-tight">{p.name}</p>
-                                <p className="text-base text-[#c9a96e] font-black mt-1">
+                                <p className="font-black text-sm text-[#2B2B60] line-clamp-2 leading-tight">{p.name}</p>
+                                <p className="text-base text-[#DFB369] font-black mt-1">
                                   {Number(p.price).toLocaleString("ar-SA")} <span className="text-[10px]">ر.س</span>
                                 </p>
                               </div>
@@ -389,7 +389,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                                   className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-black px-2 py-1.5 rounded-lg transition-all ${
                                     addedIds.has(p.id)
                                       ? "bg-emerald-500 text-white"
-                                      : "bg-gradient-to-r from-[#c9a96e] to-[#b8944f] text-white hover:shadow-lg"
+                                      : "bg-gradient-to-r from-[#DFB369] to-[#c89853] text-white hover:shadow-lg"
                                   }`}
                                   data-testid={`button-add-cart-${p.id}`}
                                 >
@@ -403,7 +403,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                                   type="button"
                                   whileTap={{ scale: 0.94 }}
                                   onClick={() => { setLocation(`/products/${p.id}`); setView("closed"); }}
-                                  className="flex items-center justify-center gap-1 text-[11px] font-black px-2 py-1.5 rounded-lg bg-[#1a2744]/5 text-[#1a2744] hover:bg-[#1a2744]/10 transition-all"
+                                  className="flex items-center justify-center gap-1 text-[11px] font-black px-2 py-1.5 rounded-lg bg-[#2B2B60]/5 text-[#2B2B60] hover:bg-[#2B2B60]/10 transition-all"
                                   data-testid={`button-view-${p.id}`}
                                 >
                                   <Eye className="h-3 w-3" />
@@ -450,7 +450,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => { setInput(chip.replace(/^[^\s]+\s/, "")); setTimeout(() => inputRef.current?.focus(), 50); }}
-                      className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-white border border-[#c9a96e]/30 text-[#1a2744] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
+                      className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-white border border-[#DFB369]/30 text-[#2B2B60] hover:bg-[#DFB369]/10 hover:border-[#DFB369] transition-all shadow-sm"
                       data-testid={`chip-suggestion-${idx}`}
                     >
                       {chip}
@@ -472,7 +472,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder={isAdvisor ? "اسألنا عن العطور… / Ask about fragrances…" : "اكتب رسالتك… / Type your message…"}
-                  className="flex-1 h-11 px-4 rounded-full bg-[#faf8f5] border border-gray-200 text-sm font-medium focus:outline-none focus:border-[#c9a96e] transition-all"
+                  className="flex-1 h-11 px-4 rounded-full bg-[#FFFFFF] border border-gray-200 text-sm font-medium focus:outline-none focus:border-[#DFB369] transition-all"
                   disabled={isLoading}
                 />
                 <button
@@ -480,7 +480,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   disabled={!input.trim() || isLoading}
                   aria-label="إرسال"
                   className="w-11 h-11 rounded-full text-white flex items-center justify-center transition-all disabled:opacity-40 active:scale-95 shrink-0 shadow-md"
-                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#b8944f" : "#0f1a2e"})` }}
+                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#c89853" : "#0f1a2e"})` }}
                 >
                   <Send className="h-4 w-4" />
                 </button>

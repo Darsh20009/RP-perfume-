@@ -80,13 +80,13 @@ export function PerfumeAdvisor() {
               className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 cursor-pointer hover:shadow-3xl transition-all group"
             >
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a96e] to-[#b8944f] flex items-center justify-center shrink-0 shadow-lg">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#DFB369] to-[#c89853] flex items-center justify-center shrink-0 shadow-lg">
                   <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <p className="font-bold text-sm text-gray-800">ما تعرف ايش ذوقك؟ 🤔</p>
                   <p className="text-xs text-gray-800 mt-1">خلّي آر اف يساعدك تلاقي عطرك المثالي</p>
-                  <span className="inline-block mt-2 text-[10px] font-bold text-[#c9a96e] uppercase tracking-widest group-hover:underline">
+                  <span className="inline-block mt-2 text-[10px] font-bold text-[#DFB369] uppercase tracking-widest group-hover:underline">
                     اضغط هنا للمزيد ←
                   </span>
                 </div>
@@ -105,7 +105,7 @@ export function PerfumeAdvisor() {
       {!isOpen && !showPrompt && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-24 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#c9a96e] to-[#b8944f] shadow-xl flex items-center justify-center  transition-all active:scale-95"
+          className="fixed bottom-24 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#DFB369] to-[#c89853] shadow-xl flex items-center justify-center  transition-all active:scale-95"
         >
           <Sparkles className="h-6 w-6 text-white" />
         </button>
@@ -121,9 +121,9 @@ export function PerfumeAdvisor() {
             style={{ height: "min(520px, calc(100vh - 6rem))" }}
             dir="rtl"
           >
-            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-l from-[#c9a96e]/10 to-transparent border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-l from-[#DFB369]/10 to-transparent border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#c9a96e] to-[#b8944f] flex items-center justify-center shadow-md">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#DFB369] to-[#c89853] flex items-center justify-center shadow-md">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
                 <div>
@@ -148,7 +148,7 @@ export function PerfumeAdvisor() {
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                       msg.role === "user"
-                        ? "bg-[#c9a96e] text-white rounded-tr-none"
+                        ? "bg-[#DFB369] text-white rounded-tr-none"
                         : "bg-gray-100 text-gray-800 rounded-tl-none"
                     }`}
                   >
@@ -159,7 +159,7 @@ export function PerfumeAdvisor() {
               {isLoading && (
                 <div className="flex justify-end">
                   <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 text-[#c9a96e] animate-spin" />
+                    <Loader2 className="h-4 w-4 text-[#DFB369] animate-spin" />
                     <span className="text-xs text-gray-700 font-bold">المستشار يفكر...</span>
                   </div>
                 </div>
@@ -176,13 +176,13 @@ export function PerfumeAdvisor() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder="اكتب سؤالك هنا..."
-                  className="flex-1 h-10 px-4 rounded-full bg-white border border-gray-200 text-sm focus:outline-none focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 transition-all"
+                  className="flex-1 h-10 px-4 rounded-full bg-white border border-gray-200 text-sm focus:outline-none focus:border-[#DFB369] focus:ring-1 focus:ring-[#DFB369]/20 transition-all"
                   disabled={isLoading}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
-                  className="w-10 h-10 rounded-full bg-[#c9a96e] text-white flex items-center justify-center hover:bg-[#b8944f] transition-colors disabled:opacity-40 active:scale-95 shrink-0"
+                  className="w-10 h-10 rounded-full bg-[#DFB369] text-white flex items-center justify-center hover:bg-[#c89853] transition-colors disabled:opacity-40 active:scale-95 shrink-0"
                 >
                   <Send className="h-4 w-4" />
                 </button>

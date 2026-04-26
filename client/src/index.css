@@ -1,43 +1,65 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── SOVEREIGN PALETTE — لوحة الألوان السيادية ────────────────────
+   #850935  Sovereign Crimson  (royal burgundy / wine)
+   #DFB369  Sovereign Gold     (royal gold)
+   #2B2B60  Sovereign Navy     (deep royal blue)
+   #0F0F0F  Sovereign Black    (true black)
+   #FFFFFF  Sovereign White    (pure white background)
+   ─────────────────────────────────────────────────────────────────── */
+
 :root {
   --background: 0 0% 100%;
-  --foreground: 0 0% 8%;
+  --foreground: 0 0% 6%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 8%;
+  --card-foreground: 0 0% 6%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 8%;
+  --popover-foreground: 0 0% 6%;
 
-  --primary: 38 45% 60%;
+  /* Primary = Sovereign Gold #DFB369 */
+  --primary: 36 65% 64%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 40 10% 96%;
-  --secondary-foreground: 0 0% 20%;
+  --secondary: 0 0% 97%;
+  --secondary-foreground: 240 38% 27%;
 
-  --muted: 40 8% 95%;
+  --muted: 0 0% 96%;
   --muted-foreground: 0 0% 40%;
 
-  --accent: 40 10% 96%;
-  --accent-foreground: 0 0% 20%;
+  --accent: 0 0% 97%;
+  --accent-foreground: 240 38% 27%;
 
-  --destructive: 0 84.2% 60.2%;
+  /* Destructive = Sovereign Crimson #850935 */
+  --destructive: 338 87% 28%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 38 45% 60%;
+  --border: 0 0% 92%;
+  --input: 0 0% 92%;
+  --ring: 36 65% 64%;
 
   --radius: 0.75rem;
 
-  --gold: #c9a96e;
-  --gold-light: #d4b87a;
-  --gold-dark: #b8944f;
+  /* Brand tokens — use as bg-[hsl(var(--brand-navy))] or hex directly */
+  --brand-crimson: #850935;
+  --brand-crimson-dark: #6a0729;
+  --brand-gold: #DFB369;
+  --brand-gold-light: #ecc78a;
+  --brand-gold-dark: #c89853;
+  --brand-navy: #2B2B60;
+  --brand-navy-dark: #1f1f47;
+  --brand-navy-light: #3A3A75;
+  --brand-black: #0F0F0F;
+
+  /* Backwards-compat (older code references) */
+  --gold: #DFB369;
+  --gold-light: #ecc78a;
+  --gold-dark: #c89853;
 }
 
 @layer utilities {
@@ -48,16 +70,31 @@
     @apply bg-white/80 backdrop-blur-md border border-white/40 shadow-xl;
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #c9a96e, #e8d5a3, #c9a96e);
+    background: linear-gradient(135deg, #DFB369, #ecc78a, #DFB369);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-sovereign {
+    background: linear-gradient(135deg, #DFB369 0%, #850935 50%, #2B2B60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .bg-gold {
-    background: linear-gradient(135deg, #c9a96e, #d4b87a);
+    background: linear-gradient(135deg, #DFB369, #c89853);
+  }
+  .bg-sovereign {
+    background: linear-gradient(135deg, #2B2B60 0%, #1f1f47 100%);
+  }
+  .bg-crimson {
+    background: linear-gradient(135deg, #850935 0%, #6a0729 100%);
   }
   .border-gold {
-    border-color: #c9a96e;
+    border-color: #DFB369;
+  }
+  .font-display {
+    font-family: 'Playfair Display', 'Alexandria', serif;
   }
 }
 
@@ -97,8 +134,11 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Tajawal', 'Cairo', sans-serif;
+    font-family: 'Alexandria', system-ui, -apple-system, sans-serif;
     font-size: clamp(0.875rem, 2vw, 1rem);
+  }
+  [lang="en"] body, [lang="en"] {
+    font-family: 'Playfair Display', 'Alexandria', serif;
   }
 
   h1 {

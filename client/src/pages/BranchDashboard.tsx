@@ -26,18 +26,18 @@ function ShiftSummaryButton() {
     const html = `
 <!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير اليوم — ${data.branchName}</title>
 <style>
-body{font-family:system-ui,sans-serif;padding:30px;color:#1a2744;max-width:800px;margin:0 auto}
+body{font-family:system-ui,sans-serif;padding:30px;color:#2B2B60;max-width:800px;margin:0 auto}
 h1{font-size:24px;margin:0 0 4px}
-h2{font-size:16px;margin:24px 0 8px;border-bottom:2px solid #c9a96e;padding-bottom:6px}
+h2{font-size:16px;margin:24px 0 8px;border-bottom:2px solid #DFB369;padding-bottom:6px}
 .meta{color:#888;font-size:12px;margin-bottom:24px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
 .kpi{border:1px solid #eee;border-radius:12px;padding:16px;text-align:center}
-.kpi .v{font-size:28px;font-weight:900;color:#1a2744}
+.kpi .v{font-size:28px;font-weight:900;color:#2B2B60}
 .kpi .l{font-size:11px;color:#666;font-weight:700;margin-top:4px}
 table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
 th,td{padding:8px;text-align:right;border-bottom:1px solid #eee}
 th{background:#f8f8f8;font-weight:800}
-.total{background:linear-gradient(135deg,#c9a96e,#a08a52);color:white;border-radius:12px;padding:18px;text-align:center;margin-top:20px}
+.total{background:linear-gradient(135deg,#DFB369,#a08a52);color:white;border-radius:12px;padding:18px;text-align:center;margin-top:20px}
 .total .v{font-size:36px;font-weight:900}
 @media print{button{display:none}}
 </style></head><body>
@@ -54,7 +54,7 @@ th{background:#f8f8f8;font-weight:800}
 ${data.deliveredOrders.map((o:any)=>`<tr><td>#${o.ref}</td><td>${o.customerName||"-"}</td><td>${o.total} ر.س</td><td>${new Date(o.verifiedAt).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("") || '<tr><td colspan="4" style="text-align:center;color:#888">لا توجد عمليات تسليم اليوم</td></tr>'}
 </tbody></table>
 <div class="total"><div class="l" style="font-size:11px;opacity:.85;font-weight:700">إجمالي إيرادات اليوم</div><div class="v">${Number(data.revenueToday).toLocaleString()} ر.س</div></div>
-<div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="background:#1a2744;color:white;border:0;padding:10px 24px;border-radius:10px;font-weight:800;cursor:pointer">🖨️ طباعة</button></div>
+<div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="background:#2B2B60;color:white;border:0;padding:10px 24px;border-radius:10px;font-weight:800;cursor:pointer">🖨️ طباعة</button></div>
 </body></html>`;
     const w = window.open("", "_blank");
     if (w) { w.document.write(html); w.document.close(); }

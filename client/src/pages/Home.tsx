@@ -42,10 +42,10 @@ function FlashCountdown({ endTime }: { endTime?: string }) {
     <div className="flex items-center gap-1" dir="ltr">
       {[pad(time.h), pad(time.m), pad(time.s)].map((v, i) => (
         <span key={i} className="flex items-center gap-1">
-          <span className="bg-[#1a2744] text-white font-bold text-lg w-10 h-10 flex items-center justify-center rounded-lg tabular-nums">
+          <span className="bg-[#2B2B60] text-white font-bold text-lg w-10 h-10 flex items-center justify-center rounded-lg tabular-nums">
             {v}
           </span>
-          {i < 2 && <span className="text-[#1a2744] font-bold text-lg">:</span>}
+          {i < 2 && <span className="text-[#2B2B60] font-bold text-lg">:</span>}
         </span>
       ))}
     </div>
@@ -172,7 +172,7 @@ export default function Home() {
                   transition={{ delay: i * 0.08 }}
                 >
                   <Link href={`/products?category=${cat.slug}`}>
-                    <div className="relative overflow-hidden rounded-xl aspect-[3/4] group cursor-pointer bg-[#f5f0eb]">
+                    <div className="relative overflow-hidden rounded-xl aspect-[3/4] group cursor-pointer bg-[#F5F2ED]">
                       {cat.image ? (
                         <img
                           src={cat.image}
@@ -181,8 +181,8 @@ export default function Home() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="absolute inset-0 bg-[#f5f0eb] flex items-center justify-center">
-                          <Tag className="w-12 h-12 text-[#c9a96e]/30" />
+                        <div className="absolute inset-0 bg-[#F5F2ED] flex items-center justify-center">
+                          <Tag className="w-12 h-12 text-[#DFB369]/30" />
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -205,19 +205,19 @@ export default function Home() {
 
       {/* ── NEWEST PRODUCTS — auto-scrolling marquee strip ─────── */}
       {(products && products.length >= 5) && (
-        <section className="py-10 md:py-14 bg-[#faf8f5]">
+        <section className="py-10 md:py-14 bg-[#FFFFFF]">
           <div className="container px-4">
             <div className={`flex items-center justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] block mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] block mb-1">
                   {language === 'ar' ? 'وصل حديثًا' : 'Just In'}
                 </span>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#1a2744]">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#2B2B60]">
                   {language === 'ar' ? 'أحدث المنتجات' : 'Latest Arrivals'}
                 </h2>
               </div>
               <Link href="/products">
-                <span className={`text-sm font-bold text-[#c9a96e] hover:text-[#b8944f] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
+                <span className={`text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
                   {t('viewAll')}
                   {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </span>
@@ -262,7 +262,7 @@ export default function Home() {
                   <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">
                     {t('limitedTime')}
                   </span>
-                  <h2 className="text-2xl md:text-3xl font-bold text-[#1a2744] mt-1">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#2B2B60] mt-1">
                     {t('todaysDeals')}
                   </h2>
                 </div>
@@ -302,7 +302,7 @@ export default function Home() {
         const catProducts = getProductsForCategory(cat.id || cat._id);
         if (catProducts.length === 0) return null;
         return (
-          <section key={cat.id || catIdx} className={`py-10 md:py-14 ${catIdx % 2 === 0 ? "bg-white" : "bg-[#faf8f5]"}`}>
+          <section key={cat.id || catIdx} className={`py-10 md:py-14 ${catIdx % 2 === 0 ? "bg-white" : "bg-[#FFFFFF]"}`}>
             <div className="container px-4">
               {cat.image && (
                 <motion.div
@@ -335,13 +335,13 @@ export default function Home() {
 
               <div className={`flex items-center justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
                 {!cat.image && (
-                  <h2 className="text-xl md:text-2xl font-bold text-[#1a2744]">
+                  <h2 className="text-xl md:text-2xl font-bold text-[#2B2B60]">
                     {isRtl ? (cat.nameAr || cat.name) : cat.name}
                   </h2>
                 )}
                 {cat.image && <div />}
                 <Link href={`/products?category=${cat.slug}`}>
-                  <span className={`text-sm font-bold text-[#c9a96e] hover:text-[#b8944f] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
+                  <span className={`text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
                     {t('viewAll')}
                     {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </span>
@@ -390,15 +390,15 @@ export default function Home() {
         <div className="container px-4">
           <div className={`flex items-center justify-between mb-8 ${isRtl ? "flex-row-reverse" : ""}`}>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] block mb-1">
                 {t('bestSellers')}
               </span>
-              <h2 className="text-2xl md:text-4xl font-bold text-[#1a2744]">
+              <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
                 {t('customerFavorites')}
               </h2>
             </div>
             <Link href="/products">
-              <Button className="rounded-lg bg-[#1a2744] text-white hover:bg-[#243454] font-bold text-xs tracking-wider h-10 px-6">
+              <Button className="rounded-lg bg-[#2B2B60] text-white hover:bg-[#3A3A75] font-bold text-xs tracking-wider h-10 px-6">
                 {t('viewAll')}
                 {isRtl ? <ChevronLeft className="mr-2 h-4 w-4" /> : <ChevronRight className="ml-2 h-4 w-4" />}
               </Button>
@@ -407,7 +407,7 @@ export default function Home() {
           {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] bg-[#f5f0eb] animate-pulse rounded-xl" />
+                <div key={i} className="aspect-[3/4] bg-[#F5F2ED] animate-pulse rounded-xl" />
               ))}
             </div>
           ) : (
@@ -429,23 +429,23 @@ export default function Home() {
       </section>
 
       {/* ── PROMOTIONAL BANNERS ────────────────────────── */}
-      <section className="py-8 md:py-12 bg-[#faf8f5]">
+      <section className="py-8 md:py-12 bg-[#FFFFFF]">
         <div className="container px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#1a2744]"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#2B2B60]"
             >
               <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#1a2744]/85 via-[#1a2744]/40 to-transparent" />
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #c9a96e 0%, transparent 50%)" }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#2B2B60]/85 via-[#2B2B60]/40 to-transparent" />
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #DFB369 0%, transparent 50%)" }} />
               <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-32 h-32 object-contain opacity-15 rotate-12" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#DFB369] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
                     {t('discoverMore')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                   </span>
                 </Link>
@@ -456,16 +456,16 @@ export default function Home() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#3d2817]"
+              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#0F0F0F]"
             >
               <img src="/images/banners/promo-luxury-2.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-tl from-[#3d2817]/85 via-[#3d2817]/30 to-transparent" />
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 80%, #c9a96e 0%, transparent 50%)" }} />
+              <div className="absolute inset-0 bg-gradient-to-tl from-[#0F0F0F]/85 via-[#0F0F0F]/30 to-transparent" />
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 80%, #DFB369 0%, transparent 50%)" }} />
               <img src={logoImg} alt="" className="absolute -left-6 -bottom-6 w-32 h-32 object-contain opacity-15 -rotate-12" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
                 <Link href="/products">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#c9a96e] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#DFB369] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
                     {t('shopNow')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                   </span>
                 </Link>
@@ -476,7 +476,7 @@ export default function Home() {
       </section>
 
       {/* ── STATS ──────────────────────────────────────── */}
-      <section className="border-y border-[#e8e2d9] bg-white py-10">
+      <section className="border-y border-[#E8E5E0] bg-white py-10">
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -493,7 +493,7 @@ export default function Home() {
                 transition={{ delay: i * 0.1 }}
                 className="flex flex-col items-center"
               >
-                <span className="text-4xl md:text-5xl font-bold text-[#c9a96e] tracking-tighter">
+                <span className="text-4xl md:text-5xl font-bold text-[#DFB369] tracking-tighter">
                   {isRtl ? stat.num : stat.num_en}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-700 mt-2">
@@ -509,13 +509,13 @@ export default function Home() {
       <CustomerTestimonials />
 
       {/* ── TABBY & TAMARA ─────────────────────────────── */}
-      <section className="py-12 md:py-16 bg-[#faf8f5]">
+      <section className="py-12 md:py-16 bg-[#FFFFFF]">
         <div className="container px-4">
           <div className="text-center mb-10">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-[#c9a96e]/10 border border-[#c9a96e]/20 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c9a96e] mb-3">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#DFB369]/10 border border-[#DFB369]/20 text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-3">
               {t('flexiblePayment')}
             </span>
-            <h2 className="text-2xl md:text-4xl font-bold text-[#1a2744] leading-tight">
+            <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60] leading-tight">
               {t('buyNow')} <span className="text-gray-700">{t('payLater')}</span>
             </h2>
           </div>
@@ -534,7 +534,7 @@ export default function Home() {
                     {tx("متاح الآن", "Available")}
                   </span>
                 </div>
-                <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
+                <h3 className={`text-lg font-bold text-[#2B2B60] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
                   {tx("٤ أقساط بدون فوائد", "4 Payments, Zero Interest")}
                 </h3>
                 <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
@@ -566,7 +566,7 @@ export default function Home() {
                     {tx("متاح الآن", "Available")}
                   </span>
                 </div>
-                <h3 className={`text-lg font-bold text-[#1a2744] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
+                <h3 className={`text-lg font-bold text-[#2B2B60] mb-1 ${isRtl ? "text-right" : "text-left"}`}>
                   {tx("٣ أقساط بدون فوائد", "3 Payments, Zero Interest")}
                 </h3>
                 <p className={`text-gray-700 text-sm mb-5 ${isRtl ? "text-right" : "text-left"}`}>
@@ -603,10 +603,10 @@ export default function Home() {
       </section>
 
       {/* ── BRAND CTA ──────────────────────────────────── */}
-      <section className="relative py-24 md:py-36 overflow-hidden bg-[#1a2744]">
+      <section className="relative py-24 md:py-36 overflow-hidden bg-[#2B2B60]">
         <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a2744]/80 via-[#1a2744]/70 to-[#1a2744]/90" />
-        <div className="absolute inset-0 opacity-25" style={{ backgroundImage: "radial-gradient(circle at 15% 25%, #c9a96e 0%, transparent 40%), radial-gradient(circle at 85% 75%, #c9a96e 0%, transparent 40%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2B2B60]/80 via-[#2B2B60]/70 to-[#2B2B60]/90" />
+        <div className="absolute inset-0 opacity-25" style={{ backgroundImage: "radial-gradient(circle at 15% 25%, #DFB369 0%, transparent 40%), radial-gradient(circle at 85% 75%, #DFB369 0%, transparent 40%)" }} />
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("${logoImg}")`, backgroundRepeat: "repeat", backgroundSize: "120px" }} />
         <div className="container px-4 relative z-10 text-center max-w-4xl mx-auto">
           <motion.div
@@ -619,9 +619,9 @@ export default function Home() {
             </div>
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white uppercase tracking-tight leading-[0.95] mb-6">
               {isRtl ? (
-                <>فخامتك تكمل<br /><span className="text-[#c9a96e]">بعطور آر اف</span></>
+                <>فخامتك تكمل<br /><span className="text-[#DFB369]">بعطور آر اف</span></>
               ) : (
-                <>Your Elegance<br /><span className="text-[#c9a96e]">With RF Perfume</span></>
+                <>Your Elegance<br /><span className="text-[#DFB369]">With RF Perfume</span></>
               )}
             </h2>
             <p className="text-white/50 text-lg font-light italic mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -632,7 +632,7 @@ export default function Home() {
             <Link href="/products">
               <Button
                 size="lg"
-                className="h-14 md:h-16 px-10 md:px-16 text-xs md:text-sm font-bold uppercase tracking-[0.3em] rounded-lg bg-white text-[#1a2744] hover:bg-[#c9a96e] hover:text-white border-none transition-all duration-500"
+                className="h-14 md:h-16 px-10 md:px-16 text-xs md:text-sm font-bold uppercase tracking-[0.3em] rounded-lg bg-white text-[#2B2B60] hover:bg-[#DFB369] hover:text-white border-none transition-all duration-500"
               >
                 <ShoppingBag className={`${isRtl ? "ml-3" : "mr-3"} h-5 w-5`} />
                 {tx("ابدأ التسوق الآن", "Start Shopping Now")}
@@ -674,28 +674,28 @@ function PromoStripSection({ isRtl, t, isAr }: { isRtl: boolean; t: (k: string) 
   });
 
   const fallback = [
-    { icon: "Truck", titleAr: t('freeShippingTitle'), titleEn: t('freeShippingTitle'), subtitleAr: t('freeShippingSub'), subtitleEn: t('freeShippingSub'), color: "#c9a96e", link: "" },
-    { icon: "ShieldCheck", titleAr: t('original100'), titleEn: t('original100'), subtitleAr: t('qualityGuaranteed'), subtitleEn: t('qualityGuaranteed'), color: "#c9a96e", link: "" },
-    { icon: "RotateCcw", titleAr: t('freeReturns'), titleEn: t('freeReturns'), subtitleAr: t('within14Days'), subtitleEn: t('within14Days'), color: "#c9a96e", link: "" },
-    { icon: "Headphones", titleAr: t('support247'), titleEn: t('support247'), subtitleAr: t('dedicatedTeam'), subtitleEn: t('dedicatedTeam'), color: "#c9a96e", link: "" },
+    { icon: "Truck", titleAr: t('freeShippingTitle'), titleEn: t('freeShippingTitle'), subtitleAr: t('freeShippingSub'), subtitleEn: t('freeShippingSub'), color: "#DFB369", link: "" },
+    { icon: "ShieldCheck", titleAr: t('original100'), titleEn: t('original100'), subtitleAr: t('qualityGuaranteed'), subtitleEn: t('qualityGuaranteed'), color: "#DFB369", link: "" },
+    { icon: "RotateCcw", titleAr: t('freeReturns'), titleEn: t('freeReturns'), subtitleAr: t('within14Days'), subtitleEn: t('within14Days'), color: "#DFB369", link: "" },
+    { icon: "Headphones", titleAr: t('support247'), titleEn: t('support247'), subtitleAr: t('dedicatedTeam'), subtitleEn: t('dedicatedTeam'), color: "#DFB369", link: "" },
   ];
 
   const list = (items && items.length > 0) ? items : fallback;
   const cols = list.length === 1 ? "grid-cols-1" : list.length === 2 ? "grid-cols-2" : list.length === 3 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2 md:grid-cols-4";
 
   return (
-    <section className="bg-[#f9f7f4] py-6 md:py-8 border-y border-[#e8e2d9]" data-testid="promo-strip">
+    <section className="bg-[#f9f7f4] py-6 md:py-8 border-y border-[#E8E5E0]" data-testid="promo-strip">
       <div className="container px-4">
         <div className={`grid ${cols} gap-4`}>
           {list.map((badge: any, i: number) => {
             const Icon = (LucideIcons as any)[badge.icon] || Truck;
             const inner = (
               <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""} ${badge.link ? "cursor-pointer  transition-transform" : ""}`}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${badge.color || "#c9a96e"}1f` }}>
-                  <Icon className="w-5 h-5" style={{ color: badge.color || "#c9a96e" }} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${badge.color || "#DFB369"}1f` }}>
+                  <Icon className="w-5 h-5" style={{ color: badge.color || "#DFB369" }} />
                 </div>
                 <div>
-                  <p className="text-[#1a2744] text-xs font-bold">{isAr ? (badge.titleAr || badge.titleEn) : (badge.titleEn || badge.titleAr)}</p>
+                  <p className="text-[#2B2B60] text-xs font-bold">{isAr ? (badge.titleAr || badge.titleEn) : (badge.titleEn || badge.titleAr)}</p>
                   <p className="text-gray-700 text-[10px]">{isAr ? (badge.subtitleAr || badge.subtitleEn) : (badge.subtitleEn || badge.subtitleAr)}</p>
                 </div>
               </div>

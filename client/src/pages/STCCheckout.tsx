@@ -110,13 +110,13 @@ export default function STCCheckout() {
   if (step === "success") {
     return (
       <Layout>
-        <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center p-4" dir="rtl">
+        <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center p-4" dir="rtl">
           <div className="max-w-sm w-full bg-white border border-gray-200 rounded-2xl p-8 text-center space-y-6 shadow-sm">
             <div className="w-20 h-20 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mx-auto">
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
             <div>
-              <h2 className="font-black text-2xl text-[#1a2744]">تمت العملية بنجاح!</h2>
+              <h2 className="font-black text-2xl text-[#2B2B60]">تمت العملية بنجاح!</h2>
               <p className="text-sm text-gray-800 font-bold mt-1">تم خصم {amount.toLocaleString()} ر.س من محفظة STC Pay</p>
             </div>
             <div className="flex justify-center">
@@ -138,10 +138,10 @@ export default function STCCheckout() {
   if (step === "failed") {
     return (
       <Layout>
-        <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center p-4" dir="rtl">
+        <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center p-4" dir="rtl">
           <div className="max-w-sm w-full bg-white border border-gray-200 rounded-2xl p-8 text-center space-y-6 shadow-sm">
             <XCircle className="h-16 w-16 text-red-500 mx-auto" />
-            <h2 className="font-black text-2xl text-[#1a2744]">فشلت العملية</h2>
+            <h2 className="font-black text-2xl text-[#2B2B60]">فشلت العملية</h2>
             <p className="text-sm text-red-500 font-bold">{error}</p>
             <button onClick={() => setStep("phone")} className="w-full h-12 font-black uppercase tracking-widest text-[10px] text-white rounded-xl" style={{ background: "linear-gradient(135deg, #7B2D8B, #3D1458)" }}>إعادة المحاولة</button>
           </div>
@@ -152,7 +152,7 @@ export default function STCCheckout() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#faf8f5]" dir="rtl">
+      <div className="min-h-screen bg-[#FFFFFF]" dir="rtl">
         <div className="container max-w-md py-12 px-4 space-y-6">
 
           <div className="text-center space-y-3">
@@ -164,7 +164,7 @@ export default function STCCheckout() {
 
           <div className="border border-purple-200 rounded-2xl p-6 text-center bg-gradient-to-br from-purple-50 to-purple-100/50">
             <div className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2">المبلغ المطلوب</div>
-            <div className="text-5xl font-black text-[#1a2744] tracking-tighter">{amount.toLocaleString()}</div>
+            <div className="text-5xl font-black text-[#2B2B60] tracking-tighter">{amount.toLocaleString()}</div>
             <div className="text-sm font-bold text-gray-800 mt-1">ريال سعودي</div>
           </div>
 
@@ -180,7 +180,7 @@ export default function STCCheckout() {
                       value={phone}
                       onChange={(e) => { setPhone(formatPhone(e.target.value)); setError(""); }}
                       onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
-                      className="w-full h-14 bg-gray-50 border border-gray-200 rounded-xl text-[#1a2744] font-mono text-lg px-4 pr-12 text-right outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
+                      className="w-full h-14 bg-gray-50 border border-gray-200 rounded-xl text-[#2B2B60] font-mono text-lg px-4 pr-12 text-right outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all"
                       dir="ltr"
                     />
                     <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-700" />
@@ -210,7 +210,7 @@ export default function STCCheckout() {
               <div className="space-y-6">
                 <div className="text-center space-y-1">
                   <p className="text-sm font-bold text-gray-800">تم إرسال رمز التحقق إلى</p>
-                  <p className="font-black text-lg text-[#1a2744]" dir="ltr">{phone}</p>
+                  <p className="font-black text-lg text-[#2B2B60]" dir="ltr">{phone}</p>
                   <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                     <p className="text-[10px] text-amber-700 font-bold">رمز التحقق التجريبي: <span className="font-black text-amber-900">1234</span></p>
                   </div>
@@ -229,7 +229,7 @@ export default function STCCheckout() {
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       disabled={isLoading}
                       className={cn(
-                        "w-14 h-16 text-center text-3xl font-black border rounded-xl outline-none transition-all bg-gray-50 text-[#1a2744]",
+                        "w-14 h-16 text-center text-3xl font-black border rounded-xl outline-none transition-all bg-gray-50 text-[#2B2B60]",
                         digit ? "border-purple-400 bg-purple-50" : "border-gray-200",
                         error ? "border-red-400 bg-red-50" : "",
                         "focus:border-purple-400 focus:ring-2 focus:ring-purple-100"

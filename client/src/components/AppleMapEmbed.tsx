@@ -38,7 +38,7 @@ export function AppleMapEmbed({ lat, lng, label = "", height = 200, zoom = 15 }:
 
     const annotation = new mk.MarkerAnnotation(center, {
       title: label,
-      color: "#c9a96e",
+      color: "#DFB369",
       glyphColor: "#fff",
     });
     map.addAnnotation(annotation);

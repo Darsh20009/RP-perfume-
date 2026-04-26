@@ -68,7 +68,7 @@ export default function AdminEmail() {
                 <Mail className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-black text-[#1a2744]">خدمة البريد الإلكتروني</h3>
+                <h3 className="font-black text-[#2B2B60]">خدمة البريد الإلكتروني</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {status?.configured ? (
                     <>المزوّد: <span className="font-bold text-emerald-600">{status.provider}</span> — المُرسِل: <span className="font-mono">{status.sender}</span></>
@@ -87,7 +87,7 @@ export default function AdminEmail() {
 
       {/* Template Picker */}
       <div>
-        <Label className="text-xs font-black text-[#c9a96e] uppercase tracking-widest mb-3 block">نوع البريد التجريبي</Label>
+        <Label className="text-xs font-black text-[#DFB369] uppercase tracking-widest mb-3 block">نوع البريد التجريبي</Label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {TEMPLATES.map((t) => {
             const Icon = t.icon;
@@ -98,16 +98,16 @@ export default function AdminEmail() {
                 onClick={() => setTemplate(t.id)}
                 className={`relative p-4 rounded-2xl border-2 text-right transition-all ${
                   active
-                    ? "border-[#c9a96e] bg-gradient-to-br from-[#c9a96e]/10 to-white shadow-md"
-                    : "border-slate-200 bg-white hover:border-[#c9a96e]/40"
+                    ? "border-[#DFB369] bg-gradient-to-br from-[#DFB369]/10 to-white shadow-md"
+                    : "border-slate-200 bg-white hover:border-[#DFB369]/40"
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${active ? "bg-[#c9a96e] text-white" : "bg-slate-100 text-slate-500"}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${active ? "bg-[#DFB369] text-white" : "bg-slate-100 text-slate-500"}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <p className="font-black text-sm text-[#1a2744]">{t.label}</p>
+                <p className="font-black text-sm text-[#2B2B60]">{t.label}</p>
                 <p className="text-[10px] text-slate-500 mt-1">{t.desc}</p>
-                {active && <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#c9a96e]" />}
+                {active && <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#DFB369]" />}
               </button>
             );
           })}
@@ -118,7 +118,7 @@ export default function AdminEmail() {
       <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <CardContent className="p-6 space-y-4">
           <div>
-            <Label htmlFor="to" className="text-xs font-black text-[#1a2744] mb-2 block">البريد الإلكتروني للمستلم *</Label>
+            <Label htmlFor="to" className="text-xs font-black text-[#2B2B60] mb-2 block">البريد الإلكتروني للمستلم *</Label>
             <Input
               id="to"
               type="email"
@@ -131,7 +131,7 @@ export default function AdminEmail() {
           </div>
 
           <div>
-            <Label htmlFor="name" className="text-xs font-black text-[#1a2744] mb-2 block">اسم المستلم (اختياري)</Label>
+            <Label htmlFor="name" className="text-xs font-black text-[#2B2B60] mb-2 block">اسم المستلم (اختياري)</Label>
             <Input
               id="name"
               placeholder="عميل تجريبي"
@@ -144,7 +144,7 @@ export default function AdminEmail() {
           <Button
             onClick={handleSend}
             disabled={sending || !to || !status?.configured}
-            className="w-full h-12 bg-[#1a2744] hover:bg-[#1a2744]/90 text-white rounded-xl font-black gap-2"
+            className="w-full h-12 bg-[#2B2B60] hover:bg-[#2B2B60]/90 text-white rounded-xl font-black gap-2"
           >
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             {sending ? "جارٍ الإرسال..." : "إرسال البريد التجريبي"}
@@ -201,25 +201,25 @@ function OutlookSetupGuide() {
     <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
       <button
         onClick={() => copy(value, label)}
-        className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-[#1a2744] transition-colors"
+        className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-[#2B2B60] transition-colors"
         title="نسخ"
       >
         <Copy className="w-3.5 h-3.5" />
       </button>
       <div className="flex-1 text-left" dir="ltr">
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{label}</span>
-        <span className="text-xs font-mono font-bold text-[#1a2744]">{value}</span>
+        <span className="text-xs font-mono font-bold text-[#2B2B60]">{value}</span>
       </div>
     </div>
   );
 
   const Step = ({ n, title, children }: { n: number; title: string; children?: React.ReactNode }) => (
     <li className="flex gap-3">
-      <span className="shrink-0 w-7 h-7 rounded-full bg-[#1a2744] text-white text-xs font-black flex items-center justify-center mt-0.5">
+      <span className="shrink-0 w-7 h-7 rounded-full bg-[#2B2B60] text-white text-xs font-black flex items-center justify-center mt-0.5">
         {n}
       </span>
       <div className="flex-1">
-        <p className="text-sm font-bold text-[#1a2744]">{title}</p>
+        <p className="text-sm font-bold text-[#2B2B60]">{title}</p>
         {children && <div className="mt-1.5 text-xs text-slate-600 leading-relaxed">{children}</div>}
       </div>
     </li>
@@ -235,7 +235,7 @@ function OutlookSetupGuide() {
         <ChevronDown className={`w-5 h-5 text-[#0078D4] transition-transform ${open ? "rotate-180" : ""}`} />
         <div className="flex items-center gap-3 flex-1 text-right">
           <div>
-            <h3 className="font-black text-[#1a2744] text-base">إضافة بريد المتجر إلى Outlook</h3>
+            <h3 className="font-black text-[#2B2B60] text-base">إضافة بريد المتجر إلى Outlook</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">حتى تظهر رسائل العملاء في صندوق الوارد مباشرة على جميع أجهزتك</p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-[#0078D4] text-white flex items-center justify-center shrink-0 shadow-md">
@@ -248,7 +248,7 @@ function OutlookSetupGuide() {
         <CardContent className="px-5 pb-6 pt-0 space-y-5">
           {/* Account info — copy/paste ready */}
           <div className="p-4 rounded-xl bg-white border border-slate-200">
-            <p className="text-[10px] font-black text-[#c9a96e] uppercase tracking-widest mb-3">بيانات الحساب</p>
+            <p className="text-[10px] font-black text-[#DFB369] uppercase tracking-widest mb-3">بيانات الحساب</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <InfoRow label="البريد الإلكتروني" value={ACCOUNT_EMAIL} />
               <InfoRow label="اسم العرض" value="عطور آر اف — RF Perfume" />

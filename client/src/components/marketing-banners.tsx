@@ -38,14 +38,18 @@ export function MarketingBanners() {
     <>
       {/* Banners Section */}
       {banners.length > 0 && (
-        <div className="w-full bg-black text-white py-2 overflow-hidden">
-          <div className="flex animate-marquee whitespace-nowrap gap-8 items-center">
+        <div className="relative w-full text-white py-2.5 overflow-hidden" style={{ background: "linear-gradient(90deg, #0F0F0F 0%, #2B2B60 25%, #850935 50%, #2B2B60 75%, #0F0F0F 100%)" }}>
+          {/* gold accent border top + bottom */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
+          <div className="flex animate-marquee whitespace-nowrap gap-8 items-center" dir="ltr">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-8 items-center">
                 {banners.map((banner: any) => (
                   <div key={banner.id} className="flex items-center gap-4">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{banner.title}</span>
-                    <div className="w-1 h-1 bg-white/30 rounded-full" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369]">✦</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em]">{banner.title}</span>
+                    <div className="w-1 h-1 bg-[#DFB369]/60 rounded-full" />
                   </div>
                 ))}
               </div>

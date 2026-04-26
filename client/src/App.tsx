@@ -62,7 +62,7 @@ const BranchDashboard = lazy(() => import("@/pages/BranchDashboard"));
 function LazyFallback() {
   return (
     <div className="flex items-center justify-center min-h-[40vh]">
-      <Loader2 className="h-8 w-8 animate-spin text-[#c9a96e]" />
+      <Loader2 className="h-8 w-8 animate-spin text-[#DFB369]" />
     </div>
   );
 }

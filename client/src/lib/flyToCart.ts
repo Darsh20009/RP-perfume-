@@ -31,7 +31,7 @@ export function flyToCart(sourceEl: Element | null, imageUrl: string) {
       height: 56px;
       object-fit: cover;
       border-radius: 9999px;
-      box-shadow: 0 12px 30px -8px rgba(26,39,68,0.45), 0 0 0 3px #c9a96e;
+      box-shadow: 0 12px 30px -8px rgba(26,39,68,0.45), 0 0 0 3px #DFB369;
       pointer-events: none;
       z-index: 9999;
       transition: transform 700ms cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 200ms ease 600ms;

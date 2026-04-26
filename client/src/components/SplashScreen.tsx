@@ -57,7 +57,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 alt="RF Perfume"
                 className="h-20 md:h-28 w-auto object-contain"
               />
-              <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent animate-pulse" />
+              <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-[#DFB369] to-transparent animate-pulse" />
             </motion.div>
           )}
           <video

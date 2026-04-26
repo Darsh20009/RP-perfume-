@@ -40,7 +40,7 @@ const empty: Omit<PromoItem, "id"> = {
   icon: "Truck",
   titleAr: "", titleEn: "",
   subtitleAr: "", subtitleEn: "",
-  color: "#c9a96e", link: "",
+  color: "#DFB369", link: "",
   sortOrder: 0, isActive: true,
 };
 
@@ -100,43 +100,43 @@ export default function AdminPromoStrip() {
     <div className="space-y-6" data-testid="admin-promo-strip">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-2xl font-black text-[#1a2744]">شريط المميّزات</h2>
+          <h2 className="text-2xl font-black text-[#2B2B60]">شريط المميّزات</h2>
           <p className="text-sm text-slate-500 mt-1">يظهر في الصفحة الرئيسية تحت العروض السريعة. تحكم كامل من هنا.</p>
         </div>
-        <Button onClick={startCreate} className="bg-[#c9a96e] hover:bg-[#b8944f] text-white" data-testid="button-add-promo">
+        <Button onClick={startCreate} className="bg-[#DFB369] hover:bg-[#c89853] text-white" data-testid="button-add-promo">
           <Plus className="w-4 h-4 me-2" /> إضافة بطاقة
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#c9a96e]" /></div>
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#DFB369]" /></div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 bg-[#faf8f5] rounded-2xl border border-dashed border-[#c9a96e]/30">
-          <Sparkles className="w-12 h-12 mx-auto text-[#c9a96e]/40 mb-3" />
+        <div className="text-center py-20 bg-[#FFFFFF] rounded-2xl border border-dashed border-[#DFB369]/30">
+          <Sparkles className="w-12 h-12 mx-auto text-[#DFB369]/40 mb-3" />
           <p className="font-bold text-slate-700">لا توجد بطاقات بعد</p>
           <p className="text-xs text-slate-500 mt-1">أضف أول بطاقة تظهر للعملاء (شحن مجاني، ضمان، إلخ)</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((item) => (
-            <div key={item.id} className={`relative group bg-white rounded-2xl border-2 p-5 transition-all hover:shadow-lg ${item.isActive ? "border-[#e8e2d9]" : "border-slate-200 opacity-60"}`} data-testid={`promo-card-${item.id}`}>
+            <div key={item.id} className={`relative group bg-white rounded-2xl border-2 p-5 transition-all hover:shadow-lg ${item.isActive ? "border-[#E8E5E0]" : "border-slate-200 opacity-60"}`} data-testid={`promo-card-${item.id}`}>
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${item.color}15` }}>
                   {renderIcon(item.icon, item.color)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-[#1a2744] text-sm truncate">{item.titleAr || item.titleEn}</p>
+                  <p className="font-black text-[#2B2B60] text-sm truncate">{item.titleAr || item.titleEn}</p>
                   <p className="text-xs text-slate-500 mt-1 truncate">{item.subtitleAr || item.subtitleEn}</p>
-                  {item.link && <p className="text-[10px] text-[#c9a96e] mt-1 truncate">→ {item.link}</p>}
+                  {item.link && <p className="text-[10px] text-[#DFB369] mt-1 truncate">→ {item.link}</p>}
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#e8e2d9]">
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8E5E0]">
                 <div className="flex items-center gap-2">
                   <Switch checked={item.isActive} onCheckedChange={() => toggleActive.mutate(item)} data-testid={`switch-active-${item.id}`} />
                   <span className="text-[10px] font-bold text-slate-500">{item.isActive ? "نشط" : "متوقف"}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => startEdit(item)} className="p-2 text-slate-500 hover:text-[#c9a96e] rounded-lg hover:bg-[#faf8f5]" data-testid={`button-edit-promo-${item.id}`}><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => startEdit(item)} className="p-2 text-slate-500 hover:text-[#DFB369] rounded-lg hover:bg-[#FFFFFF]" data-testid={`button-edit-promo-${item.id}`}><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => { if (confirm("حذف هذه البطاقة؟")) del.mutate(item.id); }} className="p-2 text-slate-500 hover:text-red-500 rounded-lg hover:bg-red-50" data-testid={`button-delete-promo-${item.id}`}><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function AdminPromoStrip() {
                     key={name}
                     type="button"
                     onClick={() => setForm({ ...form, icon: name })}
-                    className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all ${form.icon === name ? "border-[#c9a96e] bg-[#c9a96e]/10" : "border-[#e8e2d9] hover:border-[#c9a96e]/50"}`}
+                    className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all ${form.icon === name ? "border-[#DFB369] bg-[#DFB369]/10" : "border-[#E8E5E0] hover:border-[#DFB369]/50"}`}
                     data-testid={`icon-pick-${name}`}
                   >
                     <Icon className="w-5 h-5" style={{ color: form.color }} />
@@ -208,7 +208,7 @@ export default function AdminPromoStrip() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-            <Button onClick={() => upsert.mutate()} disabled={upsert.isPending} className="bg-[#c9a96e] hover:bg-[#b8944f] text-white" data-testid="button-save-promo">
+            <Button onClick={() => upsert.mutate()} disabled={upsert.isPending} className="bg-[#DFB369] hover:bg-[#c89853] text-white" data-testid="button-save-promo">
               {upsert.isPending && <Loader2 className="w-4 h-4 animate-spin me-2" />}
               {editing ? "حفظ التعديلات" : "إضافة"}
             </Button>

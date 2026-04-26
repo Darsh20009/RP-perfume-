@@ -173,12 +173,12 @@ export function ProductCard({ product }: ProductCardProps) {
               const sizes = Array.from(new Set(variants.map(v => v.size).filter(Boolean))) as string[];
               const colorSwatch = (c: string) => {
                 const map: Record<string,string> = {
-                  'ذهبي':'#c9a96e','أسود':'#1a1a1a','أبيض':'#ffffff','أحمر':'#b91c1c','أزرق':'#1a2744',
+                  'ذهبي':'#DFB369','أسود':'#1a1a1a','أبيض':'#ffffff','أحمر':'#b91c1c','أزرق':'#2B2B60',
                   'وردي':'#ec4899','بني':'#78350f','فضي':'#c0c0c0','أخضر':'#15803d','بنفسجي':'#7c3aed',
-                  'gold':'#c9a96e','black':'#1a1a1a','white':'#ffffff','red':'#b91c1c','blue':'#1a2744',
+                  'gold':'#DFB369','black':'#1a1a1a','white':'#ffffff','red':'#b91c1c','blue':'#2B2B60',
                   'pink':'#ec4899','brown':'#78350f','silver':'#c0c0c0','green':'#15803d','purple':'#7c3aed',
                 };
-                return map[c.toLowerCase()] || map[c] || '#c9a96e';
+                return map[c.toLowerCase()] || map[c] || '#DFB369';
               };
               return (
                 <div className="mt-2 flex flex-col gap-1.5 items-center">
@@ -201,7 +201,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   {sizes.length > 0 && (
                     <div className="flex gap-1 items-center flex-wrap justify-center">
                       {sizes.slice(0, 4).map((s) => (
-                        <span key={s} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-[#c9a96e]/40 text-[#1a2744] bg-[#faf8f5]">
+                        <span key={s} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-[#DFB369]/40 text-[#2B2B60] bg-[#FFFFFF]">
                           {s}
                         </span>
                       ))}
@@ -231,7 +231,7 @@ export function ProductCard({ product }: ProductCardProps) {
               className={`mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 ${
                 addedToCart
                   ? "bg-green-500 text-white"
-                  : "bg-[#1a2744] text-white hover:bg-[#243454] active:scale-95"
+                  : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
               }`}
             >
               {addedToCart ? (
