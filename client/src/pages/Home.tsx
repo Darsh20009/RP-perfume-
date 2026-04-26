@@ -183,40 +183,43 @@ export default function Home() {
                   data-testid={`section-category-${cat.slug}`}
                 >
                   <div className="container px-4">
-                    {/* Category header: image + title + view all */}
+                    {/* Category image (top) */}
                     <Link href={`/products?category=${cat.slug}`}>
                       <div
-                        className={`relative overflow-hidden rounded-2xl mb-6 cursor-pointer group h-32 md:h-44 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
+                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-32 md:h-44 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
                       >
                         {cat.image && (
                           <img
                             src={cat.image}
                             alt={catName}
-                            className="absolute inset-0 w-full h-full object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             loading="lazy"
                           />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                        <div
-                          className={`absolute inset-0 flex items-center px-6 md:px-10 ${isRtl ? "justify-end text-right" : "justify-start text-left"}`}
-                        >
-                          <div>
-                            <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1.5">
-                              {isRtl ? "تشكيلة" : "Collection"}
-                            </span>
-                            <h2 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">
-                              {catName}
-                            </h2>
-                            <span
-                              className={`mt-3 inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-[#DFB369] hover:text-white transition-colors ${isRtl ? "flex-row-reverse" : ""}`}
-                            >
-                              {t("viewAll")}
-                              {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     </Link>
+
+                    {/* Category text header (below image) */}
+                    <div
+                      className={`flex items-end justify-between gap-3 mb-6 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}
+                    >
+                      <div>
+                        <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1.5">
+                          {isRtl ? "تشكيلة" : "Collection"}
+                        </span>
+                        <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
+                          {catName}
+                        </h2>
+                      </div>
+                      <Link href={`/products?category=${cat.slug}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors whitespace-nowrap ${isRtl ? "flex-row-reverse" : ""}`}
+                        >
+                          {t("viewAll")}
+                          {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        </span>
+                      </Link>
+                    </div>
 
                     {/* Products grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
