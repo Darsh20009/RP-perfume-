@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { PWAPrompt } from "@/components/PWAPrompt";
 import { IOSInstallGuide } from "@/components/IOSInstallGuide";
+import { useBlockInspect } from "@/hooks/use-block-inspect";
 
 const ProfileInvoices = lazy(() => import("@/pages/ProfileInvoices"));
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -242,6 +243,7 @@ function Router() {
 
 function AppContent() {
   const { language } = useLanguage();
+  useBlockInspect();
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language}>
