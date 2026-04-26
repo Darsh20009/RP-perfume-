@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Branch, InsertBranch, insertBranchSchema } from "@shared/schema";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -10,7 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Loader2, Plus, MapPin, Phone, Trash2, Edit2, Search, Building2,
   CheckCircle, XCircle, Clock, Mail, Image as ImageIcon, ExternalLink,
-  Package, AlertCircle,
+  Package, AlertCircle, KeyRound, Copy, User as UserIcon, Eye, EyeOff, Link2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +28,15 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const emptyBranch: InsertBranch = {
+// Extended form schema: branch fields + optional manager credentials
+const branchFormSchema = insertBranchSchema.extend({
+  managerName: z.string().optional().default(""),
+  managerPhone: z.string().optional().default(""),
+  managerPassword: z.string().optional().default(""),
+});
+type BranchFormValues = z.infer<typeof branchFormSchema>;
+
+const emptyBranch: BranchFormValues = {
   name: "",
   nameEn: "",
   location: "",
@@ -44,6 +53,9 @@ const emptyBranch: InsertBranch = {
   isPickupEnabled: true,
   sortOrder: 0,
   isActive: true,
+  managerName: "",
+  managerPhone: "",
+  managerPassword: "",
 };
 
 function StatTile({
@@ -67,29 +79,36 @@ export default function AdminBranches() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive" | "pickup">("all");
+  const [showPwd, setShowPwd] = useState(false);
 
   const { data: branches, isLoading } = useQuery<Branch[]>({
     queryKey: ["/api/branches"],
   });
 
-  const createForm = useForm<InsertBranch>({
-    resolver: zodResolver(insertBranchSchema),
+  const createForm = useForm<BranchFormValues>({
+    resolver: zodResolver(branchFormSchema),
     defaultValues: emptyBranch,
   });
 
-  const editForm = useForm<InsertBranch>({
-    resolver: zodResolver(insertBranchSchema),
+  const editForm = useForm<BranchFormValues>({
+    resolver: zodResolver(branchFormSchema),
     defaultValues: emptyBranch,
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: InsertBranch) => {
+    mutationFn: async (data: BranchFormValues) => {
       const res = await apiRequest("POST", "/api/admin/branches", data);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم بنجاح", description: "تم إضافة الفرع الجديد" });
+      if (data?.managerError) {
+        toast({ title: "تم إنشاء الفرع — لكن تعذّر إنشاء حساب المسؤول", description: data.managerError, variant: "destructive" });
+      } else if (data?.manager) {
+        toast({ title: "تم بنجاح", description: `تم إنشاء الفرع وحساب المسؤول (${data.manager.phone})` });
+      } else {
+        toast({ title: "تم بنجاح", description: "تم إضافة الفرع الجديد" });
+      }
       setIsCreateOpen(false);
       createForm.reset(emptyBranch);
     },
@@ -101,13 +120,19 @@ export default function AdminBranches() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertBranch> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<BranchFormValues> }) => {
       const res = await apiRequest("PATCH", `/api/admin/branches/${id}`, data);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم التحديث", description: "تم حفظ تعديلات الفرع" });
+      if (data?.managerError) {
+        toast({ title: "تم تحديث الفرع — لكن تعذّر تحديث المسؤول", description: data.managerError, variant: "destructive" });
+      } else if (data?.manager) {
+        toast({ title: "تم التحديث", description: `تم تحديث الفرع وكلمة مرور المسؤول (${data.manager.phone})` });
+      } else {
+        toast({ title: "تم التحديث", description: "تم حفظ تعديلات الفرع" });
+      }
       setEditingBranch(null);
     },
     onError: (err: any) => toast({
@@ -151,8 +176,22 @@ export default function AdminBranches() {
       isPickupEnabled: branch.isPickupEnabled ?? true,
       sortOrder: branch.sortOrder ?? 0,
       isActive: branch.isActive ?? true,
+      managerName: "",
+      managerPhone: "",
+      managerPassword: "",
     });
     setEditingBranch(branch);
+  };
+
+  const branchLoginUrl = (typeof window !== "undefined" ? window.location.origin : "") + "/login";
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "تم النسخ", description: label });
+    } catch {
+      toast({ title: "تعذّر النسخ", variant: "destructive" });
+    }
   };
 
   const filtered = useMemo(() => {
@@ -422,6 +461,98 @@ export default function AdminBranches() {
           />
         </div>
 
+        {/* ── Manager Login (optional) ─────────────────────── */}
+        <div className="rounded-xl border-2 border-dashed border-[#DFB369]/40 bg-gradient-to-br from-[#FAF8F4] to-white p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-lg bg-[#2B2B60] flex items-center justify-center">
+              <KeyRound className="h-4 w-4 text-[#DFB369]" />
+            </div>
+            <div className="text-right flex-1">
+              <h4 className="font-black text-[#2B2B60]">حساب دخول مسؤول الفرع</h4>
+              <p className="text-[11px] text-gray-700 font-bold">
+                {isEdit
+                  ? "أدخل رقم وكلمة مرور لإنشاء/تحديث حساب المسؤول لهذا الفرع. اتركها فارغة لعدم التغيير."
+                  : "اختياري: ينشئ حساب موظف يدخل من /login بهذا الرقم وكلمة المرور لإدارة الفرع."}
+              </p>
+            </div>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="managerName"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black flex items-center gap-1.5"><UserIcon className="h-3.5 w-3.5" /> اسم المسؤول</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value || ""} placeholder="مثال: محمد العتيبي" data-testid="input-manager-name" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="managerPhone"
+              render={({ field }) => (
+                <FormItem className="text-right">
+                  <FormLabel className="font-black flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> رقم الجوال (يستخدم للدخول)</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ""} placeholder="5XXXXXXXX" dir="ltr" data-testid="input-manager-phone" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="managerPassword"
+              render={({ field }) => (
+                <FormItem className="text-right">
+                  <FormLabel className="font-black flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> كلمة المرور (6 أحرف فأكثر)</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        type={showPwd ? "text" : "password"}
+                        placeholder="••••••"
+                        dir="ltr"
+                        data-testid="input-manager-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPwd(s => !s)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-600 hover:text-[#2B2B60]"
+                        data-testid="button-toggle-password"
+                        tabIndex={-1}
+                      >
+                        {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const pw = Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 100);
+              form.setValue("managerPassword", pw);
+              setShowPwd(true);
+              copyToClipboard(pw, "كلمة المرور المُولّدة");
+            }}
+            className="text-xs font-black text-[#2B2B60] hover:text-[#850935] underline-offset-4 hover:underline"
+            data-testid="button-generate-password"
+          >
+            توليد كلمة مرور قوية ونسخها
+          </button>
+        </div>
+
         <DialogFooter>
           <Button
             type="submit"
@@ -606,6 +737,38 @@ export default function AdminBranches() {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
+
+                {/* Branch login link block */}
+                <div className="mt-3 rounded-lg bg-gradient-to-l from-[#2B2B60] to-[#1c1c45] text-white p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#DFB369]">
+                      <Link2 className="h-3 w-3" />
+                      رابط دخول الفرع
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(branchLoginUrl, "تم نسخ رابط الدخول")}
+                      className="flex items-center gap-1 text-[10px] font-black bg-[#DFB369] text-[#0F0F0F] hover:bg-[#c89853] px-2 py-1 rounded transition-colors"
+                      data-testid={`button-copy-link-${branch.id}`}
+                    >
+                      <Copy className="h-3 w-3" />
+                      نسخ
+                    </button>
+                  </div>
+                  <a
+                    href="/login"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block text-xs font-mono font-bold text-white/90 hover:text-[#DFB369] truncate"
+                    dir="ltr"
+                    data-testid={`link-login-${branch.id}`}
+                  >
+                    {branchLoginUrl}
+                  </a>
+                  <div className="text-[10px] text-white/60 font-bold">
+                    شارك هذا الرابط مع مسؤول الفرع — يدخل برقم جواله وكلمة المرور
+                  </div>
+                </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-100 mt-3">

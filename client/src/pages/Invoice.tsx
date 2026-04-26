@@ -2,7 +2,8 @@ import { useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Printer } from "lucide-react";
-import logoDark from "@assets/logo-dark.png";
+const logoDark = "/images/logos/logo-dark.png";
+const logoWhite = "/images/logos/logo-light-nobg.png";
 
 interface ZatcaPayload {
   qr: string;
@@ -159,30 +160,61 @@ export default function Invoice() {
       </div>
 
       {/* Invoice canvas */}
-      <div className="invoice-page max-w-[210mm] mx-auto bg-white shadow-2xl my-6 p-10 print:my-0 print:shadow-none">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-6 pb-6 border-b-2 border-[#DFB369]">
-          <div className="text-right flex-1">
-            <h1 className="text-2xl font-black text-[#2B2B60] mb-1">{sellerName}</h1>
-            <p className="text-xs text-gray-700 font-bold leading-relaxed">
-              عطور فاخرة وأصلية — صناعة شرقية بمعايير عالمية
-            </p>
-            {vatNumber && (
-              <p className="text-[11px] text-gray-700 font-bold mt-2">
-                الرقم الضريبي: <span className="font-mono" dir="ltr">{vatNumber}</span>
+      <div className="invoice-page max-w-[210mm] mx-auto bg-white shadow-2xl my-6 print:my-0 print:shadow-none overflow-hidden">
+        {/* ── Formal Dark Header Band with White Logo ───────────────────────── */}
+        <div
+          className="relative px-10 py-7 text-white overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(135deg, #0F0F0F 0%, #2B2B60 45%, #1c1c45 100%)",
+          }}
+        >
+          {/* Decorative gold corners */}
+          <div className="absolute top-0 right-0 w-24 h-24 border-t-2 border-r-2 border-[#DFB369]/40" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 border-b-2 border-l-2 border-[#DFB369]/40" />
+
+          <div className="relative flex items-center justify-between gap-6">
+            {/* Right: brand info (RTL primary) */}
+            <div className="text-right flex-1 min-w-0">
+              <div className="text-[10px] font-black tracking-[0.4em] uppercase text-[#DFB369] mb-2">
+                Official Tax Invoice · KSA
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black text-white mb-1 leading-tight">
+                {sellerName}
+              </h1>
+              <p className="text-[11px] text-white/70 font-bold leading-relaxed">
+                عطور فاخرة وأصلية — صناعة شرقية بمعايير عالمية
               </p>
-            )}
+              {vatNumber && (
+                <div className="mt-3 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-[#DFB369]/30 rounded-md px-3 py-1.5">
+                  <span className="text-[9px] font-black tracking-widest text-[#DFB369] uppercase">VAT</span>
+                  <span className="font-mono font-black text-xs text-white" dir="ltr">{vatNumber}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Left: white logo */}
+            <div className="shrink-0 flex flex-col items-center gap-2">
+              <img
+                src={logoWhite}
+                alt="RF Perfume"
+                className="h-20 w-auto object-contain drop-shadow-[0_2px_8px_rgba(223,179,105,0.3)]"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoDark; }}
+              />
+              <div className="text-[8px] font-black tracking-[0.3em] uppercase text-[#DFB369]">rfperfume.sa</div>
+            </div>
           </div>
-          <img src={logoDark} alt="RF Perfume" className="h-20 w-auto object-contain" />
         </div>
 
-        {/* Title bar */}
-        <div className="my-6 text-center">
-          <div className="inline-block bg-gradient-to-l from-[#850935] to-[#5d0625] text-white px-8 py-3 rounded-full">
-            <h2 className="text-lg font-black tracking-wider">فاتورة ضريبية مبسّطة</h2>
-            <p className="text-[10px] font-bold opacity-90 mt-0.5">SIMPLIFIED TAX INVOICE</p>
+        {/* Body padding wrapper */}
+        <div className="px-10 pt-6 pb-10">
+          {/* Title bar */}
+          <div className="mb-6 text-center">
+            <div className="inline-flex flex-col items-center gap-1 bg-gradient-to-l from-[#850935] via-[#7a0830] to-[#5d0625] text-white px-10 py-3 rounded-md shadow-lg shadow-[#850935]/20 border border-[#DFB369]/30">
+              <h2 className="text-lg font-black tracking-wider">فاتورة ضريبية مبسّطة</h2>
+              <p className="text-[10px] font-bold tracking-[0.3em] text-[#DFB369]">SIMPLIFIED TAX INVOICE</p>
+            </div>
           </div>
-        </div>
 
         {/* Meta + QR */}
         <div className="grid grid-cols-3 gap-6 mb-8">
@@ -321,6 +353,7 @@ export default function Invoice() {
             هذه الفاتورة تم إصدارها إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك (ZATCA)
           </p>
         </div>
+        </div> {/* /body padding wrapper */}
       </div>
     </div>
   );

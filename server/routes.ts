@@ -1410,11 +1410,85 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Helper: hash a plain password using the same scrypt scheme as auth.ts ──
+  async function hashBranchPassword(plain: string): Promise<string> {
+    const { scrypt: _scrypt, randomBytes: _rb } = await import("crypto");
+    const { promisify } = await import("util");
+    const scryptAsync = promisify(_scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
+    const salt = _rb(16).toString("hex");
+    const buf = await scryptAsync(plain, salt, 64);
+    return `${buf.toString("hex")}.${salt}`;
+  }
+  function cleanPhoneSA(p: string): string {
+    let phone = (p || "").replace(/\D/g, "");
+    if (phone.startsWith("966")) phone = phone.substring(3);
+    if (phone.startsWith("0")) phone = phone.substring(1);
+    return phone;
+  }
+  const BRANCH_MANAGER_PERMS = [
+    "branch.orders", "branch.inventory", "branch.scan", "branch.manage",
+    "orders.view", "products.view", "customers.view",
+    "pos.access", "pos.use", "pos.close_shift",
+  ];
+
   app.post("/api/admin/branches", checkPermission("settings.manage"), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const branch = await storage.createBranch(req.body);
-      res.status(201).json(branch);
+      const { managerName, managerPhone, managerPassword, ...branchData } = req.body || {};
+      const branch = await storage.createBranch(branchData);
+
+      // Auto-create a branch manager login if credentials provided
+      let manager: any = null;
+      let managerError: string | null = null;
+      if (managerPhone && managerPassword) {
+        const phone = cleanPhoneSA(String(managerPhone));
+        const pw = String(managerPassword);
+        if (phone.length < 8) {
+          managerError = "رقم هاتف المسؤول غير صالح";
+        } else if (pw.length < 6) {
+          managerError = "كلمة المرور قصيرة جداً (6 أحرف على الأقل)";
+        } else {
+          const existing = await storage.getUserByUsername(phone);
+          if (existing && existing.role !== "customer") {
+            managerError = "يوجد مستخدم بهذا الرقم بالفعل";
+          } else {
+            const hashed = await hashBranchPassword(pw);
+            const baseUserData: any = {
+              name: managerName || `مسؤول ${branch.name}`,
+              phone,
+              username: phone,
+              email: branchData.email || `${phone}@rfperfume.sa`,
+              password: hashed,
+              role: "employee",
+              branchId: branch.id,
+              loginType: "dashboard",
+              isActive: true,
+              mustChangePassword: false,
+              walletBalance: "0",
+              addresses: [],
+              permissions: BRANCH_MANAGER_PERMS,
+              loyaltyPoints: 0,
+              loyaltyTier: "bronze",
+              totalSpent: 0,
+              phoneDiscountEligible: false,
+            };
+            if (existing) {
+              manager = await storage.updateUser(existing.id, {
+                ...baseUserData,
+                walletBalance: existing.walletBalance,
+              } as any);
+            } else {
+              manager = await storage.createUser(baseUserData);
+            }
+          }
+        }
+      }
+
+      res.status(201).json({
+        ...branch,
+        manager: manager ? { id: manager.id, phone: manager.phone, name: manager.name } : null,
+        managerError,
+      });
     } catch (err: any) {
       console.error("[API] branches.create error:", err?.message);
       res.status(500).json({ message: "خطأ في إنشاء الفرع" });
@@ -1424,11 +1498,85 @@ export async function registerRoutes(
   app.patch("/api/admin/branches/:id", checkPermission("settings.manage"), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const branch = await storage.updateBranch(req.params.id, req.body);
-      res.json(branch);
+      const { managerName, managerPhone, managerPassword, ...branchData } = req.body || {};
+      const branch = await storage.updateBranch(req.params.id, branchData);
+
+      // Optional: update / create a manager on this branch
+      let manager: any = null;
+      let managerError: string | null = null;
+      if (managerPhone || managerPassword) {
+        const pw = managerPassword ? String(managerPassword) : "";
+        if (managerPhone) {
+          const phone = cleanPhoneSA(String(managerPhone));
+          if (phone.length < 8) {
+            managerError = "رقم هاتف المسؤول غير صالح";
+          } else if (pw && pw.length < 6) {
+            managerError = "كلمة المرور قصيرة جداً (6 أحرف على الأقل)";
+          } else {
+            const existing = await storage.getUserByUsername(phone);
+            const update: any = {
+              name: managerName || `مسؤول ${branch.name}`,
+              phone,
+              username: phone,
+              role: "employee",
+              branchId: branch.id,
+              loginType: "dashboard",
+              isActive: true,
+              mustChangePassword: false,
+              permissions: BRANCH_MANAGER_PERMS,
+            };
+            if (pw) update.password = await hashBranchPassword(pw);
+
+            if (!existing) {
+              // No user with this phone → create new manager bound to this branch
+              if (!pw) {
+                managerError = "كلمة المرور مطلوبة لإنشاء مسؤول جديد";
+              } else {
+                manager = await storage.createUser({
+                  ...update,
+                  email: branchData.email || `${phone}@rfperfume.sa`,
+                  walletBalance: "0",
+                  addresses: [],
+                  loyaltyPoints: 0,
+                  loyaltyTier: "bronze",
+                  totalSpent: 0,
+                  phoneDiscountEligible: false,
+                });
+              }
+            } else if (existing.role === "employee" && existing.branchId === branch.id) {
+              // Safe: existing user is already a manager of THIS branch — allow rotation of name/password
+              manager = await storage.updateUser(existing.id, update);
+            } else {
+              // Refuse: do not hijack admin / customer / staff bound to a different branch
+              managerError = "هذا الرقم مستخدم لحساب آخر — استخدم رقماً مختلفاً للمسؤول";
+            }
+          }
+        }
+      }
+
+      res.json({
+        ...branch,
+        manager: manager ? { id: manager.id, phone: manager.phone, name: manager.name } : null,
+        managerError,
+      });
     } catch (err: any) {
       console.error("[API] branches.update error:", err?.message);
       res.status(500).json({ message: "خطأ في تحديث الفرع" });
+    }
+  });
+
+  // List managers for a specific branch (admin)
+  app.get("/api/admin/branches/:id/managers", checkPermission("settings.manage"), async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const all = await storage.getAllUsers();
+      const list = (all || []).filter((u: any) => u.branchId === req.params.id && u.role !== "customer");
+      res.json(list.map((u: any) => ({
+        id: u.id, name: u.name, phone: u.phone, role: u.role, isActive: u.isActive,
+      })));
+    } catch (err: any) {
+      console.error("[API] branches.managers error:", err?.message);
+      res.status(500).json({ message: "خطأ في جلب المسؤولين" });
     }
   });
 
