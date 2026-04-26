@@ -1,32 +1,85 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Branch, InsertBranch } from "@shared/schema";
+import { Branch, InsertBranch, insertBranchSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Loader2, Plus, MapPin, Phone, Trash2, Edit2 } from "lucide-react";
+import {
+  Loader2, Plus, MapPin, Phone, Trash2, Edit2, Search, Building2,
+  CheckCircle, XCircle, Clock, Mail, Image as ImageIcon, ExternalLink,
+  Package, AlertCircle,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
+import { useState, useMemo } from "react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  DialogFooter, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const emptyBranch: InsertBranch = {
+  name: "",
+  nameEn: "",
+  location: "",
+  address: "",
+  addressEn: "",
+  city: "",
+  phone: "",
+  email: "",
+  hours: "",
+  image: "",
+  latitude: null,
+  longitude: null,
+  mapUrl: "",
+  isPickupEnabled: true,
+  sortOrder: 0,
+  isActive: true,
+};
+
+function StatTile({
+  icon: Icon, label, value, accent = "text-[#2B2B60]",
+}: { icon: any; label: string; value: number | string; accent?: string }) {
+  return (
+    <Card className="p-5 border border-[#DFB369]/20 bg-gradient-to-br from-white to-[#FAF8F4]">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">{label}</span>
+        <Icon className={`h-4 w-4 ${accent}`} />
+      </div>
+      <div className={`text-3xl font-black ${accent}`}>{value}</div>
+    </Card>
+  );
+}
 
 export default function AdminBranches() {
   const { toast } = useToast();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "inactive" | "pickup">("all");
 
   const { data: branches, isLoading } = useQuery<Branch[]>({
     queryKey: ["/api/branches"],
   });
 
-  const form = useForm<InsertBranch>({
-    defaultValues: {
-      name: "",
-      location: "",
-      phone: "",
-      isActive: true,
-    },
+  const createForm = useForm<InsertBranch>({
+    resolver: zodResolver(insertBranchSchema),
+    defaultValues: emptyBranch,
+  });
+
+  const editForm = useForm<InsertBranch>({
+    resolver: zodResolver(insertBranchSchema),
+    defaultValues: emptyBranch,
   });
 
   const createMutation = useMutation({
@@ -36,22 +89,32 @@ export default function AdminBranches() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم النجاح", description: "تم إضافة الفرع بنجاح" });
-      setIsOpen(false);
-      form.reset();
+      toast({ title: "تم بنجاح", description: "تم إضافة الفرع الجديد" });
+      setIsCreateOpen(false);
+      createForm.reset(emptyBranch);
     },
+    onError: (err: any) => toast({
+      title: "تعذّر إنشاء الفرع",
+      description: err?.message || "حدث خطأ غير متوقع",
+      variant: "destructive",
+    }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: Partial<InsertBranch>) => {
-      const res = await apiRequest("PATCH", `/api/admin/branches/${editingBranch?.id}`, data);
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertBranch> }) => {
+      const res = await apiRequest("PATCH", `/api/admin/branches/${id}`, data);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم التحديث", description: "تم تحديث بيانات الفرع" });
+      toast({ title: "تم التحديث", description: "تم حفظ تعديلات الفرع" });
       setEditingBranch(null);
     },
+    onError: (err: any) => toast({
+      title: "تعذّر التحديث",
+      description: err?.message || "حدث خطأ",
+      variant: "destructive",
+    }),
   });
 
   const deleteMutation = useMutation({
@@ -60,117 +123,564 @@ export default function AdminBranches() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
-      toast({ title: "تم الحذف", description: "تم حذف الفرع بنجاح" });
+      toast({ title: "تم الحذف", description: "تم حذف الفرع" });
+      setDeleteId(null);
     },
+    onError: (err: any) => toast({
+      title: "تعذّر الحذف",
+      description: err?.message || "حدث خطأ",
+      variant: "destructive",
+    }),
   });
+
+  const startEdit = (branch: Branch) => {
+    editForm.reset({
+      name: branch.name || "",
+      nameEn: branch.nameEn || "",
+      location: branch.location || "",
+      address: branch.address || "",
+      addressEn: branch.addressEn || "",
+      city: branch.city || "",
+      phone: branch.phone || "",
+      email: branch.email || "",
+      hours: branch.hours || "",
+      image: branch.image || "",
+      latitude: branch.latitude ?? null,
+      longitude: branch.longitude ?? null,
+      mapUrl: branch.mapUrl || "",
+      isPickupEnabled: branch.isPickupEnabled ?? true,
+      sortOrder: branch.sortOrder ?? 0,
+      isActive: branch.isActive ?? true,
+    });
+    setEditingBranch(branch);
+  };
+
+  const filtered = useMemo(() => {
+    let list = branches || [];
+    if (filter === "active") list = list.filter(b => b.isActive);
+    if (filter === "inactive") list = list.filter(b => !b.isActive);
+    if (filter === "pickup") list = list.filter(b => b.isPickupEnabled);
+    if (search.trim()) {
+      const s = search.trim().toLowerCase();
+      list = list.filter(b =>
+        (b.name || "").toLowerCase().includes(s) ||
+        (b.nameEn || "").toLowerCase().includes(s) ||
+        (b.city || "").toLowerCase().includes(s) ||
+        (b.address || "").toLowerCase().includes(s) ||
+        (b.location || "").toLowerCase().includes(s) ||
+        (b.phone || "").includes(s),
+      );
+    }
+    return [...list].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }, [branches, search, filter]);
+
+  const stats = useMemo(() => {
+    const list = branches || [];
+    return {
+      total: list.length,
+      active: list.filter(b => b.isActive).length,
+      pickup: list.filter(b => b.isPickupEnabled && b.isActive).length,
+      cities: new Set(list.map(b => b.city).filter(Boolean)).size,
+    };
+  }, [branches]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#DFB369]" />
       </div>
     );
   }
 
+  const renderForm = (form: typeof createForm, isEdit: boolean) => (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit((data) => {
+          if (isEdit && editingBranch) {
+            updateMutation.mutate({ id: editingBranch.id, data });
+          } else {
+            createMutation.mutate(data);
+          }
+        })}
+        className="space-y-5"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">اسم الفرع (عربي) *</FormLabel>
+                <FormControl><Input {...field} placeholder="مثلاً: فرع الرياض" data-testid="input-branch-name" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="nameEn"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">اسم الفرع (English)</FormLabel>
+                <FormControl><Input {...field} value={field.value || ""} placeholder="e.g., Riyadh Branch" dir="ltr" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">المدينة</FormLabel>
+                <FormControl><Input {...field} value={field.value || ""} placeholder="الرياض" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">رقم الهاتف</FormLabel>
+                <FormControl><Input {...field} value={field.value || ""} placeholder="0501234567" dir="ltr" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem className="text-right">
+              <FormLabel className="font-black">العنوان التفصيلي</FormLabel>
+              <FormControl><Textarea {...field} value={field.value || ""} placeholder="مثلاً: حي المروج، شارع التحلية، مبنى رقم 12" rows={2} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">البريد الإلكتروني</FormLabel>
+                <FormControl><Input {...field} value={field.value || ""} type="email" placeholder="branch@rfperfume.sa" dir="ltr" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="hours"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">ساعات العمل</FormLabel>
+                <FormControl><Input {...field} value={field.value || ""} placeholder="9:00 ص — 11:00 م" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem className="text-right">
+              <FormLabel className="font-black flex items-center gap-2 justify-end">
+                <ImageIcon className="h-4 w-4" />
+                صورة الفرع (رابط)
+              </FormLabel>
+              <FormControl><Input {...field} value={field.value || ""} placeholder="https://..." dir="ltr" /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="mapUrl"
+          render={({ field }) => (
+            <FormItem className="text-right">
+              <FormLabel className="font-black flex items-center gap-2 justify-end">
+                <MapPin className="h-4 w-4" />
+                رابط الخريطة (Google Maps)
+              </FormLabel>
+              <FormControl><Input {...field} value={field.value || ""} placeholder="https://maps.google.com/..." dir="ltr" /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="latitude"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">خط العرض (Latitude)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.0000001"
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || v === "-") return field.onChange(null);
+                      const n = Number(v);
+                      field.onChange(Number.isFinite(n) ? n : null);
+                    }}
+                    placeholder="24.7136"
+                    dir="ltr"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="longitude"
+            render={({ field }) => (
+              <FormItem className="text-right">
+                <FormLabel className="font-black">خط الطول (Longitude)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.0000001"
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || v === "-") return field.onChange(null);
+                      const n = Number(v);
+                      field.onChange(Number.isFinite(n) ? n : null);
+                    }}
+                    placeholder="46.6753"
+                    dir="ltr"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="sortOrder"
+          render={({ field }) => (
+            <FormItem className="text-right">
+              <FormLabel className="font-black">ترتيب العرض</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  value={field.value ?? 0}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF8F4] rounded-xl p-4">
+          <FormField
+            control={form.control}
+            name="isActive"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between gap-4">
+                <div className="text-right">
+                  <FormLabel className="font-black">الفرع نشط</FormLabel>
+                  <p className="text-[11px] text-gray-700 font-bold">يُعرض ضمن الفروع المتاحة</p>
+                </div>
+                <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="isPickupEnabled"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between gap-4">
+                <div className="text-right">
+                  <FormLabel className="font-black">يتيح الاستلام</FormLabel>
+                  <p className="text-[11px] text-gray-700 font-bold">Click & Collect مفعّل</p>
+                </div>
+                <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="submit"
+            className="bg-[#2B2B60] hover:bg-[#1c1c45] text-white font-black"
+            disabled={createMutation.isPending || updateMutation.isPending}
+          >
+            {(createMutation.isPending || updateMutation.isPending) ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isEdit ? "حفظ التعديلات" : "إضافة الفرع"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+
   return (
-    <div className="p-8 space-y-8" dir="rtl">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-black uppercase tracking-widest">إدارة الفروع</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <div className="p-6 md:p-8 space-y-6 bg-[#FAF8F4]/30 min-h-screen" dir="rtl">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-[#2B2B60]">إدارة الفروع</h1>
+          <p className="text-sm text-gray-700 font-bold mt-1">أضف وعدّل بيانات فروع المتجر، وفعّل خاصية الاستلام لكل فرع.</p>
+        </div>
+        <Dialog open={isCreateOpen} onOpenChange={(v) => { setIsCreateOpen(v); if (!v) createForm.reset(emptyBranch); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className="gap-2 bg-[#DFB369] hover:bg-[#c89853] text-[#0F0F0F] font-black h-12 px-6 shadow-lg shadow-[#DFB369]/30" data-testid="button-add-branch">
+              <Plus className="h-5 w-5" />
               إضافة فرع جديد
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-right">إضافة فرع جديد</DialogTitle>
+              <DialogTitle className="text-right text-2xl font-black text-[#2B2B60]">إضافة فرع جديد</DialogTitle>
+              <DialogDescription className="text-right text-gray-700">أدخل بيانات الفرع الكاملة لتظهر للعملاء عند اختيار الاستلام.</DialogDescription>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="text-right">
-                      <FormLabel>اسم الفرع</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem className="text-right">
-                      <FormLabel>الموقع</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="مثلاً: الرياض، حي المروج" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem className="text-right">
-                      <FormLabel>رقم الهاتف</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "حفظ الفرع"}
-                </Button>
-              </form>
-            </Form>
+            {renderForm(createForm, false)}
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {branches?.map((branch) => (
-          <Card key={branch.id} className="relative overflow-hidden">
-            <CardHeader className="border-b bg-black/5">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg font-bold">{branch.name}</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(branch.id)}>
-                    <Trash2 className="h-4 w-4" />
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatTile icon={Building2} label="إجمالي الفروع" value={stats.total} />
+        <StatTile icon={CheckCircle} label="فروع نشطة" value={stats.active} accent="text-emerald-600" />
+        <StatTile icon={Package} label="تتيح الاستلام" value={stats.pickup} accent="text-[#DFB369]" />
+        <StatTile icon={MapPin} label="عدد المدن" value={stats.cities} accent="text-[#850935]" />
+      </div>
+
+      {/* Search + Filters */}
+      <Card className="p-4 border border-[#DFB369]/20">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
+            <Input
+              placeholder="ابحث باسم الفرع أو المدينة أو الهاتف…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pr-10 h-11 font-bold"
+              data-testid="input-search-branches"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { v: "all", l: "الكل" },
+              { v: "active", l: "نشط" },
+              { v: "inactive", l: "مغلق" },
+              { v: "pickup", l: "استلام" },
+            ].map(o => (
+              <Button
+                key={o.v}
+                variant={filter === o.v ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter(o.v as any)}
+                className={filter === o.v ? "bg-[#2B2B60] hover:bg-[#1c1c45] text-white font-black" : "font-bold"}
+                data-testid={`filter-branches-${o.v}`}
+              >
+                {o.l}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Branches Grid */}
+      {filtered.length === 0 ? (
+        <Card className="p-16 text-center border-dashed border-2">
+          <AlertCircle className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+          <p className="font-black text-lg text-gray-800 mb-2">
+            {(branches || []).length === 0 ? "لا توجد فروع بعد" : "لا توجد نتائج للبحث"}
+          </p>
+          <p className="text-sm text-gray-700 font-bold">
+            {(branches || []).length === 0 ? "ابدأ بإضافة فرعك الأول" : "جرّب بحثاً آخر أو امسح الفلاتر"}
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((branch) => (
+            <Card
+              key={branch.id}
+              className="overflow-hidden border border-[#DFB369]/20 hover:border-[#DFB369] transition-all hover:shadow-xl hover:shadow-[#DFB369]/10 group"
+              data-testid={`card-branch-${branch.id}`}
+            >
+              {/* Image header */}
+              <div className="relative h-36 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F] overflow-hidden">
+                {branch.image ? (
+                  <img
+                    src={branch.image}
+                    alt={branch.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Building2 className="h-12 w-12 text-[#DFB369]/40" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${
+                      branch.isActive
+                        ? "bg-emerald-500/90 text-white"
+                        : "bg-red-500/90 text-white"
+                    }`}
+                  >
+                    {branch.isActive ? "نشط" : "مغلق"}
+                  </span>
+                  {branch.isPickupEnabled && (
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#DFB369]/90 text-[#0F0F0F] backdrop-blur-md">
+                      استلام
+                    </span>
+                  )}
+                </div>
+                <div className="absolute bottom-3 right-3 left-3">
+                  <h3 className="text-white font-black text-xl drop-shadow-lg" data-testid={`text-branch-name-${branch.id}`}>
+                    {branch.name}
+                  </h3>
+                  {branch.city && (
+                    <p className="text-white/80 text-xs font-bold mt-0.5">{branch.city}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 space-y-2.5">
+                {branch.address && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-[#DFB369] shrink-0 mt-0.5" />
+                    <span className="text-gray-800 font-medium">{branch.address}</span>
+                  </div>
+                )}
+                {branch.phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-[#DFB369] shrink-0" />
+                    <a href={`tel:${branch.phone}`} className="text-gray-800 font-bold hover:text-[#DFB369] transition-colors" dir="ltr">
+                      {branch.phone}
+                    </a>
+                  </div>
+                )}
+                {branch.email && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-[#DFB369] shrink-0" />
+                    <a href={`mailto:${branch.email}`} className="text-gray-800 font-bold hover:text-[#DFB369] transition-colors truncate" dir="ltr">
+                      {branch.email}
+                    </a>
+                  </div>
+                )}
+                {branch.hours && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-[#DFB369] shrink-0" />
+                    <span className="text-gray-800 font-bold">{branch.hours}</span>
+                  </div>
+                )}
+                {branch.mapUrl && (
+                  <a
+                    href={branch.mapUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-xs font-black text-[#2B2B60] hover:text-[#DFB369] transition-colors mt-1"
+                  >
+                    عرض على الخريطة
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-3 border-t border-gray-100 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateMutation.mutate({ id: branch.id, data: { isActive: !branch.isActive } })}
+                    disabled={updateMutation.isPending}
+                    className="flex-1 font-bold"
+                    data-testid={`button-toggle-active-${branch.id}`}
+                  >
+                    {branch.isActive ? <XCircle className="h-3.5 w-3.5 ml-1" /> : <CheckCircle className="h-3.5 w-3.5 ml-1" />}
+                    {branch.isActive ? "إغلاق" : "تفعيل"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => startEdit(branch)}
+                    className="font-bold border-[#DFB369]/40 text-[#2B2B60] hover:bg-[#DFB369]/10"
+                    data-testid={`button-edit-${branch.id}`}
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteId(branch.id)}
+                    className="font-bold border-red-200 text-red-600 hover:bg-red-50"
+                    data-testid={`button-delete-${branch.id}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                {branch.location || "لم يتم تحديد الموقع"}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                {branch.phone || "لا يوجد رقم هاتف"}
-              </div>
-              <div className="pt-4 flex items-center justify-between">
-                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${branch.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {branch.isActive ? 'نشط' : 'مغلق'}
-                </span>
-                <Button variant="outline" size="sm" onClick={() => updateMutation.mutate({ isActive: !branch.isActive })}>
-                  {branch.isActive ? 'إغلاق الفرع' : 'تفعيل الفرع'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingBranch} onOpenChange={(v) => { if (!v) setEditingBranch(null); }}>
+        <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-right text-2xl font-black text-[#2B2B60]">
+              تعديل الفرع
+            </DialogTitle>
+            <DialogDescription className="text-right text-gray-700">
+              {editingBranch?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {editingBranch && renderForm(editForm, true)}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(v) => { if (!v) setDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">تأكيد حذف الفرع</AlertDialogTitle>
+            <AlertDialogDescription className="text-right">
+              هل أنت متأكد من حذف هذا الفرع؟ لن تتمكن من استرجاعه. الطلبات المرتبطة بهذا الفرع لن تُحذف.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-bold">إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+              className="bg-red-600 hover:bg-red-700 font-black"
+              data-testid="button-confirm-delete"
+            >
+              نعم، احذف الفرع
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

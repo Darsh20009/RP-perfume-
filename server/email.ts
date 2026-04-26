@@ -454,6 +454,58 @@ export async function sendOrderStatusEmail(params: {
   const bc = badgeColors[cfg.badgeClass] || { bg: "#eff6ff", fg: "#1d4ed8" };
   const statusBadge = `<span style="display:inline-block;padding:6px 14px;font-size:11px;font-weight:900;background-color:${bc.bg};color:${bc.fg};border-radius:4px;letter-spacing:0.05em;">${cfg.badgeText}</span>`;
 
+  // ─── Visual journey stepper (email-safe table) ────────────────────────────
+  // Steps: confirmed → processing → shipped/ready → delivered
+  const journeySteps = [
+    { key: "confirmed",  label: "تم التأكيد",  en: "Confirmed", icon: "✓" },
+    { key: "processing", label: "قيد التجهيز", en: "Preparing", icon: "⚙" },
+    {
+      key: params.status === "ready_for_pickup" ? "ready_for_pickup" : "shipped",
+      label: params.status === "ready_for_pickup" ? "جاهز للاستلام" : "في الطريق",
+      en: params.status === "ready_for_pickup" ? "Ready" : "Shipped",
+      icon: params.status === "ready_for_pickup" ? "📦" : "🚚",
+    },
+    { key: "completed",  label: "تم التسليم", en: "Delivered", icon: "★" },
+  ];
+  const stepIndex: Record<string, number> = {
+    processing: 1,
+    shipped: 2,
+    ready_for_pickup: 2,
+    completed: 3,
+    cancelled: -1,
+  };
+  const currentIdx = stepIndex[params.status] ?? 0;
+  const isCancelled = params.status === "cancelled";
+
+  const journeyHtml = isCancelled ? "" : `
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="margin:24px 0 8px;background:#fafafa;border:1px solid rgba(223,179,105,0.25);border-radius:10px;">
+      <tr><td style="padding:18px 12px;">
+        <div style="text-align:center;font-size:10px;font-weight:900;letter-spacing:0.25em;color:rgba(0,0,0,0.45);margin-bottom:14px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">رحلة الطلب · ORDER JOURNEY</div>
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" dir="ltr">
+          <tr>
+            ${journeySteps.map((s, i) => {
+              const done = i < currentIdx;
+              const active = i === currentIdx;
+              const bg = done || active ? "#DFB369" : "#e5e5e0";
+              const ring = active ? "box-shadow:0 0 0 4px rgba(223,179,105,0.25);" : "";
+              const fg = done || active ? "#0F0F0F" : "rgba(0,0,0,0.35)";
+              const labelColor = done || active ? "#2B2B60" : "rgba(0,0,0,0.4)";
+              const weight = active ? "900" : "700";
+              return `
+                <td align="center" valign="top" style="width:25%;padding:0 4px;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
+                  <div style="width:36px;height:36px;line-height:36px;border-radius:18px;background:${bg};color:${fg};font-size:14px;font-weight:900;text-align:center;margin:0 auto 6px;${ring}">${s.icon}</div>
+                  <div style="font-size:11px;font-weight:${weight};color:${labelColor};line-height:1.3;" dir="rtl">${s.label}</div>
+                  <div style="font-size:9px;font-weight:600;color:rgba(0,0,0,0.35);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${s.en}</div>
+                </td>
+                ${i < journeySteps.length - 1 ? `<td align="center" valign="middle" style="width:1%;"><div style="height:2px;background:${i < currentIdx ? "#DFB369" : "#e5e5e0"};margin-top:-22px;width:100%;min-width:20px;"></div></td>` : ""}
+              `;
+            }).join("")}
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+  `;
+
   // Wrap cfg.message paragraphs/tracking-box in inline styles for email-safety
   const safeMessage = cfg.message
     .replace(/<p>/g, '<p style="margin:0 0 12px;font-size:14px;color:rgba(0,0,0,0.7);line-height:1.8;font-family:\'Segoe UI\',Tahoma,Arial,sans-serif;">')
@@ -473,6 +525,8 @@ export async function sendOrderStatusEmail(params: {
       infoRow("رقم الطلب", `#${params.orderRef}`) +
       infoRow("الحالة الجديدة", statusBadge, true)
     )}
+
+    ${journeyHtml}
 
     ${safeMessage}
 

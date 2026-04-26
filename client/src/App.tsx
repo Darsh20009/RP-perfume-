@@ -58,6 +58,7 @@ const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPoli
 const CustomPage = lazy(() => import("@/pages/CustomPage"));
 const Branches = lazy(() => import("@/pages/Branches"));
 const BranchDashboard = lazy(() => import("@/pages/BranchDashboard"));
+const Invoice = lazy(() => import("@/pages/Invoice"));
 
 function LazyFallback() {
   return (
@@ -152,6 +153,9 @@ function Router() {
       </Route>
       <Route path="/orders/:id">
         <ProtectedRoute component={OrderDetail} />
+      </Route>
+      <Route path="/invoice/:id">
+        <ProtectedRoute component={Invoice} />
       </Route>
       <Route path="/employees">
         <ProtectedRoute component={Employees} permission="staff.manage" />

@@ -12,10 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   ScanLine, Package, Printer, AlertTriangle, CheckCircle,
   Loader2, Search, RefreshCw, ShoppingBag, MapPin, Save,
-  Clock, TrendingUp, AlertCircle, FileText,
+  Clock, TrendingUp, AlertCircle, FileText, FileSpreadsheet,
+  CheckSquare, Square, Filter, X,
 } from "lucide-react";
 
 function ShiftSummaryButton() {
@@ -74,12 +77,69 @@ function PrintInvoiceButton({ orderId }: { orderId: string }) {
     <Button
       variant="outline" size="sm"
       data-testid={`button-print-${orderId}`}
-      onClick={() => window.open(`/orders/${orderId}?print=1`, "_blank")}
+      onClick={() => window.open(`/invoice/${orderId}?print=1`, "_blank")}
     >
       <Printer className="h-4 w-4 ml-1" />
-      طباعة
+      فاتورة
     </Button>
   );
+}
+
+function bulkPrintInvoices(orderIds: string[]) {
+  if (orderIds.length === 0) return;
+  // Open all windows SYNCHRONOUSLY inside the user gesture so popup blockers
+  // (Chrome/Safari) don't reject everything but the first. setTimeout breaks
+  // the gesture chain and causes blocked popups.
+  let blocked = 0;
+  for (const id of orderIds) {
+    const w = window.open(`/invoice/${id}?print=1`, `_print_${id}`, "noopener,noreferrer");
+    if (!w) blocked++;
+  }
+  if (blocked > 0) {
+    alert(`تم حظر ${blocked} نافذة بواسطة المتصفح. الرجاء السماح بالنوافذ المنبثقة لهذا الموقع وإعادة المحاولة.`);
+  }
+}
+
+function exportOrdersCsv(orders: any[], filename = "branch-orders.csv") {
+  const headers = [
+    "رقم الطلب", "كود الاستلام", "الحالة", "طريقة الاستلام",
+    "العميل", "الجوال", "العنوان",
+    "عدد المنتجات", "المجموع الفرعي", "الشحن", "الضريبة", "الإجمالي",
+    "طريقة الدفع", "تاريخ الإنشاء", "تاريخ التسليم",
+  ];
+  const rows = orders.map(o => [
+    `#${(o.id || "").slice(-6).toUpperCase()}`,
+    o.pickupCode || "",
+    o.status || "",
+    o.shippingMethod === "pickup" ? "استلام" : "توصيل",
+    o.customerName || "",
+    o.customerPhone || "",
+    (o.deliveryAddress || "").replace(/[\r\n]+/g, " "),
+    (o.items || []).length,
+    Number(o.subtotal || 0).toFixed(2),
+    Number(o.shippingCost || 0).toFixed(2),
+    Number(o.vatAmount || 0).toFixed(2),
+    Number(o.total || 0).toFixed(2),
+    o.paymentMethod || "",
+    o.createdAt ? new Date(o.createdAt).toLocaleString("ar-SA") : "",
+    o.verifiedAt ? new Date(o.verifiedAt).toLocaleString("ar-SA") : "",
+  ]);
+  const escape = (v: any) => {
+    const s = String(v ?? "");
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+  // BOM so Excel opens UTF-8 correctly
+  const csv = "\uFEFF" + [headers, ...rows].map(r => r.map(escape).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 200);
 }
 
 function PickupScanner() {
@@ -158,23 +218,45 @@ function BranchOrdersTab() {
     queryKey: ["/api/branch/orders"],
     refetchInterval: 20_000,
   });
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pickup" | "pending" | "completed">("all");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     let list = orders;
     if (filter === "pickup") list = list.filter(o => o.shippingMethod === "pickup");
     if (filter === "pending") list = list.filter(o => !o.pickupVerified && o.status !== "completed" && o.status !== "cancelled");
     if (filter === "completed") list = list.filter(o => o.status === "completed" || o.pickupVerified);
+    if (paymentFilter !== "all") list = list.filter(o => (o.paymentMethod || "") === paymentFilter);
+
+    if (dateFrom) {
+      const fromTs = new Date(dateFrom + "T00:00:00").getTime();
+      list = list.filter(o => new Date(o.createdAt || 0).getTime() >= fromTs);
+    }
+    if (dateTo) {
+      const toTs = new Date(dateTo + "T23:59:59").getTime();
+      list = list.filter(o => new Date(o.createdAt || 0).getTime() <= toTs);
+    }
+    if (minAmount) list = list.filter(o => Number(o.total || 0) >= Number(minAmount));
+    if (maxAmount) list = list.filter(o => Number(o.total || 0) <= Number(maxAmount));
+
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(o =>
         (o.id || "").toLowerCase().includes(s) ||
         (o.pickupCode || "").includes(s) ||
-        (o.deliveryAddress || "").toLowerCase().includes(s)
+        (o.deliveryAddress || "").toLowerCase().includes(s) ||
+        (o.customerName || "").toLowerCase().includes(s) ||
+        (o.customerPhone || "").includes(s)
       );
     }
-    // Sort: customers on the way first, then ready_for_pickup, then by createdAt desc
     return [...list].sort((a, b) => {
       const aw = a.customerOnWay && !a.pickupVerified ? 1 : 0;
       const bw = b.customerOnWay && !b.pickupVerified ? 1 : 0;
@@ -184,9 +266,40 @@ function BranchOrdersTab() {
       if (ar !== br) return br - ar;
       return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
-  }, [orders, filter, search]);
+  }, [orders, filter, search, dateFrom, dateTo, minAmount, maxAmount, paymentFilter]);
 
   const onTheWay = orders.filter((o: any) => o.customerOnWay && !o.pickupVerified);
+
+  const filteredIds = filtered.map(o => o.id);
+  const allSelected = filteredIds.length > 0 && filteredIds.every(id => selected.has(id));
+  const someSelected = selected.size > 0 && !allSelected;
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filteredIds));
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearch(""); setDateFrom(""); setDateTo(""); setMinAmount("");
+    setMaxAmount(""); setPaymentFilter("all"); setFilter("all");
+  };
+
+  const hasActiveAdvanced = !!(dateFrom || dateTo || minAmount || maxAmount || paymentFilter !== "all");
+
+  const selectedOrders = filtered.filter(o => selected.has(o.id));
+  const selectedTotal = selectedOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -217,18 +330,43 @@ function BranchOrdersTab() {
           </div>
         </Card>
       )}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-3 h-4 w-4 text-gray-700" />
-          <Input
-            placeholder="بحث برقم الطلب أو الكود"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pr-10"
-            data-testid="input-orders-search"
-          />
+
+      {/* Filters bar */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-3 h-4 w-4 text-gray-700" />
+            <Input
+              placeholder="بحث برقم الطلب، الكود، اسم العميل، أو الجوال…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pr-10"
+              data-testid="input-orders-search"
+            />
+          </div>
+          <Button
+            variant={showAdvanced || hasActiveAdvanced ? "default" : "outline"}
+            size="default"
+            onClick={() => setShowAdvanced(s => !s)}
+            data-testid="button-toggle-advanced"
+          >
+            <Filter className="h-4 w-4 ml-1" />
+            فلاتر متقدمة
+            {hasActiveAdvanced && <Badge className="mr-2 bg-[#DFB369] text-black">●</Badge>}
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={() => exportOrdersCsv(selected.size > 0 ? selectedOrders : filtered, `branch-orders-${new Date().toISOString().slice(0, 10)}.csv`)}
+            disabled={filtered.length === 0}
+            data-testid="button-export-csv"
+          >
+            <FileSpreadsheet className="h-4 w-4 ml-1" />
+            Excel / CSV
+          </Button>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 flex-wrap">
           {[
             { v: "all", l: "الكل" },
             { v: "pickup", l: "استلام" },
@@ -245,53 +383,177 @@ function BranchOrdersTab() {
               {o.l}
             </Button>
           ))}
+          {(hasActiveAdvanced || filter !== "all" || search) && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-red-600">
+              <X className="h-4 w-4 ml-1" />
+              مسح الفلاتر
+            </Button>
+          )}
         </div>
+
+        {/* Advanced filters panel */}
+        {showAdvanced && (
+          <Card className="p-4 bg-[#FAF8F4] border-[#DFB369]/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs font-black mb-1 block">من تاريخ</Label>
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} data-testid="filter-date-from" />
+              </div>
+              <div>
+                <Label className="text-xs font-black mb-1 block">إلى تاريخ</Label>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} data-testid="filter-date-to" />
+              </div>
+              <div>
+                <Label className="text-xs font-black mb-1 block">طريقة الدفع</Label>
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm font-bold"
+                  data-testid="filter-payment"
+                >
+                  <option value="all">كل الطرق</option>
+                  <option value="cash">نقداً</option>
+                  <option value="cod">عند الاستلام</option>
+                  <option value="wallet">محفظة</option>
+                  <option value="tap">بطاقة</option>
+                  <option value="stc_pay">STC Pay</option>
+                  <option value="apple_pay">Apple Pay</option>
+                  <option value="bank_transfer">تحويل بنكي</option>
+                  <option value="tabby">Tabby</option>
+                  <option value="tamara">Tamara</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs font-black mb-1 block">المبلغ من (ر.س)</Label>
+                <Input type="number" min="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="0" data-testid="filter-min-amount" />
+              </div>
+              <div>
+                <Label className="text-xs font-black mb-1 block">المبلغ إلى (ر.س)</Label>
+                <Input type="number" min="0" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="∞" data-testid="filter-max-amount" />
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
+
+      {/* Bulk actions toolbar */}
+      {filtered.length > 0 && (
+        <Card className="p-3 bg-[#0F0F0F] text-white border-0 flex items-center justify-between gap-3 flex-wrap no-print">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={allSelected || (someSelected && "indeterminate")}
+              onCheckedChange={toggleAll}
+              className="border-white data-[state=checked]:bg-[#DFB369] data-[state=checked]:text-black"
+              data-testid="checkbox-select-all"
+            />
+            <span className="text-xs font-bold">
+              {selected.size > 0 ? (
+                <>محدد <span className="font-mono font-black text-[#DFB369]">{selected.size}</span> من {filtered.length} — إجمالي <span className="font-mono font-black text-[#DFB369]">{selectedTotal.toLocaleString("ar-SA")}</span> ر.س</>
+              ) : (
+                <>عرض {filtered.length} طلب</>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-white/10 text-white border-white/30 hover:bg-white/20 hover:text-white"
+              disabled={selected.size === 0}
+              onClick={() => {
+                if (selected.size > 10) {
+                  if (!confirm(`سيتم فتح ${selected.size} نافذة طباعة. هل تريد المتابعة؟`)) return;
+                }
+                bulkPrintInvoices(Array.from(selected));
+                toast({ title: "جاري فتح الفواتير", description: `${selected.size} فاتورة` });
+              }}
+              data-testid="button-bulk-print"
+            >
+              <Printer className="h-4 w-4 ml-1" />
+              طباعة المحدد
+            </Button>
+            {selected.size > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-white hover:bg-white/10"
+                onClick={() => setSelected(new Set())}
+                data-testid="button-clear-selection"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
 
       {isLoading ? (
         <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : filtered.length === 0 ? (
         <Card className="p-12 text-center">
           <ShoppingBag className="h-12 w-12 text-gray-700 mx-auto mb-3" />
-          <p className="font-black text-gray-800">لا توجد طلبات</p>
+          <p className="font-black text-gray-800">لا توجد طلبات مطابقة</p>
+          {(hasActiveAdvanced || search) && (
+            <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">مسح الفلاتر</Button>
+          )}
         </Card>
       ) : (
         <div className="space-y-3">
-          {filtered.map((o: any) => (
-            <Card key={o.id} className="p-4" data-testid={`row-order-${o.id}`}>
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-mono font-black text-sm">#{(o.id || "").slice(-6).toUpperCase()}</span>
-                    <Badge variant={o.status === "completed" ? "default" : "secondary"}>
-                      {o.status}
-                    </Badge>
-                    {o.shippingMethod === "pickup" && (
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                        <MapPin className="h-3 w-3 ml-1" />
-                        استلام
-                      </Badge>
-                    )}
-                    {o.pickupVerified && (
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
-                        ✓ تم الاستلام
-                      </Badge>
-                    )}
+          {filtered.map((o: any) => {
+            const isSelected = selected.has(o.id);
+            return (
+              <Card
+                key={o.id}
+                className={`p-4 transition-all ${isSelected ? "border-[#DFB369] bg-[#DFB369]/5 shadow-md" : ""}`}
+                data-testid={`row-order-${o.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="pt-1 shrink-0">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleOne(o.id)}
+                      data-testid={`checkbox-order-${o.id}`}
+                    />
                   </div>
-                  <p className="text-xs text-gray-800 font-bold">{o.deliveryAddress}</p>
-                  <p className="text-xs text-gray-700 mt-1">
-                    {o.items?.length || 0} منتج — <span className="font-black text-black">{o.total} ر.س</span>
-                  </p>
-                  {o.pickupCode && !o.pickupVerified && (
-                    <p className="text-xs font-mono font-black text-primary mt-1">
-                      الكود: {o.pickupCode}
-                    </p>
-                  )}
+                  <div className="flex-1 flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-mono font-black text-sm">#{(o.id || "").slice(-6).toUpperCase()}</span>
+                        <Badge variant={o.status === "completed" ? "default" : "secondary"}>
+                          {o.status}
+                        </Badge>
+                        {o.shippingMethod === "pickup" && (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                            <MapPin className="h-3 w-3 ml-1" />
+                            استلام
+                          </Badge>
+                        )}
+                        {o.pickupVerified && (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            ✓ تم الاستلام
+                          </Badge>
+                        )}
+                      </div>
+                      {o.customerName && (
+                        <p className="text-xs text-gray-800 font-bold">{o.customerName} — <span dir="ltr">{o.customerPhone}</span></p>
+                      )}
+                      <p className="text-xs text-gray-800 font-bold">{o.deliveryAddress}</p>
+                      <p className="text-xs text-gray-700 mt-1">
+                        {o.items?.length || 0} منتج — <span className="font-black text-black">{o.total} ر.س</span>
+                        {o.createdAt && <span className="text-gray-500 mr-2">— {new Date(o.createdAt).toLocaleDateString("ar-SA")}</span>}
+                      </p>
+                      {o.pickupCode && !o.pickupVerified && (
+                        <p className="text-xs font-mono font-black text-primary mt-1">
+                          الكود: {o.pickupCode}
+                        </p>
+                      )}
+                    </div>
+                    <PrintInvoiceButton orderId={o.id} />
+                  </div>
                 </div>
-                <PrintInvoiceButton orderId={o.id} />
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
