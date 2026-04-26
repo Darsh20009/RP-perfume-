@@ -2450,6 +2450,42 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message }); }
   });
 
+  // ─── Stat Items (admin-controlled stats strip) ─────────────────────────────
+  app.get("/api/stats", async (_req, res) => {
+    try {
+      const items = await storage.getStatItems(true);
+      res.json(items);
+    } catch (err: any) { res.json([]); }
+  });
+
+  app.get("/api/admin/stats", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const items = await storage.getStatItems(false);
+      res.json(items);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.post("/api/admin/stats", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const item = await storage.createStatItem(req.body);
+      res.json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.patch("/api/admin/stats/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      const item = await storage.updateStatItem(req.params.id, req.body);
+      res.json(item);
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.delete("/api/admin/stats/:id", checkPermission("settings.manage"), async (req, res) => {
+    try {
+      await storage.deleteStatItem(req.params.id);
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ message: err.message }); }
+  });
+
   // ─── Custom Pages ───────────────────────────────────────────────────────────
   app.get("/api/pages", async (req, res) => {
     try {

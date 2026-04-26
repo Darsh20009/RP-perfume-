@@ -29,6 +29,7 @@ import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminInbox from "@/pages/admin/AdminInbox";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminPromoStrip from "@/pages/admin/AdminPromoStrip";
+import AdminStats from "@/pages/admin/AdminStats";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminPages from "@/pages/admin/AdminPages";
 import AdminAiInsights from "@/pages/admin/AdminAiInsights";
@@ -5015,6 +5016,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
         { id: "bundles", label: "عروض الباقات", icon: Package },
         { id: "returns", label: "المرتجعات", icon: RotateCcw },
         { id: "promo-strip", label: "شريط المميّزات", icon: Sparkles },
+        { id: "stats", label: "إحصائيات الرئيسية", icon: BarChart3 },
         { id: "pages", label: "صفحات المتجر", icon: FileText },
       ]
     },
@@ -5338,6 +5340,7 @@ export default function Admin() {
                 {activeTab === "customers" && <CustomersTable />}
                 {activeTab === "reviews"   && <AdminReviews />}
                 {activeTab === "promo-strip" && <AdminPromoStrip />}
+                {activeTab === "stats"       && <AdminStats />}
                 {activeTab === "pages"     && <AdminPages />}
                 {activeTab === "ai-insights" && <AdminAiInsights />}
                 {activeTab === "vendors"   && <VendorsPanel />}

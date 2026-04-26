@@ -1,5 +1,5 @@
 import type { User, InsertUser, Product, InsertProduct, Order, InsertOrder, Category, InsertCategory, WalletTransaction, InsertWalletTransaction, OrderStatus, ActivityLog, InsertActivityLog, Coupon, InsertCoupon, Branch, InsertBranch, Banner, InsertBanner, CashShift, InsertCashShift, BranchInventory, ShippingCompany, InsertShippingCompany, AuditLog, InsertAuditLog, Role, InsertRole, StockTransfer, InsertStockTransfer, Invoice, InsertInvoice, WishlistItem, InsertWishlistItem, ProductReview, InsertProductReview, Vendor, InsertVendor, FlashDeal, InsertFlashDeal, ReturnRequest, InsertReturnRequest } from "@shared/schema";
-import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, BundleOfferModel, ReturnRequestModel, PromoStripItemModel, CustomPageModel, ProductInsightsModel } from "./models";
+import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, BundleOfferModel, ReturnRequestModel, PromoStripItemModel, StatItemModel, CustomPageModel, ProductInsightsModel } from "./models";
 
 export interface IStorage {
   // Users
@@ -164,6 +164,12 @@ export interface IStorage {
   createPromoStripItem(data: any): Promise<any>;
   updatePromoStripItem(id: string, update: any): Promise<any>;
   deletePromoStripItem(id: string): Promise<void>;
+
+  // Stat Items (admin-controlled stats strip)
+  getStatItems(activeOnly?: boolean): Promise<any[]>;
+  createStatItem(data: any): Promise<any>;
+  updateStatItem(id: string, update: any): Promise<any>;
+  deleteStatItem(id: string): Promise<void>;
 
   // Custom Pages
   getCustomPages(opts?: { activeOnly?: boolean; navOnly?: boolean }): Promise<any[]>;
@@ -909,6 +915,24 @@ export class MongoDBStorage implements IStorage {
   }
   async deletePromoStripItem(id: string): Promise<void> {
     await PromoStripItemModel.findByIdAndDelete(id);
+  }
+
+  // ── Stat Items (admin-controlled stats strip) ──────────────────
+  async getStatItems(activeOnly = false): Promise<any[]> {
+    const q: any = activeOnly ? { isActive: true } : {};
+    const items = await StatItemModel.find(q).sort({ sortOrder: 1, createdAt: 1 }).lean();
+    return items.map(i => ({ ...i, id: (i as any)._id.toString() }));
+  }
+  async createStatItem(data: any): Promise<any> {
+    const item = await StatItemModel.create(data);
+    return { ...item.toObject(), id: (item as any)._id.toString() };
+  }
+  async updateStatItem(id: string, update: any): Promise<any> {
+    const item = await StatItemModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+    return item ? { ...item, id: (item as any)._id.toString() } : undefined;
+  }
+  async deleteStatItem(id: string): Promise<void> {
+    await StatItemModel.findByIdAndDelete(id);
   }
 
   // ── Custom Pages ───────────────────────────────────────────────

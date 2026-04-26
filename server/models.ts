@@ -636,6 +636,22 @@ const promoStripItemSchema = new Schema(
 promoStripItemSchema.index({ isActive: 1, sortOrder: 1 });
 export const PromoStripItemModel = mongoose.model("PromoStripItem", promoStripItemSchema);
 
+// ─── Stat Items (admin-controlled stats strip on home) ───────────────────
+const statItemSchema = new Schema(
+  {
+    valueAr: { type: String, default: "" },   // e.g. "+٥٠٠"
+    valueEn: { type: String, default: "" },   // e.g. "500+"
+    labelAr: { type: String, default: "" },   // e.g. "عميل سعيد"
+    labelEn: { type: String, default: "" },   // e.g. "Happy Customers"
+    color: { type: String, default: "#DFB369" },
+    sortOrder: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+statItemSchema.index({ isActive: 1, sortOrder: 1 });
+export const StatItemModel = mongoose.model("StatItem", statItemSchema);
+
 // ─── Custom Pages (admin-managed marketing/info pages) ────────────────────
 const customPageSchema = new Schema(
   {

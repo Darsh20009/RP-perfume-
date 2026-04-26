@@ -444,34 +444,8 @@ export default function Home() {
       </section>
 
       {/* ── STATS ──────────────────────────────────────── */}
-      <section className="border-y border-[#E8E5E0] bg-white py-10">
-        <div className="container px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { num: "+٥٠٠", num_en: "500+", label: t('happyCustomers') },
-              { num: "+١٥٠", num_en: "150+", label: t('luxuryFragrances') },
-              { num: "٩٩٪", num_en: "99%", label: t('customerSatisfaction') },
-              { num: "٢-٤", num_en: "2-4", label: t('deliveryDays') },
-            ].map((stat: any, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex flex-col items-center"
-              >
-                <span className="text-4xl md:text-5xl font-bold text-[#DFB369] tracking-tighter">
-                  {isRtl ? stat.num : stat.num_en}
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-700 mt-2">
-                  {stat.label}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StatsSection isRtl={isRtl} t={t} />
+
 
       {/* ── ماذا يقول عملاؤنا — TESTIMONIALS CAROUSEL ─────────────── */}
       <CustomerTestimonials />
@@ -632,6 +606,59 @@ export default function Home() {
         </div>
       </section>
     </Layout>
+  );
+}
+
+function StatsSection({ isRtl, t }: { isRtl: boolean; t: (k: string) => string }) {
+  const { data: items } = useQuery<any[]>({
+    queryKey: ["/api/stats"],
+    staleTime: 5 * 60_000,
+  });
+
+  const fallback = [
+    { valueAr: "+٥٠٠", valueEn: "500+", labelAr: t('happyCustomers'), labelEn: t('happyCustomers'), color: "#DFB369" },
+    { valueAr: "+١٥٠", valueEn: "150+", labelAr: t('luxuryFragrances'), labelEn: t('luxuryFragrances'), color: "#DFB369" },
+    { valueAr: "٩٩٪", valueEn: "99%", labelAr: t('customerSatisfaction'), labelEn: t('customerSatisfaction'), color: "#DFB369" },
+    { valueAr: "٢-٤", valueEn: "2-4", labelAr: t('deliveryDays'), labelEn: t('deliveryDays'), color: "#DFB369" },
+  ];
+
+  const list = (items && items.length > 0) ? items : fallback;
+  if (list.length === 0) return null;
+
+  const cols = list.length === 1 ? "grid-cols-1"
+    : list.length === 2 ? "grid-cols-2"
+    : list.length === 3 ? "grid-cols-1 sm:grid-cols-3"
+    : list.length === 4 ? "grid-cols-2 md:grid-cols-4"
+    : "grid-cols-2 md:grid-cols-5";
+
+  return (
+    <section className="border-y border-[#E8E5E0] bg-white py-10" data-testid="stats-section">
+      <div className="container px-4">
+        <div className={`grid ${cols} gap-8 text-center`}>
+          {list.map((stat: any, i: number) => (
+            <motion.div
+              key={(stat.id as string) || i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="flex flex-col items-center"
+              data-testid={`stat-item-${i}`}
+            >
+              <span
+                className="text-4xl md:text-5xl font-bold tracking-tighter"
+                style={{ color: stat.color || "#DFB369" }}
+              >
+                {isRtl ? (stat.valueAr || stat.valueEn) : (stat.valueEn || stat.valueAr)}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-700 mt-2">
+                {isRtl ? (stat.labelAr || stat.labelEn) : (stat.labelEn || stat.labelAr)}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
