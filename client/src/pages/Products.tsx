@@ -529,6 +529,65 @@ export default function Products() {
           )}
         </AnimatePresence>
 
+        {/* ── CATEGORY BANNER ──────────────────────────────────────────── */}
+        {activeCategory !== "all" && activeCatData?.img && (
+          <div className="container px-4 pt-5">
+            <motion.div
+              key={`banner-${activeCategory}-${activeSubCategory || ""}`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="relative w-full h-44 sm:h-56 md:h-64 rounded-3xl overflow-hidden shadow-lg"
+            >
+              <img
+                src={(() => {
+                  if (activeSubCategory) {
+                    const sub = (dbCategories || []).find((c: any) => c.slug === activeSubCategory);
+                    return sub?.image || activeCatData.img;
+                  }
+                  return activeCatData.img;
+                })()}
+                alt={isRtl ? activeCatData.label_ar : activeCatData.label_en}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Gradient overlays for legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+              <div className={`absolute inset-0 ${isRtl ? "bg-gradient-to-l" : "bg-gradient-to-r"} from-black/40 via-transparent to-transparent`} />
+
+              {/* Decorative gold corner */}
+              {isRtl ? (
+                <div className="absolute top-3 right-3 w-14 h-14 border-t-2 border-r-2 border-[#DFB369]/60 rounded-tr-2xl pointer-events-none" />
+              ) : (
+                <div className="absolute top-3 left-3 w-14 h-14 border-t-2 border-l-2 border-[#DFB369]/60 rounded-tl-2xl pointer-events-none" />
+              )}
+
+              {/* Banner content */}
+              <div className={`absolute inset-0 flex flex-col justify-end p-5 sm:p-7 ${isRtl ? "items-end text-right" : "items-start text-left"}`}>
+                <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.4em] text-[#DFB369] mb-1.5 drop-shadow-lg">
+                  {isRtl ? "كولكشن" : "Collection"}
+                </div>
+                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-2xl leading-tight">
+                  {isRtl ? activeCatData.label_ar : activeCatData.label_en}
+                </h2>
+                {activeSubCategory && (() => {
+                  const sub = (dbCategories || []).find((c: any) => c.slug === activeSubCategory);
+                  if (!sub) return null;
+                  return (
+                    <div className="mt-2 inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-white text-xs font-bold">
+                      {isRtl ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      {isRtl ? (sub.nameAr || sub.name) : sub.name}
+                    </div>
+                  );
+                })()}
+                <div className="mt-2 inline-flex items-center gap-1.5 bg-[#DFB369]/95 text-[#0F0F0F] rounded-full px-3 py-1 text-[11px] font-black shadow-lg">
+                  <Sparkles className="h-3 w-3" />
+                  {filteredProducts.length} {isRtl ? "منتج" : "items"}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
         <div className="container px-4 py-6">
 
@@ -566,23 +625,17 @@ export default function Products() {
             </div>
           )}
 
-          {/* Title & Count */}
-          <div className={`flex items-baseline justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
-            <h1 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-tighter">
-              {activeCategory === "all"
-                ? (isRtl ? "الكولكشن الكامل" : "Full Collection")
-                : (isRtl ? activeCatData?.label_ar : activeCatData?.label_en)}
-              {activeSubCategory && (
-                <span className="text-muted-foreground font-light text-lg mx-2">
-                  {isRtl ? <ChevronRight className="inline h-5 w-5" /> : <ChevronDown className="inline h-5 w-5" />}
-                  {(() => { const s = (dbCategories || []).find((c: any) => c.slug === activeSubCategory); return isRtl ? (s?.nameAr || s?.name) : s?.name; })()}
-                </span>
-              )}
-            </h1>
-            <span className="text-muted-foreground text-sm font-light">
-              {filteredProducts.length} {isRtl ? "منتج" : "items"}
-            </span>
-          </div>
+          {/* Title & Count — only when no banner is shown (i.e. "all") */}
+          {activeCategory === "all" && (
+            <div className={`flex items-baseline justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
+              <h1 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-tighter">
+                {isRtl ? "الكولكشن الكامل" : "Full Collection"}
+              </h1>
+              <span className="text-muted-foreground text-sm font-light">
+                {filteredProducts.length} {isRtl ? "منتج" : "items"}
+              </span>
+            </div>
+          )}
 
           {/* Products Grid */}
           {isLoading ? (
