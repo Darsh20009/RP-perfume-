@@ -3238,6 +3238,61 @@ export async function registerRoutes(
     }
   });
 
+  // ── Public AI Perfume Highlights (cached, used in featured best-seller card) ──
+  const highlightsCache = new Map<string, { at: number; data: any }>();
+  const HIGHLIGHTS_TTL_MS = 24 * 60 * 60 * 1000;
+  app.get("/api/products/:id/highlights", aiLimiter, async (req, res) => {
+    try {
+      const id = req.params.id;
+      const cached = highlightsCache.get(id);
+      if (cached && Date.now() - cached.at < HIGHLIGHTS_TTL_MS) {
+        return res.json(cached.data);
+      }
+      const product: any = await storage.getProduct(id);
+      if (!product) return res.status(404).json({ message: "Product not found" });
+
+      // Always-safe defaults (used if AI fails or returns nothing usable)
+      const defaultHighlightsAr = ["تركيبة فاخرة وثابتة", "حضور آسر طوال اليوم", "مناسب لجميع المناسبات"];
+      const defaultHighlightsEn = ["Luxurious long-lasting blend", "Captivating all-day presence", "Perfect for every occasion"];
+      const defaultTaglineAr = product.description || `عطر ${product.name} — لمسة فاخرة من عطور آر اف`;
+      const defaultTaglineEn = product.descriptionEn || `${product.nameEn || product.name} — a signature scent by RF Perfume`;
+
+      try {
+        const { generateProductDescription } = await import("./ai");
+        const ai: any = await generateProductDescription({
+          name: product.name,
+          nameEn: product.nameEn || "",
+          category: "perfume",
+          price: Number(product.price) || 0,
+        }) || {};
+        const aiHighlightsAr = Array.isArray(ai.highlights_ar) ? ai.highlights_ar.filter((s: any) => typeof s === "string" && s.trim()).slice(0, 3) : [];
+        const aiHighlightsEn = Array.isArray(ai.highlights_en) ? ai.highlights_en.filter((s: any) => typeof s === "string" && s.trim()).slice(0, 3) : [];
+        const data = {
+          tagline_ar: (typeof ai.description_ar === "string" && ai.description_ar.trim()) || defaultTaglineAr,
+          tagline_en: (typeof ai.description_en === "string" && ai.description_en.trim()) || defaultTaglineEn,
+          highlights_ar: aiHighlightsAr.length ? aiHighlightsAr : defaultHighlightsAr,
+          highlights_en: aiHighlightsEn.length ? aiHighlightsEn : defaultHighlightsEn,
+        };
+        // Only cache when we got something AI-generated; otherwise short-cache fallback
+        const usedAi = !!aiHighlightsAr.length || !!aiHighlightsEn.length || !!(ai.description_ar || ai.description_en);
+        highlightsCache.set(id, { at: usedAi ? Date.now() : Date.now() - HIGHLIGHTS_TTL_MS + 60 * 60_000, data });
+        res.json(data);
+      } catch (e: any) {
+        const fallback = {
+          tagline_ar: defaultTaglineAr,
+          tagline_en: defaultTaglineEn,
+          highlights_ar: defaultHighlightsAr,
+          highlights_en: defaultHighlightsEn,
+        };
+        // Cache fallback for only ~1h so AI is retried sooner
+        highlightsCache.set(id, { at: Date.now() - HIGHLIGHTS_TTL_MS + 60 * 60_000, data: fallback });
+        res.json(fallback);
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/ai/outfit-suggestions", aiLimiter, async (req, res) => {
     try {
       const { getOutfitSuggestions } = await import("./ai");

@@ -17,6 +17,8 @@ import { MarketingBanners } from "@/components/marketing-banners";
 const logoImg = "/images/logos/logo-dark.png";
 import { useQuery } from "@tanstack/react-query";
 import brandCtaImg from "@assets/Screenshot_2026-04-16_at_2.09.21_PM_1777231488177.png";
+import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
 
 const heroSlides: Array<{ img: string; webp?: string }> = [
   { img: "/images/banners/banner-hero-opt.png", webp: "/images/banners/banner-hero.webp" },
@@ -401,25 +403,7 @@ export default function Home() {
       <section className="py-8 md:py-12 bg-[#FFFFFF]">
         <div className="container px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="relative overflow-hidden rounded-xl h-44 md:h-56 group cursor-pointer bg-[#2B2B60]"
-            >
-              <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#2B2B60]/85 via-[#2B2B60]/40 to-transparent" />
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #DFB369 0%, transparent 50%)" }} />
-              <img src={logoImg} alt="" className="absolute -right-6 -bottom-6 w-32 h-32 object-contain opacity-15 rotate-12" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-              <div className={`absolute inset-0 p-6 flex flex-col justify-end ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
-                <Link href="/products">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white hover:text-[#DFB369] transition-colors flex items-center gap-1 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                    {t('discoverMore')} {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
-                  </span>
-                </Link>
-              </div>
-            </motion.div>
+            <FeaturedBestSellerCard isRtl={isRtl} t={t} bestSellers={bestSellers} />
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -609,6 +593,148 @@ export default function Home() {
         </div>
       </section>
     </Layout>
+  );
+}
+
+function FeaturedBestSellerCard({ isRtl, t, bestSellers }: { isRtl: boolean; t: (k: string) => string; bestSellers: any[] }) {
+  const { addItem } = useCart();
+  const { toast } = useToast();
+  const [index, setIndex] = useState(0);
+  const [isHover, setIsHover] = useState(false);
+
+  const list = useMemo(() => (bestSellers || []).filter(p => p && p.id).slice(0, 5), [bestSellers]);
+  const product = list[index] || null;
+
+  // Auto-rotate every 7s, pause on hover
+  useEffect(() => {
+    if (!list.length || isHover) return;
+    const id = setInterval(() => setIndex(i => (i + 1) % list.length), 7000);
+    return () => clearInterval(id);
+  }, [list.length, isHover]);
+
+  const { data: highlights } = useQuery<any>({
+    queryKey: ["/api/products", product?.id, "highlights"],
+    enabled: !!product?.id,
+    staleTime: 24 * 60 * 60_000,
+  });
+
+  const handleAdd = () => {
+    if (!product) return;
+    const variant = (product.variants && product.variants[0]) || { sku: `${product.id}-default`, price: Number(product.price) || 0 };
+    addItem(product, variant, 1);
+    toast({ title: isRtl ? "تمت الإضافة إلى السلة" : "Added to cart", description: isRtl ? product.name : (product.nameEn || product.name) });
+  };
+
+  if (!product) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        className="relative overflow-hidden rounded-xl h-44 md:h-56 bg-gradient-to-br from-[#2B2B60] via-[#2B2B60] to-[#1c1c45] animate-pulse"
+      />
+    );
+  }
+
+  const productImg = (product.images && product.images[0]) || (product.variants?.[0]?.image) || "/images/logos/logo-light.png";
+  const bullets: string[] = (isRtl ? highlights?.highlights_ar : highlights?.highlights_en) || [];
+  const tagline: string = (isRtl ? highlights?.tagline_ar : highlights?.tagline_en) || (isRtl ? product.description : (product.descriptionEn || product.description)) || "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      className="relative overflow-hidden rounded-xl h-44 md:h-56 bg-gradient-to-br from-[#2B2B60] via-[#2B2B60] to-[#1c1c45] group"
+      data-testid="featured-bestseller-card"
+    >
+      {/* Decorative gold radial */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 80% 70%, #DFB369 0%, transparent 50%)" }} />
+      {/* Top inset shadow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/40 to-transparent" />
+      {/* Gold AI badge */}
+      <div className={`absolute top-3 ${isRtl ? "right-3" : "left-3"} flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#DFB369]/20 backdrop-blur-md border border-[#DFB369]/40 z-10`}>
+        <LucideIcons.Sparkles className="w-3 h-3 text-[#DFB369]" />
+        <span className="text-[9px] font-bold uppercase tracking-wider text-[#DFB369]">{isRtl ? "الأكثر مبيعاً" : "Best Seller"}</span>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={product.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.4 }}
+          className={`absolute inset-0 flex ${isRtl ? "flex-row-reverse" : "flex-row"} items-stretch`}
+        >
+          {/* Product image side */}
+          <Link href={`/products/${product.id}`} className="relative w-[42%] md:w-[40%] shrink-0 flex items-center justify-center p-3">
+            <div className="absolute inset-2 rounded-xl bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-sm border border-white/10" />
+            <img
+              src={productImg}
+              alt={product.name}
+              loading="lazy"
+              className="relative max-h-[85%] max-w-[85%] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-105"
+              onError={(e: any) => { e.currentTarget.src = "/images/logos/logo-light.png"; }}
+            />
+          </Link>
+
+          {/* Content side */}
+          <div className={`flex-1 min-w-0 px-3 py-3 md:px-4 md:py-4 flex flex-col justify-between ${isRtl ? "text-right items-end" : "text-left items-start"}`}>
+            <div className="w-full">
+              <Link href={`/products/${product.id}`}>
+                <h3 className="text-white text-sm md:text-base font-bold leading-tight line-clamp-1 hover:text-[#DFB369] transition-colors">
+                  {isRtl ? product.name : (product.nameEn || product.name)}
+                </h3>
+              </Link>
+              <div className={`mt-1 flex items-center gap-1.5 ${isRtl ? "flex-row-reverse" : ""}`}>
+                <span className="text-[#DFB369] text-base md:text-lg font-bold">{Number(product.price).toFixed(0)}</span>
+                <span className="text-[10px] text-white/70 font-bold">{t('currency') || (isRtl ? "ر.س" : "SAR")}</span>
+              </div>
+
+              {bullets.length > 0 ? (
+                <ul className="mt-1.5 space-y-0.5">
+                  {bullets.slice(0, 2).map((b, i) => (
+                    <li key={i} className={`text-[10px] md:text-[11px] text-white/85 leading-snug flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
+                      <span className="w-1 h-1 rounded-full bg-[#DFB369] shrink-0" />
+                      <span className="line-clamp-1">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1.5 text-[10px] md:text-[11px] text-white/75 leading-snug line-clamp-2">{tagline}</p>
+              )}
+            </div>
+
+            <button
+              onClick={handleAdd}
+              data-testid={`button-add-featured-${product.id}`}
+              className={`mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#DFB369] hover:bg-white text-[#2B2B60] text-[11px] font-bold uppercase tracking-wider transition-all shadow-lg hover:shadow-xl ${isRtl ? "flex-row-reverse" : ""}`}
+            >
+              <LucideIcons.ShoppingBag className="w-3.5 h-3.5" />
+              {isRtl ? "أضف إلى السلة" : "Add to Cart"}
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Pagination dots */}
+      {list.length > 1 && (
+        <div className={`absolute bottom-1.5 ${isRtl ? "right-3" : "left-3"} flex gap-1 z-10`}>
+          {list.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Slide ${i + 1}`}
+              data-testid={`featured-dot-${i}`}
+              className={`h-1 rounded-full transition-all ${i === index ? "w-4 bg-[#DFB369]" : "w-1 bg-white/40 hover:bg-white/70"}`}
+            />
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }
 
