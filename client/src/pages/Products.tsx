@@ -16,9 +16,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const SPECIAL_CATEGORIES = [
   { slug: "all",         label_ar: "الكل",         label_en: "All",          img: "/images/logos/logo-dark.png", special: null },
-  { slug: "sale",        label_ar: "العروض",        label_en: "Sale",         img: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200&h=200&fit=crop", special: "sale" },
-  { slug: "best-sellers",label_ar: "الأكثر مبيعاً",label_en: "Best Sellers", img: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=200&h=200&fit=crop", special: "featured" },
-  { slug: "new-arrivals",label_ar: "وصل حديثاً",   label_en: "New Arrivals", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop", special: "new" },
 ];
 
 const SORT_OPTIONS = [
