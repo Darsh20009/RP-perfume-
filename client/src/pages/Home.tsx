@@ -21,229 +21,6 @@ const heroSlides: Array<{ img: string; webp?: string }> = [
   { img: "/images/banners/banner-hero-opt.png", webp: "/images/banners/banner-hero.webp" },
 ];
 
-// ─── Auto-rotating Category Showcase ────────────────────────────
-function CategoryShowcase({
-  categories,
-  getProducts,
-  isRtl,
-  t,
-}: {
-  categories: any[];
-  getProducts: (catId: string) => any[];
-  isRtl: boolean;
-  t: (k: string) => string;
-}) {
-  const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const total = categories.length;
-
-  // Clamp idx whenever the categories list shrinks/changes
-  useEffect(() => {
-    if (total === 0) { setIdx(0); return; }
-    if (idx >= total) setIdx(0);
-  }, [total, idx]);
-
-  // Auto-advance
-  useEffect(() => {
-    if (total <= 1 || paused) return;
-    const id = setInterval(() => setIdx(i => (i + 1) % total), 6500);
-    return () => clearInterval(id);
-  }, [total, paused]);
-
-  // Resume autoplay 12s after the last manual interaction
-  useEffect(() => {
-    if (!paused) return;
-    const id = setTimeout(() => setPaused(false), 12000);
-    return () => clearTimeout(id);
-  }, [paused, idx]);
-
-  if (total === 0) return null;
-
-  const safeIdx = Math.min(idx, total - 1);
-  const cat = categories[safeIdx];
-  const catId = cat.id || cat._id;
-  const catProducts = getProducts(catId);
-  const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
-
-  const goto = (i: number) => { setIdx(((i % total) + total) % total); setPaused(true); };
-  // In RTL the visual "next" button (right side) should still mean forward
-  const next = () => goto(safeIdx + 1);
-  const prev = () => goto(safeIdx - 1);
-  const labelPrev = isRtl ? "السابق" : "Previous";
-  const labelNext = isRtl ? "التالي" : "Next";
-
-  return (
-    <section
-      className="py-10 md:py-16 bg-gradient-to-b from-white via-[#FBF9F4] to-white relative overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      data-testid="section-category-showcase"
-    >
-      {/* subtle decorative rings */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#DFB369]/5 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#850935]/5 blur-3xl pointer-events-none" />
-
-      <div className="container px-4 relative">
-        {/* Section header */}
-        <div className="text-center mb-8 md:mb-10">
-          <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-[#DFB369] mb-2">
-            {t('exploreCollections') || 'تشكيلاتنا الفاخرة'}
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0F0F0F]">
-            {catName}
-          </h2>
-          <div className="mx-auto mt-3 h-[2px] w-16 bg-gradient-to-r from-transparent via-[#DFB369] to-transparent" />
-        </div>
-
-        {/* Banner — natural aspect, no cropping */}
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`banner-${catId}`}
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              <Link href={`/products?category=${cat.slug}`}>
-                <div className="relative rounded-2xl overflow-hidden bg-[#F5F2ED] cursor-pointer group">
-                  {cat.image ? (
-                    <img
-                      src={cat.image}
-                      alt={catName}
-                      className="block w-full h-auto max-h-[420px] md:max-h-[520px] object-contain mx-auto"
-                      loading="eager"
-                    />
-                  ) : (
-                    <div className="aspect-[16/6] w-full flex items-center justify-center">
-                      <Tag className="w-16 h-16 text-[#DFB369]/30" />
-                    </div>
-                  )}
-                  {/* Gradient overlay only on the bottom band so the banner stays clear */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/55 via-black/15 to-transparent pointer-events-none" />
-                  <div className={`absolute bottom-0 left-0 right-0 p-5 md:p-7 flex items-end justify-between gap-4 ${isRtl ? "flex-row-reverse" : ""}`}>
-                    <div className={isRtl ? "text-right" : "text-left"}>
-                      <h3 className="text-white text-2xl md:text-3xl font-display font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                        {catName}
-                      </h3>
-                      <p className="text-white/85 text-xs md:text-sm mt-1 drop-shadow">
-                        {t('discoverFullCollection')}
-                      </p>
-                    </div>
-                    <span className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#DFB369] text-[#0F0F0F] text-xs font-bold uppercase tracking-wider shadow-lg whitespace-nowrap">
-                      {t('viewAll')}
-                      {isRtl ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Prev/Next arrows — directionally correct in RTL */}
-          {total > 1 && (
-            <>
-              <button
-                onClick={isRtl ? next : prev}
-                aria-label={isRtl ? labelNext : labelPrev}
-                data-testid="button-cat-prev"
-                className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/85 backdrop-blur border border-[#DFB369]/30 text-[#0F0F0F] hover:bg-[#DFB369] hover:text-white transition-colors flex items-center justify-center shadow-lg"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={isRtl ? prev : next}
-                aria-label={isRtl ? labelPrev : labelNext}
-                data-testid="button-cat-next"
-                className="absolute top-1/2 -translate-y-1/2 right-2 md:right-4 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/85 backdrop-blur border border-[#DFB369]/30 text-[#0F0F0F] hover:bg-[#DFB369] hover:text-white transition-colors flex items-center justify-center shadow-lg"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Category tab pills */}
-        {total > 1 && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-            {categories.map((c: any, i: number) => {
-              const name = isRtl ? (c.nameAr || c.name) : c.name;
-              const active = i === idx;
-              return (
-                <button
-                  key={c.id || c._id || i}
-                  onClick={() => goto(i)}
-                  data-testid={`tab-cat-${c.slug || i}`}
-                  className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border ${
-                    active
-                      ? "bg-[#0F0F0F] text-white border-[#0F0F0F]"
-                      : "bg-white text-[#0F0F0F]/70 border-[#E8E5E0] hover:border-[#DFB369] hover:text-[#0F0F0F]"
-                  }`}
-                >
-                  {name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Products of the active category */}
-        <div className="mt-8 md:mt-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`prods-${catId}`}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
-            >
-              {catProducts.length >= 5 ? (
-                <div className="relative overflow-hidden group" dir="ltr" data-testid="strip-cat-products">
-                  <div
-                    className="flex gap-3 animate-marquee-products group-hover:[animation-play-state:paused] py-2"
-                    style={{ width: "max-content" }}
-                  >
-                    {[...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (
-                      <div
-                        key={`${product.id || product._id || i}-${i}`}
-                        className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
-                      >
-                        <ProductCard product={product} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {catProducts.map((product: any, i: number) => (
-                    <div key={product.id || product._id || i}>
-                      <ProductCard product={product} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Auto-rotation progress dots */}
-        {total > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6">
-            {categories.map((_: any, i: number) => (
-              <button
-                key={i}
-                onClick={() => goto(i)}
-                aria-label={`go to ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${i === idx ? "bg-[#850935] w-8" : "bg-[#0F0F0F]/15 w-1.5 hover:bg-[#0F0F0F]/30"}`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function FlashCountdown({ endTime }: { endTime?: string }) {
   const getRemaining = () => {
     if (!endTime) return { h: 5, m: 59, s: 59 };
@@ -576,13 +353,93 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── CATEGORY SHOWCASE — auto-rotating banner + products ──────── */}
-      <CategoryShowcase
-        categories={(dbCategories || []).filter((c: any) => getProductsForCategory(c.id || c._id).length > 0)}
-        getProducts={getProductsForCategory}
-        isRtl={isRtl}
-        t={t}
-      />
+      {/* ── CATEGORY SECTIONS WITH BANNERS ──────────── */}
+      {dbCategories?.map((cat: any, catIdx: number) => {
+        const catProducts = getProductsForCategory(cat.id || cat._id);
+        if (catProducts.length === 0) return null;
+        return (
+          <section key={cat.id || catIdx} className={`py-10 md:py-14 ${catIdx % 2 === 0 ? "bg-white" : "bg-[#FFFFFF]"}`}>
+            <div className="container px-4">
+              {cat.image && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="mb-8"
+                >
+                  <Link href={`/products?category=${cat.slug}`}>
+                    <div className="relative overflow-hidden rounded-xl bg-[#F5F2ED] cursor-pointer group">
+                      {/* Natural-size image — no cropping, no fixed height */}
+                      <img
+                        src={cat.image}
+                        alt={isRtl ? (cat.nameAr || cat.name) : cat.name}
+                        className="block w-full h-auto max-h-[480px] object-contain mx-auto"
+                        loading="lazy"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/55 via-black/15 to-transparent pointer-events-none" />
+                      <div className={`absolute bottom-0 left-0 right-0 p-5 ${isRtl ? "text-right" : "text-left"}`}>
+                        <h2 className="text-white text-2xl md:text-3xl font-bold drop-shadow-lg">
+                          {isRtl ? (cat.nameAr || cat.name) : cat.name}
+                        </h2>
+                        <p className="text-white/80 text-sm mt-1 drop-shadow">
+                          {t('discoverFullCollection')}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              )}
+
+              <div className={`flex items-center justify-between mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
+                {!cat.image && (
+                  <h2 className="text-xl md:text-2xl font-bold text-[#2B2B60]">
+                    {isRtl ? (cat.nameAr || cat.name) : cat.name}
+                  </h2>
+                )}
+                {cat.image && <div />}
+                <Link href={`/products?category=${cat.slug}`}>
+                  <span className={`text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors flex items-center gap-1 ${isRtl ? "flex-row-reverse" : ""}`}>
+                    {t('viewAll')}
+                    {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </span>
+                </Link>
+              </div>
+
+              {catProducts.length >= 5 ? (
+                <div className="relative overflow-hidden group" dir="ltr">
+                  <div
+                    className="flex gap-3 animate-marquee-products group-hover:[animation-play-state:paused] py-2"
+                    style={{ width: "max-content" }}
+                  >
+                    {[...catProducts, ...catProducts, ...catProducts].map((product: any, i: number) => (
+                      <div
+                        key={`${product.id || product._id || i}-${i}`}
+                        className="w-[170px] sm:w-[200px] md:w-[230px] shrink-0"
+                      >
+                        <ProductCard product={product} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {catProducts.map((product: any, i: number) => (
+                    <motion.div
+                      key={product.id || product._id || i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.08 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      })}
 
       {/* ── BEST SELLERS ───────────────────────────────── */}
       <section className="py-12 md:py-16 bg-white">
