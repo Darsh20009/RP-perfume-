@@ -18,7 +18,7 @@ const logoImg = "/images/logos/logo-dark.png";
 import { useQuery } from "@tanstack/react-query";
 
 const heroSlides = [
-  { img: "/images/banners/banner-1.png" },
+  { img: "/images/banners/banner-hero.png" },
 ];
 
 function FlashCountdown({ endTime }: { endTime?: string }) {
