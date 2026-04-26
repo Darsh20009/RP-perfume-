@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SPECIAL_CATEGORIES = [
-  { slug: "all",         label_ar: "الكل",         label_en: "All",          img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200&h=200&fit=crop", special: null },
+  { slug: "all",         label_ar: "الكل",         label_en: "All",          img: "/images/logos/logo-dark.png", special: null },
   { slug: "sale",        label_ar: "العروض",        label_en: "Sale",         img: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200&h=200&fit=crop", special: "sale" },
   { slug: "best-sellers",label_ar: "الأكثر مبيعاً",label_en: "Best Sellers", img: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=200&h=200&fit=crop", special: "featured" },
   { slug: "new-arrivals",label_ar: "وصل حديثاً",   label_en: "New Arrivals", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop", special: "new" },
@@ -333,9 +333,13 @@ export default function Products() {
                   }}
                   className={`flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-200 ${isActive ? "opacity-100" : "opacity-50 hover:opacity-80"}`}
                 >
-                  <div className={`relative w-14 h-14 rounded-2xl overflow-hidden transition-all duration-300 ${isActive ? "ring-2 ring-foreground ring-offset-2 scale-110" : ""}`}>
-                    <img src={cat.img} alt={isRtl ? cat.label_ar : cat.label_en} className="w-full h-full object-cover" />
-                    {isActive && <div className="absolute inset-0 bg-foreground/20" />}
+                  <div className={`relative w-14 h-14 rounded-2xl overflow-hidden transition-all duration-300 ${cat.slug === "all" ? "bg-[#FFFFFF] flex items-center justify-center border border-[#E8E5E0]" : ""} ${isActive ? "ring-2 ring-foreground ring-offset-2 scale-110" : ""}`}>
+                    <img
+                      src={cat.img}
+                      alt={isRtl ? cat.label_ar : cat.label_en}
+                      className={cat.slug === "all" ? "w-[78%] h-[78%] object-contain" : "w-full h-full object-cover"}
+                    />
+                    {isActive && cat.slug !== "all" && <div className="absolute inset-0 bg-foreground/20" />}
                   </div>
                   <span className={`text-[9px] font-bold uppercase tracking-wide whitespace-nowrap ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                     {isRtl ? cat.label_ar : cat.label_en}
