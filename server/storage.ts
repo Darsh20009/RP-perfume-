@@ -1,5 +1,5 @@
 import type { User, InsertUser, Product, InsertProduct, Order, InsertOrder, Category, InsertCategory, WalletTransaction, InsertWalletTransaction, OrderStatus, ActivityLog, InsertActivityLog, Coupon, InsertCoupon, Branch, InsertBranch, Banner, InsertBanner, CashShift, InsertCashShift, BranchInventory, ShippingCompany, InsertShippingCompany, AuditLog, InsertAuditLog, Role, InsertRole, StockTransfer, InsertStockTransfer, Invoice, InsertInvoice, WishlistItem, InsertWishlistItem, ProductReview, InsertProductReview, Vendor, InsertVendor, FlashDeal, InsertFlashDeal, ReturnRequest, InsertReturnRequest } from "@shared/schema";
-import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, ReturnRequestModel, PromoStripItemModel, CustomPageModel, ProductInsightsModel } from "./models";
+import { UserModel, ProductModel, OrderModel, CategoryModel, WalletTransactionModel, ActivityLogModel, CouponModel, BranchModel, BannerModel, CashShiftModel, ShippingCompanyModel, AuditLogModel, RoleModel, StockTransferModel, InvoiceModel, StoreSettingsModel, WishlistItemModel, ProductReviewModel, VendorModel, FlashDealModel, BundleOfferModel, ReturnRequestModel, PromoStripItemModel, CustomPageModel, ProductInsightsModel } from "./models";
 
 export interface IStorage {
   // Users
@@ -144,6 +144,14 @@ export interface IStorage {
   updateFlashDeal(id: string, update: Partial<InsertFlashDeal>): Promise<FlashDeal>;
   deleteFlashDeal(id: string): Promise<void>;
   getActiveFlashDeals(): Promise<FlashDeal[]>;
+
+  // Bundle Offers
+  getBundleOffers(activeOnly?: boolean): Promise<any[]>;
+  getBundleOffer(id: string): Promise<any | undefined>;
+  createBundleOffer(data: any): Promise<any>;
+  updateBundleOffer(id: string, update: any): Promise<any>;
+  deleteBundleOffer(id: string): Promise<void>;
+  incrementBundleOfferUsage(id: string, count?: number): Promise<void>;
 
   // Return Requests
   getReturnRequests(filter?: { userId?: string; status?: string }): Promise<ReturnRequest[]>;
@@ -1064,6 +1072,47 @@ export class MongoDBStorage implements IStorage {
       endTime: { $gte: now },
     }).lean();
     return deals.map(d => ({ ...d, id: (d as any)._id.toString() } as any));
+  }
+
+  // ─── Bundle Offers ─────────────────────────────────────────────────
+  async getBundleOffers(activeOnly?: boolean): Promise<any[]> {
+    const q: any = {};
+    if (activeOnly) {
+      const now = new Date().toISOString();
+      q.isActive = true;
+      q.$and = [
+        { $or: [{ startTime: "" }, { startTime: { $lte: now } }] },
+        { $or: [{ endTime: "" }, { endTime: { $gte: now } }] },
+      ];
+    }
+    const items = await BundleOfferModel.find(q).sort({ priority: -1, createdAt: -1 }).lean();
+    return items.map(b => ({ ...b, id: (b as any)._id.toString() }));
+  }
+
+  async getBundleOffer(id: string): Promise<any | undefined> {
+    try {
+      const b = await BundleOfferModel.findById(id).lean();
+      return b ? { ...b, id: (b as any)._id.toString() } : undefined;
+    } catch { return undefined; }
+  }
+
+  async createBundleOffer(data: any): Promise<any> {
+    const b = await BundleOfferModel.create(data);
+    return { ...b.toObject(), id: (b as any)._id.toString() };
+  }
+
+  async updateBundleOffer(id: string, update: any): Promise<any> {
+    const b = await BundleOfferModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+    if (!b) throw new Error("Bundle offer not found");
+    return { ...b, id: (b as any)._id.toString() };
+  }
+
+  async deleteBundleOffer(id: string): Promise<void> {
+    await BundleOfferModel.findByIdAndDelete(id);
+  }
+
+  async incrementBundleOfferUsage(id: string, count: number = 1): Promise<void> {
+    try { await BundleOfferModel.findByIdAndUpdate(id, { $inc: { usageCount: count } }); } catch {}
   }
 
   // Return Requests

@@ -6,7 +6,7 @@ import { Trash2, ShoppingBag, Check, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/hooks/use-language";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
@@ -16,6 +16,31 @@ export default function Cart() {
   const { toast } = useToast();
   const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ── Bundle offers: ask the server to compute best bundle pricing for the cart
+  const bundleCalcKey = items.map(i => `${i.productId}:${i.quantity}:${i.price}`).join("|");
+  const { data: bundleResult } = useQuery<{ originalTotal: number; bundleTotal: number; savings: number; applications: any[] }>({
+    queryKey: ["/api/bundle-offers/calculate", bundleCalcKey],
+    queryFn: async () => {
+      if (items.length === 0) return { originalTotal: 0, bundleTotal: 0, savings: 0, applications: [] };
+      const res = await fetch("/api/bundle-offers/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map(it => ({
+            productId: it.productId,
+            quantity: it.quantity,
+            price: it.price,
+            categoryId: (it as any).categoryId,
+          })),
+        }),
+      });
+      if (!res.ok) return { originalTotal: 0, bundleTotal: 0, savings: 0, applications: [] };
+      return res.json();
+    },
+    enabled: items.length > 0,
+  });
+  const bundleSavings = bundleResult?.savings || 0;
 
   const applyCouponMutation = useMutation({
     mutationFn: async (code: string) => {
@@ -70,7 +95,7 @@ export default function Cart() {
   const cashbackAmount = calculateCashback();
   const subtotal = total();
   const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
-  const finalTotal = subtotal - discountAmount;
+  const finalTotal = Math.max(0, subtotal - discountAmount - bundleSavings);
 
   if (items.length === 0) {
     return (
@@ -188,6 +213,25 @@ export default function Cart() {
                             ✕
                           </button>
                         </div>
+                      </div>
+                    )}
+
+                    {bundleSavings > 0 && (
+                      <div
+                        className={`flex justify-between text-[#850935] ${language === 'ar' ? '' : 'flex-row-reverse'}`}
+                        data-testid="row-bundle-savings"
+                      >
+                        <span className="font-bold">-{bundleSavings.toLocaleString()} {t('currency')}</span>
+                        <span className="opacity-80">عرض الباقة</span>
+                      </div>
+                    )}
+                    {bundleResult?.applications && bundleResult.applications.length > 0 && (
+                      <div className="text-[10px] text-[#2B2B60] bg-[#F5F2ED] rounded p-2 leading-relaxed">
+                        {bundleResult.applications.map((a: any, i: number) => (
+                          <div key={i}>
+                            ✓ {a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} ر.س
+                          </div>
+                        ))}
                       </div>
                     )}
                     

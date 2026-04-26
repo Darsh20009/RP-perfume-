@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema } from "@shared/schema";
+import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema, insertBundleOfferSchema } from "@shared/schema";
 import { seed } from "./seed";
 import multer from "multer";
 import path from "path";
@@ -95,6 +95,82 @@ const couponLimiter = rateLimit({
   message: { message: "محاولات تحقق من الكوبون كثيرة" },
   standardHeaders: true, legacyHeaders: false,
 });
+
+// ─── Bundle pricing helper ───
+// Greedy: applies the largest tier first, repeatedly, picking the cheapest items
+// to be the "bundled" ones so the customer benefits from discounting expensive items.
+// Returns { originalTotal, bundleTotal, savings, applications: [{offerId, tier, productIds[]}] }
+export function computeBundleSavings(
+  items: Array<{ productId: string; quantity: number; price: number; categoryId?: string }>,
+  offers: any[]
+) {
+  // Expand items into individual units (one per unit) so we can group them
+  type Unit = { productId: string; price: number; categoryId?: string; index: number };
+  const units: Unit[] = [];
+  let counter = 0;
+  for (const it of items) {
+    for (let i = 0; i < (it.quantity || 0); i++) {
+      units.push({ productId: it.productId, price: Number(it.price) || 0, categoryId: it.categoryId, index: counter++ });
+    }
+  }
+  const originalTotal = units.reduce((s, u) => s + u.price, 0);
+
+  const consumed = new Set<number>();
+  const applications: Array<{ offerId: string; offerTitle: string; tierQuantity: number; tierPrice: number; productIds: string[]; savings: number }> = [];
+  let bundleTotal = 0;
+
+  // Sort offers by priority desc, then by best per-unit value
+  const sortedOffers = [...offers].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+  for (const offer of sortedOffers) {
+    const tiers = [...(offer.tiers || [])].sort((a: any, b: any) => b.quantity - a.quantity); // largest first
+    if (!tiers.length) continue;
+
+    // Filter eligible units for this offer
+    const eligible = (u: Unit) => {
+      if (offer.scope === "categories") return offer.categoryIds?.length ? offer.categoryIds.includes(u.categoryId || "") : true;
+      if (offer.scope === "products") return offer.productIds?.length ? offer.productIds.includes(u.productId) : true;
+      return true;
+    };
+
+    while (true) {
+      const pool = units.filter(u => !consumed.has(u.index) && eligible(u));
+      const tier = tiers.find((t: any) => pool.length >= t.quantity);
+      if (!tier) break;
+
+      // Pick the most expensive units to bundle (so customer saves more on premium items)
+      pool.sort((a, b) => b.price - a.price);
+      const picked = pool.slice(0, tier.quantity);
+      const picksOriginal = picked.reduce((s, u) => s + u.price, 0);
+      const savings = Math.max(0, picksOriginal - tier.price);
+
+      // Only apply if there's actual savings
+      if (savings <= 0) break;
+
+      picked.forEach(u => consumed.add(u.index));
+      bundleTotal += tier.price;
+      applications.push({
+        offerId: offer.id || offer._id?.toString() || "",
+        offerTitle: offer.title || "",
+        tierQuantity: tier.quantity,
+        tierPrice: tier.price,
+        productIds: picked.map(u => u.productId),
+        savings,
+      });
+    }
+  }
+
+  // Add remaining un-bundled units at their original price
+  for (const u of units) if (!consumed.has(u.index)) bundleTotal += u.price;
+
+  return {
+    originalTotal: round2(originalTotal),
+    bundleTotal: round2(bundleTotal),
+    savings: round2(originalTotal - bundleTotal),
+    applications,
+  };
+}
+function round2(n: number) { return Math.round(n * 100) / 100; }
 
 export async function registerRoutes(
   httpServer: Server,
@@ -698,6 +774,30 @@ export async function registerRoutes(
         console.error("[API] orders.create validation error:", JSON.stringify(parsed.error.issues));
         return res.status(400).json({ message: "بيانات الطلب غير مكتملة أو غير صحيحة", details: parsed.error.issues });
       }
+
+      // ── Server-trusted bundle pricing: recompute savings from cart items
+      let bundleApplications: any[] = [];
+      try {
+        const activeBundles = await storage.getBundleOffers(true);
+        if (activeBundles.length > 0 && parsed.data.items?.length) {
+          // Enrich items with categoryId for scope filtering
+          const enriched = await Promise.all(parsed.data.items.map(async (it: any) => {
+            const p = await storage.getProduct(it.productId).catch(() => null);
+            return { productId: it.productId, quantity: it.quantity, price: it.price, categoryId: (p as any)?.categoryId };
+          }));
+          const calc = computeBundleSavings(enriched, activeBundles);
+          if (calc.savings > 0) {
+            bundleApplications = calc.applications;
+            // Reduce the order total by the calculated bundle savings
+            parsed.data.total = Math.max(0, Number(parsed.data.total) - calc.savings);
+            (parsed.data as any).bundleDiscount = calc.savings;
+            (parsed.data as any).bundleApplications = calc.applications;
+          }
+        }
+      } catch (e: any) {
+        console.error("[API] bundle calc on order failed:", e?.message);
+      }
+
       if (parsed.data.paymentMethod === "wallet" && parsed.data.userId) {
         const user = await storage.getUser(parsed.data.userId);
         if (user) {
@@ -737,6 +837,13 @@ export async function registerRoutes(
           return res.status(409).json({ message: "نفدت كمية أحد المنتجات قبل إتمام الطلب", variantSku: e.variantSku, code: "OUT_OF_STOCK" });
         }
         throw e;
+      }
+
+      // ── Track bundle offer usage (one increment per applied tier)
+      if (bundleApplications.length > 0) {
+        for (const a of bundleApplications) {
+          if (a.offerId) storage.incrementBundleOfferUsage(a.offerId, 1).catch(() => {});
+        }
       }
 
       // ── Defer slow side-effects to the background queue so the response
@@ -3201,6 +3308,73 @@ export async function registerRoutes(
     if (user.role !== "admin") return res.sendStatus(403);
     try {
       await storage.deleteFlashDeal(req.params.id);
+      res.sendStatus(204);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ─── Bundle Offers ───────────────────────────────────────────
+  // Public: list active bundles (sorted by priority desc)
+  app.get("/api/bundle-offers", async (_req, res) => {
+    try {
+      const offers = await storage.getBundleOffers(true);
+      res.json(offers);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Public: calculate best bundle pricing for a given cart payload
+  // body: { items: [{ productId, quantity, price, categoryId? }] }
+  app.post("/api/bundle-offers/calculate", async (req, res) => {
+    try {
+      const items: Array<{ productId: string; quantity: number; price: number; categoryId?: string }> = req.body?.items || [];
+      const offers = await storage.getBundleOffers(true);
+      const result = computeBundleSavings(items, offers);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Admin/staff: list all bundles
+  app.get("/api/admin/bundle-offers", checkPermission("bundles.manage"), async (_req, res) => {
+    try {
+      const offers = await storage.getBundleOffers(false);
+      res.json(offers);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/bundle-offers", checkPermission("bundles.manage"), async (req, res) => {
+    try {
+      const u = req.user as any;
+      const parsed = insertBundleOfferSchema.parse(req.body);
+      const offer = await storage.createBundleOffer({
+        ...parsed,
+        createdBy: u?.id || "",
+        createdByName: u?.name || u?.username || "",
+      });
+      res.status(201).json(offer);
+    } catch (err: any) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+  app.patch("/api/admin/bundle-offers/:id", checkPermission("bundles.manage"), async (req, res) => {
+    try {
+      const offer = await storage.updateBundleOffer(req.params.id, req.body);
+      res.json(offer);
+    } catch (err: any) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+  app.delete("/api/admin/bundle-offers/:id", checkPermission("bundles.manage"), async (req, res) => {
+    try {
+      await storage.deleteBundleOffer(req.params.id);
       res.sendStatus(204);
     } catch (err: any) {
       res.status(500).json({ message: err.message });

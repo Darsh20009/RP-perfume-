@@ -553,6 +553,44 @@ const returnRequestSchema = new Schema(
 );
 
 export const FlashDealModel = mongoose.model("FlashDeal", flashDealSchema);
+
+// ─── Bundle Offer (multi-tier quantity offers like "3 for 149 / 6 for 299") ───
+const bundleOfferSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    titleEn: { type: String, default: "" },
+    description: { type: String, default: "" },
+    descriptionEn: { type: String, default: "" },
+    tiers: {
+      type: [{
+        quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
+        label: { type: String, default: "" },
+        labelEn: { type: String, default: "" },
+      }],
+      default: [],
+    },
+    scope: { type: String, enum: ["all", "categories", "products"], default: "all" },
+    categoryIds: { type: [String], default: [] },
+    productIds: { type: [String], default: [] },
+    bannerImage: { type: String, default: "" },
+    badgeText: { type: String, default: "" },
+    badgeColor: { type: String, default: "#850935" },
+    showOnHome: { type: Boolean, default: true },
+    startTime: { type: String, default: "" },
+    endTime: { type: String, default: "" },
+    maxUsesTotal: { type: Number, default: 0 },
+    maxUsesPerCustomer: { type: Number, default: 0 },
+    usageCount: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+    priority: { type: Number, default: 0 },
+    createdBy: { type: String, default: "" },
+    createdByName: { type: String, default: "" },
+  },
+  { timestamps: true }
+);
+bundleOfferSchema.index({ isActive: 1, priority: -1 });
+export const BundleOfferModel = mongoose.model("BundleOffer", bundleOfferSchema);
 export const ReturnRequestModel = mongoose.model("ReturnRequest", returnRequestSchema);
 export const VendorModel = mongoose.model("Vendor", vendorSchema);
 export const WishlistItemModel = mongoose.model("WishlistItem", wishlistItemSchema);

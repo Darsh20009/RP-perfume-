@@ -29,6 +29,7 @@ import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminInbox from "@/pages/admin/AdminInbox";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminPromoStrip from "@/pages/admin/AdminPromoStrip";
+import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminPages from "@/pages/admin/AdminPages";
 import AdminAiInsights from "@/pages/admin/AdminAiInsights";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
@@ -5011,6 +5012,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
       items: [
         { id: "marketing", label: "الحملات التسويقية", icon: Activity },
         { id: "flash-deals", label: "عروض فلاش", icon: Zap },
+        { id: "bundles", label: "عروض الباقات", icon: Package },
         { id: "returns", label: "المرتجعات", icon: RotateCcw },
         { id: "promo-strip", label: "شريط المميّزات", icon: Sparkles },
         { id: "pages", label: "صفحات المتجر", icon: FileText },
@@ -5343,6 +5345,7 @@ export default function Admin() {
                 {activeTab === "marketing" && <MarketingManagement />}
                 {activeTab === "broadcast" && <BroadcastPanel />}
                 {activeTab === "flash-deals" && <FlashDealsPanel />}
+                {activeTab === "bundles"     && <AdminBundles />}
                 {activeTab === "returns"   && <AdminReturnsPanel />}
                 {activeTab === "inbox"     && <AdminInbox />}
                 {activeTab === "email"     && <AdminEmail />}

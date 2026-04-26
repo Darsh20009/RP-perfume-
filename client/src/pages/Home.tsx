@@ -17,8 +17,8 @@ import { MarketingBanners } from "@/components/marketing-banners";
 const logoImg = "/images/logos/logo-dark.png";
 import { useQuery } from "@tanstack/react-query";
 
-const heroSlides = [
-  { img: "/images/banners/banner-hero.png" },
+const heroSlides: Array<{ img: string; webp?: string }> = [
+  { img: "/images/banners/banner-hero-opt.png", webp: "/images/banners/banner-hero.webp" },
 ];
 
 function FlashCountdown({ endTime }: { endTime?: string }) {
@@ -67,6 +67,8 @@ export default function Home() {
   const bestSellers = products?.slice(0, 4) || [];
 
   const { data: flashDealsData = [] } = useQuery<any[]>({ queryKey: ["/api/flash-deals"] });
+  const { data: bundleOffers = [] } = useQuery<any[]>({ queryKey: ["/api/bundle-offers"] });
+  const homeBundles = (bundleOffers || []).filter((b: any) => b.showOnHome !== false);
   const hasFlashDeals = flashDealsData.length > 0;
   const flashEndTime = hasFlashDeals
     ? flashDealsData.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]?.endTime
@@ -135,13 +137,17 @@ export default function Home() {
             style={{ pointerEvents: i === heroIdx ? "auto" : "none" }}
           >
             <Link href="/products">
-              <img
-                src={s.img}
-                alt="RF Perfume"
-                className="w-full h-full object-cover block cursor-pointer"
-                draggable={false}
-                loading={i === 0 ? "eager" : "lazy"}
-              />
+              <picture>
+                {s.webp && <source srcSet={s.webp} type="image/webp" />}
+                <img
+                  src={s.img}
+                  alt="RF Perfume"
+                  className="w-full h-full object-cover block cursor-pointer"
+                  draggable={false}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  {...(i === 0 ? { fetchpriority: "high" as any } : {})}
+                />
+              </picture>
             </Link>
           </motion.div>
         ))}
@@ -291,6 +297,56 @@ export default function Home() {
                   )}
                   <ProductCard product={product} />
                 </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── BUNDLE OFFERS ─────────────────────────────── */}
+      {homeBundles.length > 0 && (
+        <section className="py-10 md:py-14 bg-gradient-to-br from-[#2B2B60] via-[#0F0F0F] to-[#850935] text-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <span className="inline-block px-4 py-1 rounded-full bg-[#DFB369] text-[#0F0F0F] text-xs font-bold tracking-wider mb-3">
+                عروض الباقات
+              </span>
+              <h2 className="text-3xl md:text-4xl font-display font-bold mb-2">وفّر أكثر مع باقاتنا الفاخرة</h2>
+              <p className="text-white/70">اختر مجموعة من العطور بسعر مميز — يُطبَّق الخصم تلقائياً عند الدفع</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {homeBundles.slice(0, 6).map((b: any) => (
+                <Link key={b.id} href="/products" data-testid={`link-bundle-home-${b.id}`}>
+                  <div className="bg-white/5 backdrop-blur border border-[#DFB369]/30 rounded-2xl p-6 h-full transition-colors hover:bg-white/10 cursor-pointer">
+                    {b.badgeText && (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3"
+                            style={{ backgroundColor: b.badgeColor || "#850935", color: "#fff" }}>
+                        {b.badgeText}
+                      </span>
+                    )}
+                    <h3 className="text-xl font-display font-bold mb-1">{b.title}</h3>
+                    {b.description && <p className="text-sm text-white/70 mb-4">{b.description}</p>}
+                    <div className="space-y-2 mt-4">
+                      {(b.tiers || []).map((t: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between bg-white/10 rounded-lg px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-display font-bold text-[#DFB369]">{t.quantity}</span>
+                            <span className="text-sm text-white/80">قطع</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold">{t.price} <span className="text-xs font-normal">ر.س</span></div>
+                            {t.label && <div className="text-[10px] text-[#DFB369]">{t.label}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 text-center">
+                      <span className="inline-block px-5 py-2 rounded-full bg-[#DFB369] text-[#0F0F0F] text-sm font-bold">
+                        تسوق الآن ←
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>

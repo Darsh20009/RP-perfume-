@@ -11,7 +11,8 @@ export const employeePermissions = [
   "reports.view", "staff.manage",
   "pos.access", "settings.manage",
   "branch.orders", "branch.inventory", "branch.scan", "branch.manage",
-  "inbox.access"
+  "inbox.access",
+  "bundles.manage"
 ] as const;
 export type EmployeePermission = typeof employeePermissions[number];
 
@@ -382,6 +383,51 @@ export const insertFlashDealSchema = z.object({
 });
 export type InsertFlashDeal = z.infer<typeof insertFlashDealSchema>;
 export type FlashDeal = InsertFlashDeal & { _id: string; id: string; createdAt: Date };
+
+// ─── Bundle Offers (e.g. "3 perfumes for 149", "6 perfumes for 299") ───
+export const bundleScopeOptions = ["all", "categories", "products"] as const;
+export type BundleScope = typeof bundleScopeOptions[number];
+
+export const insertBundleOfferSchema = z.object({
+  title: z.string().min(1),
+  titleEn: z.string().default(""),
+  description: z.string().default(""),
+  descriptionEn: z.string().default(""),
+  // Tier examples: [{ quantity: 3, price: 149 }, { quantity: 6, price: 299 }]
+  tiers: z.array(z.object({
+    quantity: z.number().int().min(1),
+    price: z.number().min(0),
+    label: z.string().default(""),
+    labelEn: z.string().default(""),
+  })).min(1),
+  // Which products qualify: "all", or specific categories/products
+  scope: z.enum(bundleScopeOptions).default("all"),
+  categoryIds: z.array(z.string()).default([]),
+  productIds: z.array(z.string()).default([]),
+  // Display
+  bannerImage: z.string().default(""),
+  badgeText: z.string().default(""),
+  badgeColor: z.string().default("#850935"),
+  showOnHome: z.boolean().default(true),
+  // Time window (ISO strings, optional — empty means always)
+  startTime: z.string().default(""),
+  endTime: z.string().default(""),
+  // Limits
+  maxUsesTotal: z.number().int().min(0).default(0), // 0 = unlimited
+  maxUsesPerCustomer: z.number().int().min(0).default(0),
+  // State
+  isActive: z.boolean().default(true),
+  priority: z.number().int().default(0), // higher = applied first
+});
+export type InsertBundleOffer = z.infer<typeof insertBundleOfferSchema>;
+export type BundleOffer = InsertBundleOffer & {
+  _id: string;
+  id: string;
+  usageCount: number;
+  createdAt: Date;
+  createdBy?: string;
+  createdByName?: string;
+};
 
 // Return Request Schema
 export const returnStatuses = ["pending", "approved", "rejected", "completed"] as const;
