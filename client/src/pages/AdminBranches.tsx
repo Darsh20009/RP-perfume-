@@ -47,6 +47,7 @@ const emptyBranch: BranchFormValues = {
   phone: "",
   email: "",
   hours: "",
+  pickupHours: "",
   image: "",
   latitude: null,
   longitude: null,
@@ -173,6 +174,7 @@ export default function AdminBranches() {
       phone: branch.phone || "",
       email: branch.email || "",
       hours: branch.hours || "",
+      pickupHours: (branch as any).pickupHours || "",
       image: branch.image || "",
       latitude: branch.latitude ?? null,
       longitude: branch.longitude ?? null,
@@ -187,7 +189,12 @@ export default function AdminBranches() {
     setEditingBranch(branch);
   };
 
-  const branchLoginUrl = (typeof window !== "undefined" ? window.location.origin : "") + "/login";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Build a unique login URL per branch so the link clearly identifies which
+  // branch the staff is signing into. The /login page reads ?branch= and shows
+  // the branch name as a header to make it obvious.
+  const buildBranchLoginUrl = (branchId: string) =>
+    `${origin}/login?branch=${encodeURIComponent(branchId)}`;
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -240,10 +247,21 @@ export default function AdminBranches() {
       <form
         onSubmit={form.handleSubmit(
           (data) => {
+            // Auto-build a Google Maps URL whenever the admin entered
+            // coordinates but didn't paste a custom map link. This guarantees
+            // the "عرض على الخريطة" button on the branch card actually works.
+            const finalData = { ...data };
+            if (
+              (!finalData.mapUrl || !finalData.mapUrl.trim()) &&
+              typeof finalData.latitude === "number" &&
+              typeof finalData.longitude === "number"
+            ) {
+              finalData.mapUrl = `https://maps.google.com/?q=${finalData.latitude},${finalData.longitude}`;
+            }
             if (isEdit && editingBranch) {
-              updateMutation.mutate({ id: editingBranch.id, data });
+              updateMutation.mutate({ id: editingBranch.id, data: finalData });
             } else {
-              createMutation.mutate(data);
+              createMutation.mutate(finalData);
             }
           },
           (errors) => {
@@ -339,13 +357,39 @@ export default function AdminBranches() {
             name="hours"
             render={({ field }) => (
               <FormItem className="text-right">
-                <FormLabel className="font-black">ساعات العمل</FormLabel>
+                <FormLabel className="font-black flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> ساعات العمل</FormLabel>
                 <FormControl><Input {...field} value={field.value || ""} placeholder="9:00 ص — 11:00 م" /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        {/* Dedicated pickup hours — when staff is available to hand over orders.
+            Falls back to general hours on the storefront if left empty. */}
+        <FormField
+          control={form.control}
+          name="pickupHours"
+          render={({ field }) => (
+            <FormItem className="text-right">
+              <FormLabel className="font-black flex items-center gap-1.5 justify-end">
+                <Package className="h-3.5 w-3.5" /> مواقيت الاستلام
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value || ""}
+                  placeholder="مثلاً: السبت — الخميس 10:00 ص — 10:00 م | الجمعة 4:00 م — 11:00 م"
+                  data-testid="input-branch-pickup-hours"
+                />
+              </FormControl>
+              <p className="text-[10px] text-gray-700 font-bold mt-1">
+                المواقيت التي يستطيع العميل خلالها استلام طلبه من الفرع (إن تركتها فارغة سنستخدم ساعات العمل العامة)
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -394,12 +438,37 @@ export default function AdminBranches() {
           control={form.control}
           name="mapUrl"
           render={({ field }) => (
-            <FormItem className="text-right">
-              <FormLabel className="font-black flex items-center gap-2 justify-end">
-                <MapPin className="h-4 w-4" />
+            <FormItem className="text-right rounded-xl border-2 border-dashed border-[#DFB369]/40 bg-gradient-to-br from-[#FAF8F4] to-white p-4">
+              <FormLabel className="font-black flex items-center gap-2 justify-end text-[#2B2B60]">
+                <ExternalLink className="h-4 w-4" />
                 رابط الخريطة (Google Maps)
               </FormLabel>
-              <FormControl><Input {...field} value={field.value || ""} placeholder="https://maps.google.com/..." dir="ltr" /></FormControl>
+              <p className="text-[11px] text-gray-700 font-bold mb-2 text-right">
+                هذا الرابط يفتح للعميل عند الضغط على "عرض على الخريطة". يتم تعبئته تلقائياً من الخريطة أعلاه، ويمكنك لصق رابط مخصص هنا (Google Maps أو Apple Maps).
+              </p>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    placeholder="https://maps.google.com/?q=24.7136,46.6753"
+                    dir="ltr"
+                    data-testid="input-branch-map-url"
+                  />
+                </FormControl>
+                {field.value && (
+                  <a
+                    href={field.value}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 inline-flex items-center gap-1 h-10 px-3 rounded-md bg-[#2B2B60] text-white text-xs font-black hover:bg-[#1c1c45] transition-colors"
+                    data-testid="link-test-map-url"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    فتح
+                  </a>
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -771,6 +840,15 @@ export default function AdminBranches() {
                     <span className="text-gray-800 font-bold">{branch.hours}</span>
                   </div>
                 )}
+                {(branch as any).pickupHours && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <Package className="h-4 w-4 text-[#DFB369] shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-[#2B2B60]">مواقيت الاستلام</div>
+                      <span className="text-gray-800 font-bold">{(branch as any).pickupHours}</span>
+                    </div>
+                  </div>
+                )}
                 {branch.mapUrl && (
                   <a
                     href={branch.mapUrl}
@@ -783,37 +861,42 @@ export default function AdminBranches() {
                   </a>
                 )}
 
-                {/* Branch login link block */}
-                <div className="mt-3 rounded-lg bg-gradient-to-l from-[#2B2B60] to-[#1c1c45] text-white p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#DFB369]">
-                      <Link2 className="h-3 w-3" />
-                      رابط دخول الفرع
+                {/* Branch login link block — unique per branch */}
+                {(() => {
+                  const branchLoginUrl = buildBranchLoginUrl(branch.id);
+                  return (
+                    <div className="mt-3 rounded-lg bg-gradient-to-l from-[#2B2B60] to-[#1c1c45] text-white p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#DFB369]">
+                          <Link2 className="h-3 w-3" />
+                          رابط دخول الفرع
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(branchLoginUrl, "تم نسخ رابط الدخول")}
+                          className="flex items-center gap-1 text-[10px] font-black bg-[#DFB369] text-[#0F0F0F] hover:bg-[#c89853] px-2 py-1 rounded transition-colors"
+                          data-testid={`button-copy-link-${branch.id}`}
+                        >
+                          <Copy className="h-3 w-3" />
+                          نسخ
+                        </button>
+                      </div>
+                      <a
+                        href={`/login?branch=${encodeURIComponent(branch.id)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block text-xs font-mono font-bold text-white/90 hover:text-[#DFB369] truncate"
+                        dir="ltr"
+                        data-testid={`link-login-${branch.id}`}
+                      >
+                        {branchLoginUrl}
+                      </a>
+                      <div className="text-[10px] text-white/60 font-bold">
+                        رابط مخصص لهذا الفرع — شاركه مع المسؤول، يدخل برقم جواله وكلمة المرور
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(branchLoginUrl, "تم نسخ رابط الدخول")}
-                      className="flex items-center gap-1 text-[10px] font-black bg-[#DFB369] text-[#0F0F0F] hover:bg-[#c89853] px-2 py-1 rounded transition-colors"
-                      data-testid={`button-copy-link-${branch.id}`}
-                    >
-                      <Copy className="h-3 w-3" />
-                      نسخ
-                    </button>
-                  </div>
-                  <a
-                    href="/login"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block text-xs font-mono font-bold text-white/90 hover:text-[#DFB369] truncate"
-                    dir="ltr"
-                    data-testid={`link-login-${branch.id}`}
-                  >
-                    {branchLoginUrl}
-                  </a>
-                  <div className="text-[10px] text-white/60 font-bold">
-                    شارك هذا الرابط مع مسؤول الفرع — يدخل برقم جواله وكلمة المرور
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-100 mt-3">

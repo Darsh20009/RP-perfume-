@@ -257,6 +257,7 @@ const branchSchema = new Schema<Branch>(
     phone: String,
     email: { type: String, default: "" },
     hours: { type: String, default: "" },
+    pickupHours: { type: String, default: "" },
     image: { type: String, default: "" },
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },

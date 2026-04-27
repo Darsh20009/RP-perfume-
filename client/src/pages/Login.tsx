@@ -4,6 +4,9 @@ const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-light-nobg.png";
 import { useAuth } from "@/hooks/use-auth";
 import { useAuthProviders } from "@/hooks/use-auth-providers";
+import { useQuery } from "@tanstack/react-query";
+import type { Branch } from "@shared/schema";
+import { Building2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,6 +33,18 @@ export default function Login() {
 
   const searchParams = new URLSearchParams(window.location.search);
   const redirectParam = searchParams.get("redirect");
+  const branchParam = searchParams.get("branch");
+
+  // When the URL carries ?branch=ID, fetch the branch info from the public
+  // /api/branches list so we can show the staff which branch they're signing
+  // into. This is what makes each branch's login link feel "unique".
+  const { data: branches } = useQuery<Branch[]>({
+    queryKey: ["/api/branches"],
+    enabled: !!branchParam,
+  });
+  const branchContext = branchParam
+    ? (branches || []).find((b) => String(b.id) === String(branchParam))
+    : undefined;
 
   if (user) {
     const destination = redirectParam ? decodeURIComponent(redirectParam) : "/";
@@ -108,7 +123,23 @@ export default function Login() {
             <img src={logoDarkImg} alt="عطور آر اف" className="h-20 w-auto mx-auto mb-4 cursor-pointer object-contain" />
           </Link>
           <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#DFB369] to-transparent mx-auto mb-4" />
-          <p className="text-slate-800 text-sm">سجل دخولك برقم الهاتف للمتابعة</p>
+          {branchContext ? (
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2B2B60] text-[#DFB369] text-[11px] font-black uppercase tracking-widest" data-testid="badge-branch-login">
+                <Building2 className="h-3.5 w-3.5" />
+                دخول مسؤول الفرع
+              </div>
+              <p className="text-[#2B2B60] text-base font-black" data-testid="text-branch-name">
+                {branchContext.name}
+              </p>
+              {branchContext.city && (
+                <p className="text-slate-700 text-xs font-bold">{branchContext.city}</p>
+              )}
+              <p className="text-slate-700 text-xs mt-2">أدخل رقم جوالك وكلمة المرور للدخول إلى لوحة الفرع</p>
+            </div>
+          ) : (
+            <p className="text-slate-800 text-sm">سجل دخولك برقم الهاتف للمتابعة</p>
+          )}
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-xl">

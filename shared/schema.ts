@@ -281,6 +281,7 @@ export const insertBranchSchema = z.object({
   phone: z.string().optional(),
   email: z.string().optional().default(""),
   hours: z.string().optional().default(""),
+  pickupHours: z.string().optional().default(""),
   image: z.string().optional().default(""),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
