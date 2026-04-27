@@ -1,10 +1,9 @@
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import type { Product } from "@shared/schema";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Heart, ShoppingCart, Check, AlertCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -22,7 +21,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { addItem } = useCart();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
   const images = product.images && product.images.length > 0
     ? product.images
@@ -66,74 +64,20 @@ export function ProductCard({ product }: ProductCardProps) {
     },
   });
 
-  useEffect(() => {
-    if (images.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [images]);
-
-  const imageVariants = {
-    enter: (direction: number) => ({ opacity: 0, scale: 1.1, x: direction > 0 ? 100 : -100 }),
-    center: { opacity: 1, scale: 1, x: 0 },
-    exit: (direction: number) => ({ opacity: 0, scale: 0.9, x: direction > 0 ? -100 : 100 }),
-  };
-
-  const transition = {
-    x: { type: "spring", stiffness: 300, damping: 30 },
-    opacity: { duration: 0.6 },
-    scale: { duration: 0.6 },
-  };
-
   return (
     <motion.div className="relative" whileHover={{ y: -5 }} transition={{ duration: 0.3 }}>
       <Link href={`/products/${product.id}`}>
         <Card className="group overflow-hidden border-none rounded-none bg-white hover-elevate transition-all duration-500 cursor-pointer">
-          <div className="relative aspect-[3/4] overflow-hidden bg-secondary/20">
-            <AnimatePresence mode="wait" custom={1}>
-              <motion.div
-                key={currentImageIndex}
-                custom={1}
-                variants={imageVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={transition}
-                className="absolute inset-0"
-              >
-                <img
-                  src={images[currentImageIndex]}
-                  alt={product.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover  transition-transform duration-700"
-                />
-              </motion.div>
-            </AnimatePresence>
+          <div className="relative aspect-[4/5] overflow-hidden bg-secondary/20">
+            <img
+              src={images[0]}
+              alt={product.name}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
 
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-            {images.length > 1 && (
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
-                {images.map((_, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={`h-1.5 rounded-full transition-all ${idx === currentImageIndex ? "bg-white w-6" : "bg-white/50 w-1.5"}`}
-                    animate={{ width: idx === currentImageIndex ? 24 : 6 }}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 flex gap-2">
-              <Button
-                size="sm"
-                className="flex-1 rounded-none font-black uppercase text-[10px]"
-              >
-                {t('viewDetails')}
-              </Button>
-            </div>
 
             {product.isFeatured && !isOutOfStock && (
               <motion.div
@@ -162,7 +106,7 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-2.5 sm:p-3 text-center">
             <h3 className="font-black uppercase tracking-tighter text-sm mb-1 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
@@ -266,7 +210,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   addItem(product, variant, 1);
                   setAddedToCart(true);
                   setTimeout(() => setAddedToCart(false), 2000);
-                  flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
+                  flyToCart(e.currentTarget, images[0]);
                 }}
                 disabled={isOutOfStock}
                 className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${

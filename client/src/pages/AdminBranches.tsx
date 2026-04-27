@@ -303,6 +303,33 @@ export default function AdminBranches() {
           />
         </div>
 
+        {/* Interactive Apple Map — placed at the TOP of the form so it is
+            immediately visible when the dialog opens. Selecting a point on
+            the map auto-fills latitude/longitude/address and mapUrl fields. */}
+        <FormItem className="text-right">
+          <FormLabel className="font-black flex items-center gap-2 justify-end text-[#2B2B60]">
+            <MapPin className="h-4 w-4" />
+            تحديد موقع الفرع على الخريطة
+          </FormLabel>
+          <LocationMap
+            initialLat={Number(form.watch("latitude")) || 24.7136}
+            initialLng={Number(form.watch("longitude")) || 46.6753}
+            onLocationSelect={(coords, addr) => {
+              form.setValue("latitude", coords.lat, { shouldDirty: true });
+              form.setValue("longitude", coords.lng, { shouldDirty: true });
+              if (addr && !form.getValues("address")) {
+                form.setValue("address", addr, { shouldDirty: true });
+              }
+              form.setValue(
+                "mapUrl",
+                `https://maps.google.com/?q=${coords.lat},${coords.lng}`,
+                { shouldDirty: true },
+              );
+              toast({ title: "تم تحديد الموقع", description: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` });
+            }}
+          />
+        </FormItem>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -405,34 +432,6 @@ export default function AdminBranches() {
             </FormItem>
           )}
         />
-
-        {/* Interactive Apple Map for picking the branch location.
-            Selecting on the map updates latitude/longitude/address/mapUrl in
-            the form so the branch ends up with real coordinates that all the
-            "Open in Maps" buttons can use. */}
-        <FormItem className="text-right">
-          <FormLabel className="font-black flex items-center gap-2 justify-end">
-            <MapPin className="h-4 w-4" />
-            تحديد موقع الفرع على الخريطة
-          </FormLabel>
-          <LocationMap
-            initialLat={Number(form.watch("latitude")) || 24.7136}
-            initialLng={Number(form.watch("longitude")) || 46.6753}
-            onLocationSelect={(coords, addr) => {
-              form.setValue("latitude", coords.lat, { shouldDirty: true });
-              form.setValue("longitude", coords.lng, { shouldDirty: true });
-              if (addr && !form.getValues("address")) {
-                form.setValue("address", addr, { shouldDirty: true });
-              }
-              form.setValue(
-                "mapUrl",
-                `https://maps.google.com/?q=${coords.lat},${coords.lng}`,
-                { shouldDirty: true },
-              );
-              toast({ title: "تم تحديد الموقع", description: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` });
-            }}
-          />
-        </FormItem>
 
         <FormField
           control={form.control}
