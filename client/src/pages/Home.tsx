@@ -193,79 +193,82 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CATEGORIES WITH PRODUCTS ──────────── */}
-      {dbCategories && dbCategories.length > 0 && (
-        <div className="bg-white">
-          {dbCategories
-            .filter((cat: any) => !cat.parentId)
-            .map((cat: any, i: number) => {
-              const catProducts = getProductsForCategory(cat.id);
-              if (catProducts.length === 0) return null;
-              const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
-              return (
-                <section
-                  key={cat.id || i}
-                  className={`py-10 md:py-14 ${i % 2 === 0 ? "bg-white" : "bg-[#FAF8F4]"}`}
-                  data-testid={`section-category-${cat.slug}`}
-                >
-                  <div className="container px-4">
-                    {/* Category image (top) */}
-                    <Link href={`/products?category=${cat.slug}`}>
-                      <div
-                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-52 sm:h-64 md:h-80 lg:h-96 bg-[#F5F2ED] border border-[#E8E2D5] shadow-sm`}
-                      >
-                        {cat.image && (
-                          <img
-                            src={cat.image}
-                            alt={catName}
-                            className="absolute inset-0 w-full h-full object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:scale-[1.03]"
-                            loading="lazy"
-                          />
-                        )}
-                      </div>
-                    </Link>
-
-                    {/* Category text header (below image) */}
-                    <div
-                      className={`flex items-end justify-between gap-3 mb-6 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}
+      {/* ── CATEGORY PREVIEW MOSAIC (above the fold) ─────────────── */}
+      {dbCategories && dbCategories.length > 0 && products && products.length > 0 && (
+        <section className="py-8 md:py-12 bg-white" data-testid="section-category-mosaic">
+          <div className="container px-4">
+            <div className={`grid gap-4 md:gap-5 ${
+              dbCategories.filter((c: any) => !c.parentId).length >= 3
+                ? "grid-cols-2 sm:grid-cols-3"
+                : "grid-cols-2"
+            }`}>
+              {dbCategories
+                .filter((cat: any) => !cat.parentId)
+                .map((cat: any, idx: number) => {
+                  const catProducts = getProductsForCategory(cat.id);
+                  const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
+                  const tiles = catProducts.slice(0, 4);
+                  return (
+                    <motion.div
+                      key={cat.id || idx}
+                      initial={{ opacity: 0, y: 18 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.45, delay: idx * 0.08 }}
                     >
-                      <div>
-                        <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1.5">
-                          {isRtl ? "تشكيلة" : "Collection"}
-                        </span>
-                        <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
-                          {catName}
-                        </h2>
-                      </div>
                       <Link href={`/products?category=${cat.slug}`}>
-                        <span
-                          className={`inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors whitespace-nowrap ${isRtl ? "flex-row-reverse" : ""}`}
+                        <div
+                          className="group cursor-pointer"
+                          data-testid={`tile-cat-mosaic-${cat.slug}`}
                         >
-                          {t("viewAll")}
-                          {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                        </span>
+                          {/* Mosaic of 4 product images per category */}
+                          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
+                            {tiles.length > 0 ? (
+                              [...tiles, ...Array(Math.max(0, 4 - tiles.length)).fill(null)].slice(0, 4).map((p: any, i: number) => {
+                                const imgSrc = p?.images?.[0] || p?.image;
+                                return (
+                                  <div
+                                    key={i}
+                                    className="relative bg-[#F7F3EC] flex items-center justify-center overflow-hidden"
+                                  >
+                                    {imgSrc && (
+                                      <img
+                                        src={imgSrc}
+                                        alt={isRtl ? (p.nameAr || p.name) : p.name}
+                                        className="w-full h-full object-contain p-1.5 sm:p-2"
+                                        loading="lazy"
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })
+                            ) : cat.image ? (
+                              <img
+                                src={cat.image}
+                                alt={catName}
+                                className="col-span-2 row-span-2 w-full h-full object-contain p-3 sm:p-4"
+                                loading="lazy"
+                              />
+                            ) : null}
+                          </div>
+                          {/* Category label coming from the right (RTL aware) */}
+                          <div className={`mt-3 flex items-center justify-between gap-2 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}>
+                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-[#2B2B60] truncate">
+                              {catName}
+                            </h3>
+                            <span className={`inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-bold text-[#DFB369] group-hover:text-[#c89853] transition-colors whitespace-nowrap ${isRtl ? "flex-row-reverse" : ""}`}>
+                              {t("viewAll")}
+                              {isRtl ? <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+                            </span>
+                          </div>
+                        </div>
                       </Link>
-                    </div>
-
-                    {/* Products grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                      {catProducts.map((p: any, idx: number) => (
-                        <motion.div
-                          key={p.id || p._id || idx}
-                          initial={{ opacity: 0, y: 16 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: idx * 0.05 }}
-                        >
-                          <ProductCard product={p} />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              );
-            })}
-        </div>
+                    </motion.div>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* ── TRUST STRIP (admin-controlled with hardcoded fallback) ─────── */}
@@ -457,6 +460,79 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* ── CATEGORIES WITH PRODUCTS (full sections) ──────────── */}
+      {dbCategories && dbCategories.length > 0 && (
+        <div className="bg-white">
+          {dbCategories
+            .filter((cat: any) => !cat.parentId)
+            .map((cat: any, i: number) => {
+              const catProducts = getProductsForCategory(cat.id);
+              if (catProducts.length === 0) return null;
+              const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
+              return (
+                <section
+                  key={cat.id || i}
+                  className={`py-10 md:py-14 ${i % 2 === 0 ? "bg-white" : "bg-[#FAF8F4]"}`}
+                  data-testid={`section-category-${cat.slug}`}
+                >
+                  <div className="container px-4">
+                    {/* Category image (top) — frameless, soft rounded, no crop on mobile */}
+                    <Link href={`/products?category=${cat.slug}`}>
+                      <div className="relative w-full mb-4 cursor-pointer group flex items-center justify-center">
+                        {cat.image && (
+                          <img
+                            src={cat.image}
+                            alt={catName}
+                            className="w-full h-auto max-h-72 sm:max-h-80 md:max-h-96 lg:max-h-[28rem] object-contain rounded-3xl mx-auto transition-transform duration-700 group-hover:scale-[1.02]"
+                            loading="lazy"
+                          />
+                        )}
+                      </div>
+                    </Link>
+
+                    {/* Category text header (below image) */}
+                    <div
+                      className={`flex items-end justify-between gap-3 mb-6 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}
+                    >
+                      <div>
+                        <span className="inline-block text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#DFB369] mb-1.5">
+                          {isRtl ? "تشكيلة" : "Collection"}
+                        </span>
+                        <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
+                          {catName}
+                        </h2>
+                      </div>
+                      <Link href={`/products?category=${cat.slug}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs md:text-sm font-bold text-[#DFB369] hover:text-[#c89853] transition-colors whitespace-nowrap ${isRtl ? "flex-row-reverse" : ""}`}
+                        >
+                          {t("viewAll")}
+                          {isRtl ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Products grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                      {catProducts.map((p: any, idx: number) => (
+                        <motion.div
+                          key={p.id || p._id || idx}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <ProductCard product={p} />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
+        </div>
+      )}
 
       {/* ── PROMOTIONAL BANNERS ────────────────────────── */}
       <section className="py-8 md:py-12 bg-[#FFFFFF]">

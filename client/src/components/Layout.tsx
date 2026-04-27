@@ -104,7 +104,15 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md safe-top h-16 md:h-20">
-        <div className="container flex h-full items-center justify-between gap-2 px-4 md:gap-4">
+        <div className="container relative flex h-full items-center justify-between gap-2 px-4 md:gap-4">
+          {/* Centered logo on mobile only (independent of side flex children) */}
+          <Link
+            href="/"
+            className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center hover:opacity-80 active:scale-95 transition-all"
+          >
+            <img src={logoImg} alt="عطور آر اف" className="h-10 w-auto object-contain" />
+          </Link>
+
           <div className="flex items-center gap-2 md:gap-4">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
@@ -331,7 +339,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </SheetContent>
             </Sheet>
 
-            <Link href="/" className="flex items-center py-1 hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+            <Link href="/" className="hidden md:flex items-center py-1 hover:opacity-80 transition-opacity active:scale-95 transition-transform">
               <img src={logoImg} alt="عطور آر اف" className="h-11 md:h-14 w-auto object-contain rounded-sm" />
             </Link>
           </div>
