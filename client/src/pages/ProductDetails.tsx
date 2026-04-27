@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useProduct } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useState, useEffect, useMemo } from "react";
 import { ShoppingBag, Check, Heart, Star, Send, Loader2, ChevronLeft, ChevronRight, ImagePlus, X, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ export default function ProductDetails() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [, setLocation] = useLocation();
   const isAr = language === "ar";
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -45,6 +46,14 @@ export default function ProductDetails() {
   const toggleWishlist = useMutation({
     mutationFn: async () => {
       if (!product) return;
+      if (!user) {
+        toast({
+          title: isAr ? "سجّل الدخول أولاً" : "Please sign in first",
+          description: isAr ? "أنشئ حساباً ليتم حفظ مفضلاتك" : "Create an account to save your favorites",
+        });
+        setLocation("/login");
+        return;
+      }
       if (isWishlisted) {
         await apiRequest("DELETE", `/api/wishlist/${product.id}`);
       } else {
@@ -52,6 +61,7 @@ export default function ProductDetails() {
       }
     },
     onSuccess: () => {
+      if (!user) return;
       qc.invalidateQueries({ queryKey: ["/api/wishlist/ids"] });
       qc.invalidateQueries({ queryKey: ["/api/wishlist"] });
       toast({ title: isWishlisted ? (isAr ? "تمت الإزالة من المفضلة" : "Removed from wishlist") : (isAr ? "تمت الإضافة للمفضلة ❤️" : "Added to wishlist ❤️") });
@@ -331,7 +341,22 @@ export default function ProductDetails() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="aspect-[3/4] bg-white overflow-hidden shadow-2xl border border-black/5 group flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 pt-[1px] pb-[1px] pl-[40px] pr-[40px] relative">
+            <div className="aspect-[3/4] bg-white overflow-hidden shadow-2xl border border-black/5 group flex flex-col items-center justify-center p-2 sm:p-3 relative">
+              {/* Floating wishlist button — top right of image card */}
+              <button
+                onClick={() => toggleWishlist.mutate()}
+                disabled={toggleWishlist.isPending}
+                className={`absolute top-3 right-3 z-20 w-11 h-11 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center transition-all hover:scale-110 ${
+                  isWishlisted
+                    ? "bg-red-50 text-red-500"
+                    : "bg-white/90 text-black/60 hover:text-red-500"
+                }`}
+                data-testid="button-toggle-wishlist"
+                aria-label={isWishlisted ? (isAr ? "في المفضلة" : "In Wishlist") : (isAr ? "أضف للمفضلة" : "Add to Wishlist")}
+              >
+                <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+              </button>
+
               <div 
                 className="relative w-full h-full flex items-center justify-center overflow-hidden cursor-pointer"
                 onClick={() => {
@@ -431,7 +456,7 @@ export default function ProductDetails() {
           {/* Details */}
           <div className={`flex flex-col ${language === 'ar' ? 'text-right' : 'text-left'}`}>
             <div className="border-b border-black/5 pb-6 sm:pb-8 mb-6 sm:mb-8">
-              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 uppercase tracking-tighter">{product.name}</h1>
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-black mb-3 sm:mb-4 uppercase tracking-tighter">{product.name}</h1>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={displayedPrice.type === 'range' ? `${displayedPrice.min}-${displayedPrice.max}` : displayedPrice.value}
@@ -441,7 +466,7 @@ export default function ProductDetails() {
                   transition={{ duration: 0.2 }}
                 >
                   <p
-                    className="text-3xl font-light text-primary tracking-tight"
+                    className="text-2xl font-light text-primary tracking-tight"
                     data-testid="text-product-price"
                   >
                     {displayedPrice.type === 'range' ? (
@@ -613,20 +638,6 @@ export default function ProductDetails() {
 
             {/* Installment Plans Section */}
             <InstallmentSection price={product.price} language={language} />
-
-            {user && (
-              <button
-                onClick={() => toggleWishlist.mutate()}
-                disabled={toggleWishlist.isPending}
-                className={`w-full h-14 flex items-center justify-center gap-3 border-2 font-bold text-sm uppercase tracking-widest transition-all ${
-                  isWishlisted ? "border-red-400 bg-red-50 text-red-500" : "border-black/20 hover:border-red-400 hover:text-red-500 text-black/60"
-                }`}
-                data-testid="button-toggle-wishlist"
-              >
-                <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
-                {isWishlisted ? (isAr ? "في المفضلة ❤️" : "In Wishlist ❤️") : (isAr ? "أضف للمفضلة" : "Add to Wishlist")}
-              </button>
-            )}
 
             <Button 
               size="lg" 
