@@ -18,6 +18,7 @@ import { MarketingBanners } from "@/components/marketing-banners";
 const logoImg = "/images/logos/logo-dark.png";
 import { useQuery } from "@tanstack/react-query";
 import brandCtaImg from "@assets/Screenshot_2026-04-16_at_2.09.21_PM_1777231488177.png";
+import menCategoryImg from "@assets/Screenshot_2026-04-27_at_8.03.23_PM_1777309823245.png";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { RiyalSign } from "@/components/RiyalSign";
@@ -221,36 +222,47 @@ export default function Home() {
                           className="group cursor-pointer"
                           data-testid={`tile-cat-mosaic-${cat.slug}`}
                         >
-                          {/* Mosaic of 4 product images per category */}
-                          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
-                            {tiles.length > 0 ? (
-                              [...tiles, ...Array(Math.max(0, 4 - tiles.length)).fill(null)].slice(0, 4).map((p: any, i: number) => {
-                                const imgSrc = p?.images?.[0] || p?.image;
-                                return (
-                                  <div
-                                    key={i}
-                                    className="relative bg-[#F7F3EC] flex items-center justify-center overflow-hidden"
-                                  >
-                                    {imgSrc && (
-                                      <img
-                                        src={imgSrc}
-                                        alt={isRtl ? (p.nameAr || p.name) : p.name}
-                                        className="w-full h-full object-contain p-1.5 sm:p-2"
-                                        loading="lazy"
-                                      />
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : cat.image ? (
+                          {/* Single hero image for Men, mosaic of 4 product images for the rest */}
+                          {cat.slug === "men" ? (
+                            <div className="rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
                               <img
-                                src={cat.image}
+                                src={menCategoryImg}
                                 alt={catName}
-                                className="col-span-2 row-span-2 w-full h-full object-contain p-3 sm:p-4"
+                                className="w-full h-full object-cover object-top"
                                 loading="lazy"
                               />
-                            ) : null}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
+                              {tiles.length > 0 ? (
+                                [...tiles, ...Array(Math.max(0, 4 - tiles.length)).fill(null)].slice(0, 4).map((p: any, i: number) => {
+                                  const imgSrc = p?.images?.[0] || p?.image;
+                                  return (
+                                    <div
+                                      key={i}
+                                      className="relative bg-[#F7F3EC] flex items-center justify-center overflow-hidden"
+                                    >
+                                      {imgSrc && (
+                                        <img
+                                          src={imgSrc}
+                                          alt={isRtl ? (p.nameAr || p.name) : p.name}
+                                          className="w-full h-full object-contain p-1.5 sm:p-2"
+                                          loading="lazy"
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              ) : cat.image ? (
+                                <img
+                                  src={cat.image}
+                                  alt={catName}
+                                  className="col-span-2 row-span-2 w-full h-full object-contain p-3 sm:p-4"
+                                  loading="lazy"
+                                />
+                              ) : null}
+                            </div>
+                          )}
                           {/* Category label coming from the right (RTL aware) */}
                           <div className={`mt-3 flex items-center justify-between gap-2 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}>
                             <h3 className="text-sm sm:text-base md:text-lg font-bold text-[#2B2B60] truncate">
