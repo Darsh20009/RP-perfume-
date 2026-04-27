@@ -229,11 +229,11 @@ export default function Home() {
                           className="group cursor-pointer"
                           data-testid={`tile-cat-mosaic-${cat.slug}`}
                         >
-                          <div className="rounded-2xl overflow-hidden bg-[#F7F3EC] ring-1 ring-[#E8E2D5] shadow-[0_4px_16px_-8px_rgba(0,0,0,0.18)] aspect-[3/4] transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-[0_8px_22px_-8px_rgba(0,0,0,0.25)]">
+                          <div className="rounded-2xl overflow-hidden bg-[#F7F3EC] ring-1 ring-[#E8E2D5] shadow-[0_4px_16px_-8px_rgba(0,0,0,0.18)] aspect-[886/1278] transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-[0_8px_22px_-8px_rgba(0,0,0,0.25)]">
                             <img
                               src={heroImg}
                               alt={catName}
-                              className="block w-full h-full object-cover object-top"
+                              className="block w-full h-full object-cover object-center"
                               loading="lazy"
                             />
                           </div>
