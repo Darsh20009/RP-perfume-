@@ -285,8 +285,18 @@ export async function registerRoutes(
     const envKid = process.env.APPLE_MAPS_KEY_ID;
     const envTeam = process.env.APPLE_MAPS_TEAM_ID;
     if (envKey && envKid && envTeam) {
-      // Allow \n escapes in secret values to be turned into real newlines
-      const normalizedKey = envKey.includes("BEGIN") ? envKey.replace(/\\n/g, "\n") : envKey;
+      // Normalize PEM: handle escaped \n, missing newlines, and single-line pastes.
+      let raw = envKey.replace(/\\n/g, "\n").trim();
+      const beginMatch = raw.match(/-----BEGIN [^-]+-----/);
+      const endMatch = raw.match(/-----END [^-]+-----/);
+      let normalizedKey = raw;
+      if (beginMatch && endMatch) {
+        const header = beginMatch[0];
+        const footer = endMatch[0];
+        const body = raw.substring(beginMatch.index! + header.length, endMatch.index!).replace(/\s+/g, "");
+        const wrapped = body.match(/.{1,64}/g)?.join("\n") || body;
+        normalizedKey = `${header}\n${wrapped}\n${footer}\n`;
+      }
       return { privateKey: normalizedKey, keyId: envKid, teamId: envTeam };
     }
     const fallbackTeam = "V4K6RM59LS";
