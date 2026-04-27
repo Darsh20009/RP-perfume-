@@ -26,7 +26,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const cartItems = useCart((state) => state.items);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t, tx } = useLanguage();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -390,16 +390,28 @@ export function Layout({ children }: { children: ReactNode }) {
               <Globe className="h-6 w-6" />
             </Button>
 
-            <Link href="/cart">
-              <Button variant="ghost" size="icon" data-cart-target="true" data-testid="button-cart" className="relative no-default-hover-elevate hover:text-primary h-11 w-11 active:scale-95 transition-transform">
-                <ShoppingBag className="h-6 w-6" />
-                {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
-                  <span className={`absolute -top-1 ${language === 'ar' ? '-right-1' : '-left-1'} h-5 w-5 rounded-full bg-foreground text-[10px] font-black text-background flex items-center justify-center shadow-md`}>
-                    {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              data-cart-target="true"
+              data-testid="button-cart"
+              onClick={() => {
+                if (!user) {
+                  setAuthModalTab("login");
+                  setAuthModalOpen(true);
+                } else {
+                  setLocation("/cart");
+                }
+              }}
+              className="relative no-default-hover-elevate hover:text-primary h-11 w-11 active:scale-95 transition-transform"
+            >
+              <ShoppingBag className="h-6 w-6" />
+              {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
+                <span className={`absolute -top-1 ${language === 'ar' ? '-right-1' : '-left-1'} h-5 w-5 rounded-full bg-foreground text-[10px] font-black text-background flex items-center justify-center shadow-md`}>
+                  {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+                </span>
+              )}
+            </Button>
 
             {user && <NotificationBell />}
 

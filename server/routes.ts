@@ -1530,8 +1530,19 @@ export async function registerRoutes(
         managerError,
       });
     } catch (err: any) {
-      console.error("[API] branches.create error:", err?.message);
-      res.status(500).json({ message: "خطأ في إنشاء الفرع" });
+      console.error("[API] branches.create error:", err?.message, err?.stack);
+      // Surface mongoose validation/duplicate-key errors clearly so the admin
+      // sees what went wrong instead of a generic 500.
+      if (err?.code === 11000) {
+        const dupField = Object.keys(err.keyPattern || {})[0] || "حقل";
+        return res.status(409).json({ message: `قيمة مكررة في ${dupField}` });
+      }
+      if (err?.name === "ValidationError") {
+        const firstKey = Object.keys(err.errors || {})[0];
+        const firstMsg = firstKey ? (err.errors[firstKey]?.message || "خطأ في البيانات") : "خطأ في البيانات";
+        return res.status(400).json({ message: firstMsg });
+      }
+      res.status(500).json({ message: err?.message || "خطأ في إنشاء الفرع" });
     }
   });
 

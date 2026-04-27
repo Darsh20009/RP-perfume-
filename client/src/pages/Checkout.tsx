@@ -78,6 +78,14 @@ export default function Checkout() {
   const [showAddAddressForm, setShowAddAddressForm] = useState(false);
   const [showMapForm, setShowMapForm] = useState(false);
   const [newAddress, setNewAddress] = useState({ street: "", city: "" });
+  // Customer's pinned coordinates for the new address (driver/employee navigates exactly here)
+  const [newAddressCoords, setNewAddressCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [saveAddressToBook, setSaveAddressToBook] = useState(true);
+  // Recipient (defaults to logged-in user but the customer can ship to someone else)
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [orderNotes, setOrderNotes] = useState("");
+  const [shipToOther, setShipToOther] = useState(false);
   const [shippingCompany, setShippingCompany] = useState<string>("");
   const [shippingMethod, setShippingMethod] = useState<"delivery" | "pickup">("delivery");
   const [pickupBranchId, setPickupBranchId] = useState<string>("");
@@ -303,6 +311,21 @@ export default function Checkout() {
         setIsSubmitting(false);
         return;
       }
+      // Resolve coords: from picked saved address OR from the map pin on the new address
+      const orderLat =
+        shippingMethod === "delivery"
+          ? (selectedAddr ? (selectedAddr as any).lat : newAddressCoords?.lat)
+          : undefined;
+      const orderLng =
+        shippingMethod === "delivery"
+          ? (selectedAddr ? (selectedAddr as any).lng : newAddressCoords?.lng)
+          : undefined;
+      // Resolve recipient (defaults to logged-in user)
+      const finalRecipientName = (shipToOther && recipientName.trim()) ? recipientName.trim() : (user?.name || "");
+      const finalRecipientPhone = (shipToOther && recipientPhone.trim()) ? recipientPhone.trim() : (user?.phone || "");
+      // Resolve city/street for shippingAddress object
+      const orderCity = selectedAddr ? selectedAddr.city : newAddress.city;
+      const orderStreet = selectedAddr ? selectedAddr.street : newAddress.street;
       if (shippingMethod === "pickup" && !pickupBranchId) {
         toast({ title: "اختر الفرع", description: "يرجى اختيار فرع الاستلام", variant: "destructive" });
         setIsSubmitting(false);
@@ -318,7 +341,7 @@ export default function Checkout() {
         receiptUrl = await uploadReceipt();
         if (!receiptUrl) { setIsSubmitting(false); return; }
       }
-      const orderData = {
+      const orderData: any = {
         userId: user!.id,
         total: finalTotal.toFixed(2),
         subtotal: subtotal.toFixed(2),
@@ -326,6 +349,14 @@ export default function Checkout() {
         shippingCost: shipping.toFixed(2),
         shippingCompany: selectedShipping?.name || "",
         deliveryAddress,
+        shippingAddress: shippingMethod === "delivery"
+          ? { street: orderStreet, city: orderCity, lat: orderLat, lng: orderLng }
+          : undefined,
+        latitude: orderLat,
+        longitude: orderLng,
+        customerName: finalRecipientName,
+        customerPhone: finalRecipientPhone,
+        notes: orderNotes || undefined,
         discountAmount: discountAmount.toFixed(2),
         cashbackAmount: cashbackAmount.toFixed(2),
         couponCode: appliedCoupon?.code || undefined,
@@ -402,6 +433,28 @@ export default function Checkout() {
           orderId: order.id, provider: selectedShipping?.name || "", deliveryAddress,
         });
       } catch (e) { console.warn("Shipping creation failed, but order was created"); }
+      // Save the new address to the user's address book if requested
+      if (
+        shippingMethod === "delivery" &&
+        showAddAddressForm &&
+        saveAddressToBook &&
+        newAddress.street &&
+        !selectedAddressId
+      ) {
+        try {
+          await apiRequest("POST", "/api/addresses", {
+            name: shipToOther && recipientName ? recipientName : (user?.name || "العنوان الافتراضي"),
+            street: newAddress.street,
+            city: newAddress.city || "الرياض",
+            phone: shipToOther ? recipientPhone : (user?.phone || ""),
+            lat: newAddressCoords?.lat,
+            lng: newAddressCoords?.lng,
+            notes: orderNotes || undefined,
+          });
+        } catch (e) {
+          console.warn("Failed to save address to address book:", e);
+        }
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       clearCart();
@@ -586,6 +639,7 @@ export default function Checkout() {
                             <LocationMap
                               onLocationSelect={(coords, address) => {
                                 setNewAddress({ street: address, city: "الرياض" });
+                                setNewAddressCoords({ lat: coords.lat, lng: coords.lng });
                                 setShowMapForm(false);
                                 setSelectedAddressId(null);
                               }}
@@ -601,11 +655,92 @@ export default function Checkout() {
                       </div>
                     )}
 
+                    {/* ── Save this new address to address book ── */}
+                    {showAddAddressForm && (newAddress.street || newAddressCoords) && (
+                      <label className="flex items-center gap-2 cursor-pointer p-3 bg-[#FAF8F4] rounded-lg border border-[#DFB369]/20" data-testid="toggle-save-address">
+                        <input
+                          type="checkbox"
+                          checked={saveAddressToBook}
+                          onChange={(e) => setSaveAddressToBook(e.target.checked)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        <span className="text-xs font-bold text-gray-800">احفظ هذا العنوان في دفتر عناويني</span>
+                      </label>
+                    )}
+
+                    {/* ── Recipient (different person) ── */}
+                    <div className="rounded-lg border border-gray-100 bg-[#FAFAFA] p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-gray-900">المستلم</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = !shipToOther;
+                            setShipToOther(next);
+                            if (!next) {
+                              setRecipientName("");
+                              setRecipientPhone("");
+                            }
+                          }}
+                          className="text-[11px] font-bold text-primary hover:underline"
+                          data-testid="button-toggle-recipient"
+                        >
+                          {shipToOther ? "إلغاء" : "إرسال لشخص آخر"}
+                        </button>
+                      </div>
+
+                      {!shipToOther ? (
+                        <div className="text-[11px] text-gray-700 font-medium">
+                          سيتم تسليم الطلب باسم: <span className="font-black text-gray-900">{user?.name || "—"}</span>
+                          {user?.phone && <span className="text-gray-700"> · {user.phone}</span>}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="اسم المستلم"
+                            value={recipientName}
+                            onChange={(e) => setRecipientName(e.target.value)}
+                            className="h-11 border-gray-200 rounded-lg"
+                            data-testid="input-recipient-name"
+                          />
+                          <Input
+                            placeholder="جوال المستلم (05XXXXXXXX)"
+                            value={recipientPhone}
+                            onChange={(e) => setRecipientPhone(e.target.value)}
+                            dir="ltr"
+                            className="h-11 border-gray-200 rounded-lg"
+                            data-testid="input-recipient-phone"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ── Optional order notes ── */}
+                    <div>
+                      <Input
+                        placeholder="ملاحظات للسائق (اختياري)"
+                        value={orderNotes}
+                        onChange={(e) => setOrderNotes(e.target.value)}
+                        className="h-11 border-gray-200 rounded-lg"
+                        data-testid="input-order-notes"
+                      />
+                    </div>
+
                     <Button
                       onClick={() => {
                         if (!addressSummary) {
                           toast({ title: "العنوان مطلوب", description: "يرجى تحديد عنوان التوصيل", variant: "destructive" });
                           return;
+                        }
+                        if (shipToOther) {
+                          if (!recipientName.trim()) {
+                            toast({ title: "اسم المستلم مطلوب", variant: "destructive" });
+                            return;
+                          }
+                          if (!/^0?5\d{8}$/.test(recipientPhone.trim())) {
+                            toast({ title: "رقم المستلم غير صالح", description: "يبدأ بـ 5 أو 05", variant: "destructive" });
+                            return;
+                          }
                         }
                         setActiveStep(2);
                       }}

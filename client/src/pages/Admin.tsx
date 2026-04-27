@@ -2865,6 +2865,28 @@ const OrdersManagement = memo(() => {
                               ? `${order.shippingAddress.city || ""} ${order.shippingAddress.district || ""} ${order.shippingAddress.street || ""}`.trim()
                               : order.shippingAddress
                           }</p>
+                          {(() => {
+                            const lat = order.latitude ?? (typeof order.shippingAddress === "object" ? order.shippingAddress.lat : undefined);
+                            const lng = order.longitude ?? (typeof order.shippingAddress === "object" ? order.shippingAddress.lng : undefined);
+                            if (lat == null || lng == null) return null;
+                            return (
+                              <a
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 mt-1 text-[10px] font-black text-[#DFB369] hover:text-[#F0C77E] underline"
+                                data-testid={`link-map-order-${order.id || order._id}`}
+                              >
+                                📍 افتح في خرائط جوجل ({Number(lat).toFixed(5)}, {Number(lng).toFixed(5)})
+                              </a>
+                            );
+                          })()}
+                        </div>
+                      )}
+                      {order.notes && (
+                        <div className="space-y-1 col-span-2">
+                          <p className="text-[9px] font-black uppercase text-white/30 tracking-widest">ملاحظات</p>
+                          <p className="text-xs font-bold text-white/70">{order.notes}</p>
                         </div>
                       )}
                       {order.paymentMethod && (

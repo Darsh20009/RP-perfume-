@@ -5,7 +5,7 @@ import type { Product } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/use-language";
 import { useState, useEffect } from "react";
-import { Heart, ShoppingCart, Check } from "lucide-react";
+import { Heart, ShoppingCart, Check, AlertCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,6 +26,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const images = product.images && product.images.length > 0
     ? product.images
     : ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80"];
+
+  // Total stock across variants — used to badge & disable add-to-cart
+  const variantsList = ((product as any).variants || []) as Array<{ stock?: number }>;
+  const totalStock = variantsList.reduce((acc, v) => acc + (Number(v?.stock) || 0), 0);
+  const isOutOfStock = variantsList.length > 0 && totalStock <= 0;
 
   const { data: wishlistIds = [] } = useQuery<string[]>({
     queryKey: ["/api/wishlist/ids"],
@@ -129,7 +134,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </Button>
             </div>
 
-            {product.isFeatured && (
+            {product.isFeatured && !isOutOfStock && (
               <motion.div
                 initial={{ opacity: 0, x: language === 'ar' ? 20 : -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -138,6 +143,21 @@ export function ProductCard({ product }: ProductCardProps) {
               >
                 {t('featured')}
               </motion.div>
+            )}
+
+            {isOutOfStock && (
+              <>
+                <div className="absolute inset-0 bg-white/55 backdrop-grayscale pointer-events-none" />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className={`absolute top-4 ${language === 'ar' ? 'right-4' : 'left-4'} bg-[#850935] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 shadow-lg`}
+                  data-testid={`badge-out-of-stock-${product.id}`}
+                >
+                  {language === 'ar' ? 'نفذ' : 'Sold Out'}
+                </motion.div>
+              </>
             )}
           </div>
 
@@ -222,23 +242,33 @@ export function ProductCard({ product }: ProductCardProps) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (isOutOfStock) return;
                   const variants = (product as any).variants;
                   if (variants && variants.length > 0) {
-                    const variant = variants[0];
+                    // Pick the first variant that still has stock
+                    const variant = variants.find((v: any) => Number(v?.stock) > 0) || variants[0];
                     addItem(product, variant, 1);
                     setAddedToCart(true);
                     setTimeout(() => setAddedToCart(false), 2000);
                     flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
                   }
                 }}
+                disabled={isOutOfStock}
                 className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${
-                  addedToCart
-                    ? "bg-green-500 text-white"
-                    : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
+                  isOutOfStock
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : addedToCart
+                      ? "bg-green-500 text-white"
+                      : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
                 }`}
                 data-testid={`button-add-cart-${product.id}`}
               >
-                {addedToCart ? (
+                {isOutOfStock ? (
+                  <>
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {language === 'ar' ? 'نفذت الكمية' : 'Out of Stock'}
+                  </>
+                ) : addedToCart ? (
                   <>
                     <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                     {t('added')}

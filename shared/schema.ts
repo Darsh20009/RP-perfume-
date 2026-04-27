@@ -45,6 +45,14 @@ export const insertUserSchema = z.object({
     name: z.string(),
     city: z.string(),
     street: z.string(),
+    district: z.string().optional().default(""),
+    building: z.string().optional().default(""),
+    floor: z.string().optional().default(""),
+    apartment: z.string().optional().default(""),
+    phone: z.string().optional().default(""),
+    notes: z.string().optional().default(""),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
     isDefault: z.boolean().default(false),
   })).default([]),
 });
@@ -197,8 +205,13 @@ export const insertOrderSchema = z.object({
   shippingAddress: z.object({
     city: z.string().optional(),
     street: z.string().optional(),
+    district: z.string().optional(),
     country: z.string().optional(),
+    notes: z.string().optional(),
   }).optional(),
+  // Customer's pinned location for delivery (so the driver/employee can navigate exactly there)
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   pickupBranch: z.string().optional(),
   pickupCode: z.string().optional(),
   pickupVerified: z.boolean().optional().default(false),
