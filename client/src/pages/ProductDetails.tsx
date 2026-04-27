@@ -170,12 +170,25 @@ export default function ProductDetails() {
     }
   }, [selectedVariant, allImages]);
 
+  // Whether the product has real, configured variants (color/size/sku).
+  // Products without variants still get a synthetic default so the cart logic
+  // works, but we hide the color/size selectors below to avoid the ugly
+  // "DEFAULT / ONE SIZE" placeholders.
+  const hasRealVariants = !!(product?.variants && product.variants.length > 0);
+
   // Ensure variants exist, otherwise provide default (memoized)
   const variants = useMemo(() =>
-    product?.variants && product.variants.length > 0
-      ? product.variants
-      : [{ sku: 'default', color: 'Default', size: 'One Size', stock: 10, image: '' }],
-    [product?.variants]
+    hasRealVariants
+      ? product!.variants
+      : [{
+          sku: `default-${product?.id || 'p'}`,
+          color: '',
+          size: '',
+          stock: 999,
+          image: '',
+          price: Number(product?.price) || 0,
+        }],
+    [hasRealVariants, product?.id, product?.variants, product?.price]
   );
   
   // Extract unique colors (memoized)
@@ -250,6 +263,15 @@ export default function ProductDetails() {
       }
     }
   }, [selectedColor, selectedSize, variants]);
+
+  // For products with no real variants, the synthetic default has empty
+  // color/size strings and the effect above never fires. Pin selectedVariant
+  // directly so "Add to Cart" works.
+  useEffect(() => {
+    if (!hasRealVariants && variants[0]) {
+      setSelectedVariant(variants[0]);
+    }
+  }, [hasRealVariants, variants]);
 
   if (isLoading) {
     return (
@@ -444,7 +466,7 @@ export default function ProductDetails() {
             </div>
 
             {/* SKU Display */}
-            {selectedVariant && selectedVariant.sku && (
+            {hasRealVariants && selectedVariant && selectedVariant.sku && (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -456,9 +478,13 @@ export default function ProductDetails() {
               </motion.div>
             )}
 
-            {/* Variants - Colors Section */}
+            {/* Variants - Colors / Sizes Section.
+                Hidden entirely when the product has no real variants — the
+                synthetic default keeps the cart logic working without showing
+                a pointless "DEFAULT / ONE SIZE" placeholder. */}
             <div className="space-y-10 mb-12">
               {/* Colors */}
+              {hasRealVariants && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] mb-6 text-black/40">{t('colorLabel')}</label>
                 <div className={`flex flex-wrap gap-4 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
@@ -521,8 +547,10 @@ export default function ProductDetails() {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Sizes */}
+              {hasRealVariants && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-[0.2em] mb-6 text-black/40">{t('sizeLabel')}</label>
                 <div className={`flex flex-wrap gap-4 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
@@ -556,6 +584,7 @@ export default function ProductDetails() {
                   })}
                 </div>
               </div>
+              )}
 
               {/* Perfume advisor / outfit suggestions removed — RF Perfume is an oud & perfume store, not clothing. */}
 

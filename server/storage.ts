@@ -356,6 +356,9 @@ export class MongoDBStorage implements IStorage {
     const reserved: Array<{ productId: string; variantSku: string; quantity: number }> = [];
     for (const item of insertOrder.items) {
       if (!item.variantSku) continue; // legacy items without SKU — skip stock check
+      // Synthetic "default" SKU comes from products that have no real variants
+      // configured. There's nothing to reserve against, so treat as unlimited.
+      if (item.variantSku === "default" || item.variantSku.startsWith("default-")) continue;
       const updated = await ProductModel.findOneAndUpdate(
         {
           _id: item.productId,

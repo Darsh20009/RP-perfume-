@@ -244,15 +244,29 @@ export function ProductCard({ product }: ProductCardProps) {
                   e.preventDefault();
                   e.stopPropagation();
                   if (isOutOfStock) return;
-                  const variants = (product as any).variants;
+                  const variants = (product as any).variants as Array<any> | undefined;
+                  let variant: any;
                   if (variants && variants.length > 0) {
                     // Pick the first variant that still has stock
-                    const variant = variants.find((v: any) => Number(v?.stock) > 0) || variants[0];
-                    addItem(product, variant, 1);
-                    setAddedToCart(true);
-                    setTimeout(() => setAddedToCart(false), 2000);
-                    flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
+                    variant = variants.find((v: any) => Number(v?.stock) > 0) || variants[0];
+                  } else {
+                    // Synthetic default variant — products without configured variants
+                    // would otherwise silently fail to add. Build a sane default from
+                    // the product itself so the click is never a dead-end for the user.
+                    variant = {
+                      sku: `default-${product.id}`,
+                      color: '',
+                      size: '',
+                      price: Number(product.price) || 0,
+                      cost: Number((product as any).cost) || 0,
+                      image: product.images?.[0] || '',
+                      stock: 999,
+                    };
                   }
+                  addItem(product, variant, 1);
+                  setAddedToCart(true);
+                  setTimeout(() => setAddedToCart(false), 2000);
+                  flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
                 }}
                 disabled={isOutOfStock}
                 className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${
