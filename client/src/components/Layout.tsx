@@ -428,13 +428,13 @@ export function Layout({ children }: { children: ReactNode }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-11 px-2 md:px-4 flex items-center gap-2 md:gap-3 border border-border hover:border-foreground/20 transition-all rounded-none group no-default-hover-elevate active:scale-95">
-                    <div className="hidden xs:flex flex-col items-end">
-                      <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">{t('myAccount') || 'حسابي'}</span>
-                      <span className="text-[10px] md:text-[11px] font-bold text-foreground/60 truncate max-w-[80px] md:max-w-[100px]">{user?.name || user?.username}</span>
+                  <Button variant="ghost" className="h-10 md:h-11 px-1.5 md:px-4 flex items-center gap-2 md:gap-3 border border-transparent md:border-border md:hover:border-foreground/20 transition-all rounded-full md:rounded-none group no-default-hover-elevate active:scale-95">
+                    <div className="hidden md:flex flex-col items-end">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">{t('myAccount') || 'حسابي'}</span>
+                      <span className="text-[11px] font-bold text-foreground/60 truncate max-w-[100px]">{user?.name || user?.username}</span>
                     </div>
-                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
-                      <User className="h-5 w-5" />
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-muted flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
+                      <User className="h-4 w-4 md:h-5 md:w-5" />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
