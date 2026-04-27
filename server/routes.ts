@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema, insertBundleOfferSchema, insertBranchSchema } from "@shared/schema";
+import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema, insertBundleOfferSchema, insertBranchSchema, insertUserSchema } from "@shared/schema";
 import { seed } from "./seed";
 import multer from "multer";
 import path from "path";
@@ -4101,6 +4101,40 @@ export async function registerRoutes(
       res.json({ message: "تم تغيير كلمة المرور بنجاح" });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ─── Set / Update Phone (for OAuth users with empty phone) ───
+  app.post("/api/user/phone", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const u = req.user as any;
+    try {
+      const phoneSchema = (insertUserSchema as any).shape.phone;
+      const parsed = phoneSchema.safeParse(req.body?.phone);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues?.[0]?.message || "رقم الهاتف غير صالح" });
+      }
+      const cleanPhone = String(parsed.data).replace(/\D/g, "").replace(/^966/, "0");
+      const normalized = cleanPhone.startsWith("0") ? cleanPhone : "0" + cleanPhone;
+
+      const { UserModel } = await import("./models");
+      if (UserModel) {
+        const conflict = await UserModel.findOne({
+          _id: { $ne: u.id },
+          phone: { $in: [normalized, normalized.replace(/^0/, ""), "966" + normalized.replace(/^0/, "")] },
+        }).lean();
+        if (conflict) {
+          return res.status(409).json({ message: "هذا الرقم مسجل بحساب آخر، يرجى استخدام رقم مختلف" });
+        }
+      }
+
+      const updated = await storage.updateUser(u.id, { phone: normalized } as any);
+      const safe = { ...(updated as any) };
+      delete safe.password;
+      res.json(safe);
+    } catch (err: any) {
+      console.error("[API] user.phone update error:", err?.message);
+      res.status(500).json({ message: err.message || "تعذّر حفظ الرقم" });
     }
   });
 

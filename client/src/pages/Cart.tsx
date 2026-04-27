@@ -3,19 +3,32 @@ import { useCart } from "@/hooks/use-cart";
 import { useCoupon } from "@/hooks/use-coupon";
 import { Button } from "@/components/ui/button";
 import { Trash2, ShoppingBag, Check, AlertCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/hooks/use-language";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, total } = useCart();
   const { appliedCoupon, setCoupon, clearCoupon } = useCoupon();
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const handleCheckoutClick = () => {
+    if (!user) {
+      setAuthOpen(true);
+      return;
+    }
+    setLocation("/checkout");
+  };
 
   // ── Bundle offers: ask the server to compute best bundle pricing for the cart
   const bundleCalcKey = items.map(i => `${i.productId}:${i.quantity}:${i.price}`).join("|");
@@ -292,11 +305,14 @@ export default function Cart() {
                       </div>
                     )}
 
-                    <Link href="/checkout">
-                      <Button size="lg" className="w-full font-black h-16 uppercase tracking-[0.4em] rounded-none bg-black text-white hover:bg-primary border-none transition-all text-xs shadow-xl shadow-black/10 active:scale-95">
-                        {t('checkout')}
-                      </Button>
-                    </Link>
+                    <Button
+                      size="lg"
+                      onClick={handleCheckoutClick}
+                      data-testid="button-proceed-checkout"
+                      className="w-full font-black h-16 uppercase tracking-[0.4em] rounded-none bg-black text-white hover:bg-primary border-none transition-all text-xs shadow-xl shadow-black/10 active:scale-95"
+                    >
+                      {t('checkout')}
+                    </Button>
                   </div>
                   
                   <div className="mt-8 pt-8 border-t border-black/5">
@@ -316,6 +332,7 @@ export default function Cart() {
           </div>
         </div>
       </div>
+      {!user && <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="login" />}
     </Layout>
   );
 }

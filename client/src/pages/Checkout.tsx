@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { LocationMap } from "@/components/LocationMap";
 import { useQuery } from "@tanstack/react-query";
+import { AuthModal } from "@/components/AuthModal";
 import {
   CardBrandsLogo, STCPayLogo, ApplePayLogo,
   TabbyLogo, TamaraLogo, BankLogo
@@ -81,6 +82,50 @@ export default function Checkout() {
   const [shippingMethod, setShippingMethod] = useState<"delivery" | "pickup">("delivery");
   const [pickupBranchId, setPickupBranchId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ── Auth gating ────────────────────────────────────────────
+  const [authOpen, setAuthOpen] = useState(false);
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const userMissingPhone = !!user && !((user as any).phone) && (user as any).role === "customer";
+
+  useEffect(() => {
+    if (!user) {
+      setAuthOpen(true);
+    } else {
+      setAuthOpen(false);
+      if (userMissingPhone) setPhoneDialogOpen(true);
+      else setPhoneDialogOpen(false);
+    }
+  }, [user, userMissingPhone]);
+
+  const savePhone = async () => {
+    const cleaned = phoneInput.trim();
+    if (!/^0?5\d{8}$/.test(cleaned)) {
+      toast({ title: "رقم غير صالح", description: "أدخل رقماً يبدأ بـ 5 أو 05", variant: "destructive" });
+      return;
+    }
+    setPhoneSaving(true);
+    try {
+      const res = await fetch("/api/user/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: cleaned }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "تعذّر حفظ الرقم");
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({ title: "تم حفظ رقم جوالك" });
+      setPhoneDialogOpen(false);
+      setPhoneInput("");
+    } catch (e: any) {
+      toast({ title: "خطأ", description: e.message, variant: "destructive" });
+    } finally {
+      setPhoneSaving(false);
+    }
+  };
 
   const { data: branches = [] } = useQuery<any[]>({
     queryKey: ["/api/branches"],
@@ -191,8 +236,12 @@ export default function Checkout() {
 
   const handleCheckoutInitiate = () => {
     if (!user) {
-      toast({ title: "يجب تسجيل الدخول", description: "يرجى تسجيل الدخول لإتمام الطلب", variant: "destructive" });
-      setLocation("/login");
+      setAuthOpen(true);
+      return;
+    }
+    if (userMissingPhone) {
+      setPhoneDialogOpen(true);
+      toast({ title: "رقم الجوال مطلوب", description: "أضف رقم جوالك لإتمام الطلب", variant: "destructive" });
       return;
     }
     if (paymentMethod === "wallet" && Number(user.walletBalance) < finalTotal) {
@@ -1164,6 +1213,51 @@ export default function Checkout() {
               className="rounded-xl h-12 px-10 font-black uppercase tracking-widest text-[10px] flex-1 sm:flex-none"
             >
               {isSubmitting ? "جاري التأكيد..." : "تأكيد وإتمام الطلب"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auth required modal */}
+      {!user && <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="login" />}
+
+      {/* Phone required dialog (for OAuth users without phone) */}
+      <Dialog open={phoneDialogOpen} onOpenChange={(o) => {
+        if (!o && userMissingPhone) return;
+        setPhoneDialogOpen(o);
+      }}>
+        <DialogContent className="sm:max-w-md" data-testid="dialog-require-phone">
+          <DialogHeader>
+            <DialogTitle className="text-right">رقم الجوال مطلوب</DialogTitle>
+            <DialogDescription className="text-right text-xs">
+              لإتمام طلبك ولتحديثك بحالة الشحن، يرجى إدخال رقم جوالك السعودي. يُحفظ مرة واحدة فقط ولن نطلبه مجدداً.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="phone-required" className="text-right block text-xs font-bold">
+              رقم الجوال
+            </Label>
+            <Input
+              id="phone-required"
+              type="tel"
+              inputMode="numeric"
+              dir="ltr"
+              placeholder="05xxxxxxxx"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              data-testid="input-required-phone"
+              className="text-center tracking-widest"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={savePhone}
+              disabled={phoneSaving || phoneInput.length < 9}
+              className="w-full font-black uppercase tracking-widest"
+              data-testid="button-save-required-phone"
+            >
+              {phoneSaving ? "جاري الحفظ..." : "حفظ ومتابعة"}
             </Button>
           </DialogFooter>
         </DialogContent>
