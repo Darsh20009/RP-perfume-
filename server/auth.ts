@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { type Express } from "express";
+import express, { type Express } from "express";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -568,7 +568,142 @@ export function setupAuth(app: Express) {
   app.get("/api/auth/apple/init", (req, res) => {
     const clientId = process.env.APPLE_CLIENT_ID || "";
     const redirectURI = process.env.APPLE_REDIRECT_URI || `https://${req.get("host")}/api/auth/apple/callback`;
-    res.json({ clientId, redirectURI });
+    res.json({ clientId, redirectURI, enabled: !!clientId });
+  });
+
+  app.get("/api/auth/apple/start", (req, res) => {
+    const clientId = process.env.APPLE_CLIENT_ID;
+    if (!clientId) return res.status(503).send("Apple Sign-In غير مفعّل");
+
+    const redirectURI = process.env.APPLE_REDIRECT_URI || `https://${req.get("host")}/api/auth/apple/callback`;
+    const state = randomBytes(16).toString("hex");
+    const nonce = randomBytes(16).toString("hex");
+    (req.session as any).appleOAuthState = state;
+    (req.session as any).appleOAuthNonce = nonce;
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectURI,
+      response_type: "code id_token",
+      response_mode: "form_post",
+      scope: "name email",
+      state,
+      nonce,
+    });
+
+    res.redirect(`https://appleid.apple.com/auth/authorize?${params.toString()}`);
+  });
+
+  // Apple posts back to the callback as form-encoded (response_mode=form_post)
+  app.post("/api/auth/apple/callback", express.urlencoded({ extended: true }), async (req, res) => {
+    try {
+      const { id_token, state, error, user: appleUserRaw } = req.body as any;
+
+      if (error) return res.redirect(`/?auth_error=${encodeURIComponent(String(error))}`);
+      if (!id_token) return res.redirect("/?auth_error=missing_id_token");
+
+      const sessionState = (req.session as any).appleOAuthState;
+      const sessionNonce = (req.session as any).appleOAuthNonce;
+      if (!sessionState || sessionState !== state) {
+        return res.redirect("/?auth_error=invalid_state");
+      }
+      delete (req.session as any).appleOAuthState;
+      delete (req.session as any).appleOAuthNonce;
+
+      const APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID!;
+      const jwt = await import("jsonwebtoken");
+      const crypto = await import("crypto");
+
+      const unverified: any = jwt.default.decode(id_token, { complete: true });
+      const kid = unverified?.header?.kid;
+      if (!kid || unverified?.header?.alg !== "RS256") {
+        return res.redirect("/?auth_error=invalid_apple_token");
+      }
+
+      const jwksRes = await fetch("https://appleid.apple.com/auth/keys");
+      if (!jwksRes.ok) return res.redirect("/?auth_error=apple_jwks_failed");
+      const jwks: any = await jwksRes.json();
+      const jwk = jwks.keys?.find((k: any) => k.kid === kid && k.alg === "RS256");
+      if (!jwk) return res.redirect("/?auth_error=apple_key_missing");
+
+      const publicKey = crypto.createPublicKey({ key: jwk, format: "jwk" });
+      const pem = publicKey.export({ type: "spki", format: "pem" }) as string;
+
+      let decoded: any;
+      try {
+        decoded = jwt.default.verify(id_token, pem, {
+          algorithms: ["RS256"],
+          audience: APPLE_CLIENT_ID,
+          issuer: "https://appleid.apple.com",
+        });
+      } catch (verifyErr: any) {
+        console.error("[AUTH] Apple id_token verify failed:", verifyErr?.message);
+        return res.redirect("/?auth_error=apple_verify_failed");
+      }
+
+      if (sessionNonce && decoded?.nonce && decoded.nonce !== sessionNonce) {
+        return res.redirect("/?auth_error=nonce_mismatch");
+      }
+      if (!decoded?.sub) return res.redirect("/?auth_error=apple_no_subject");
+
+      const email: string | undefined = decoded.email;
+      let appleUser: any = undefined;
+      if (appleUserRaw) {
+        try { appleUser = typeof appleUserRaw === "string" ? JSON.parse(appleUserRaw) : appleUserRaw; } catch {}
+      }
+      const nameFromApple = appleUser?.name
+        ? `${appleUser.name.firstName || ""} ${appleUser.name.lastName || ""}`.trim()
+        : (email ? email.split("@")[0] : `Apple-${decoded.sub.slice(0, 6)}`);
+
+      let user = await UserModel.findOne({
+        $or: [
+          ...(email ? [{ email }] : []),
+          { appleId: decoded.sub },
+        ],
+      }).lean();
+
+      if (user) {
+        if ((user as any).isActive === false) {
+          return res.redirect("/?auth_error=account_disabled");
+        }
+        if (!(user as any).appleId) {
+          await UserModel.updateOne({ _id: user._id }, { $set: { appleId: decoded.sub } });
+        }
+      } else {
+        const newUser = await storage.createUser({
+          name: nameFromApple,
+          email: email || "",
+          phone: "",
+          password: "",
+          username: email || `apple_${decoded.sub}`,
+          role: "customer",
+          walletBalance: "0",
+          addresses: [],
+          permissions: [],
+          loginType: "dashboard",
+          isActive: true,
+          mustChangePassword: false,
+          loyaltyPoints: 0,
+          loyaltyTier: "bronze",
+          totalSpent: 0,
+          phoneDiscountEligible: false,
+          appleId: decoded.sub,
+        } as any);
+        user = newUser as any;
+      }
+
+      const userObj = { ...user, id: (user as any)._id?.toString() || (user as any).id };
+      req.login(userObj as any, (err) => {
+        if (err) {
+          console.error("[AUTH] Apple callback login error:", err);
+          return res.redirect("/?auth_error=login_failed");
+        }
+        res.redirect("/?auth_success=apple");
+      });
+    } catch (err: any) {
+      console.error("[AUTH] Apple callback error:", err?.message);
+      res.redirect("/?auth_error=server_error");
+    }
   });
 
   app.post("/api/auth/apple", async (req, res) => {

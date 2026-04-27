@@ -161,7 +161,8 @@ export default function Login() {
                 </a>
               )}
               {appleEnabled && (
-                <button
+                <a
+                  href="/api/auth/apple/start"
                   className="w-full h-12 bg-black text-white rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-black/90 transition-colors"
                   data-testid="button-login-apple"
                 >
@@ -169,7 +170,7 @@ export default function Login() {
                     <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z"/>
                   </svg>
                   المتابعة مع Apple
-                </button>
+                </a>
               )}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-gray-200" />

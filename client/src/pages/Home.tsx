@@ -212,18 +212,16 @@ export default function Home() {
                     {/* Category image (top) */}
                     <Link href={`/products?category=${cat.slug}`}>
                       <div
-                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-44 sm:h-52 md:h-64 lg:h-72 bg-gradient-to-br from-[#2B2B60] to-[#0F0F0F]`}
+                        className={`relative overflow-hidden rounded-2xl mb-4 cursor-pointer group h-52 sm:h-64 md:h-80 lg:h-96 bg-[#F5F2ED] border border-[#E8E2D5] shadow-sm`}
                       >
                         {cat.image && (
                           <img
                             src={cat.image}
                             alt={catName}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:scale-[1.03]"
                             loading="lazy"
                           />
                         )}
-                        {/* Bottom fade for text readability if needed */}
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
                       </div>
                     </Link>
 
@@ -672,8 +670,8 @@ export default function Home() {
                         </a>
                       )}
                       {appleEnabled && (
-                        <Link
-                          href="/login"
+                        <a
+                          href="/api/auth/apple/start"
                           className="h-12 bg-black text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
                           data-testid="button-cta-apple"
                         >
@@ -681,7 +679,7 @@ export default function Home() {
                             <path d="M13.23 3.02C14.28 1.71 14.94 0 14.94 0s-1.71.28-2.76 1.59c-.96 1.21-1.57 2.86-1.47 3.64.97.07 2.53-.3 3.52-2.21zM16.44 8.74c-1.77-.07-3.28 1-4.13 1-.85 0-2.14-.94-3.55-.91-1.82.03-3.5 1.06-4.43 2.71-1.9 3.28-.49 8.15 1.35 10.82.9 1.31 1.97 2.77 3.38 2.72 1.35-.05 1.86-.87 3.49-.87 1.62 0 2.09.87 3.51.84 1.46-.03 2.39-1.32 3.29-2.63.97-1.47 1.37-2.9 1.4-2.97-.03-.01-2.71-1.04-2.74-4.13-.03-2.59 2.11-3.83 2.21-3.9-1.2-1.78-3.08-1.68-3.78-1.68z" />
                           </svg>
                           Apple
-                        </Link>
+                        </a>
                       )}
                     </div>
                   </>
