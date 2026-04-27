@@ -169,7 +169,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     <Link href="/cart" onClick={closeSidebar}>
                       <div className="mx-4 mb-4 rounded-2xl bg-primary/5 border border-primary/10 p-3 flex items-center justify-between gap-3 active:scale-98 transition-transform cursor-pointer">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center">
                             <ShoppingBag className="h-4 w-4 text-primary" />
                           </div>
                           <div>
@@ -211,12 +211,12 @@ export function Layout({ children }: { children: ReactNode }) {
                         const isActive = location === href || (href !== '/' && location.startsWith(href));
                         return (
                           <Link key={href} href={href} onClick={closeSidebar}>
-                            <div className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 cursor-pointer ${
+                            <div className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-all active:scale-95 cursor-pointer ${
                               isActive
                                 ? 'bg-foreground text-background'
                                 : 'hover:bg-muted text-foreground'
                             }`}>
-                              <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                              <div className={`relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                                 isActive ? 'bg-background/10' : accent ? 'bg-primary/10' : 'bg-muted'
                               }`}>
                                 <Icon className={`h-4 w-4 ${accent && !isActive ? 'text-primary' : ''}`} />
@@ -226,7 +226,7 @@ export function Layout({ children }: { children: ReactNode }) {
                                   </span>
                                 )}
                               </div>
-                              <span className={`font-bold text-sm flex-1 ${accent && !isActive ? 'text-primary' : ''}`}>{label}</span>
+                              <span className={`font-bold text-[13px] flex-1 ${accent && !isActive ? 'text-primary' : ''}`}>{label}</span>
                               {badge > 0 && !isActive && (
                                 <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full animate-pulse">
                                   {badge}
@@ -246,12 +246,12 @@ export function Layout({ children }: { children: ReactNode }) {
                     <div className="space-y-1">
                       <button
                         onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-all active:scale-95"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
                           <Globe className="h-4 w-4" />
                         </div>
-                        <span className="font-bold text-sm text-foreground flex-1 text-right">{language === 'ar' ? 'English' : 'العربية'}</span>
+                        <span className="font-bold text-[13px] text-foreground flex-1 text-right">{language === 'ar' ? 'English' : 'العربية'}</span>
                         <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted text-muted-foreground">{language === 'ar' ? 'EN' : 'AR'}</span>
                       </button>
                     </div>
@@ -262,30 +262,30 @@ export function Layout({ children }: { children: ReactNode }) {
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1 mb-2">{t('more')}</p>
                     <div className="space-y-1">
                       <Link href="/terms" onClick={closeSidebar}>
-                        <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
-                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0"><Shield className="h-4 w-4" /></div>
-                          <span className="font-bold text-sm text-foreground flex-1">{t('terms')}</span>
+                        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
+                          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0"><Shield className="h-4 w-4" /></div>
+                          <span className="font-bold text-[13px] text-foreground flex-1">{t('terms')}</span>
                           <ChevronRight className={`h-4 w-4 text-muted-foreground ${language === 'ar' ? 'rotate-180' : ''}`} />
                         </div>
                       </Link>
                       <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" onClick={closeSidebar}>
-                        <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
-                          <div className="w-8 h-8 rounded-lg bg-[#25D366]/10 flex items-center justify-center shrink-0"><SiWhatsapp className="h-4 w-4 text-[#25D366]" /></div>
-                          <span className="font-bold text-sm text-foreground flex-1">{t('contactUs')}</span>
+                        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-all active:scale-95 cursor-pointer">
+                          <div className="w-7 h-7 rounded-lg bg-[#25D366]/10 flex items-center justify-center shrink-0"><SiWhatsapp className="h-4 w-4 text-[#25D366]" /></div>
+                          <span className="font-bold text-[13px] text-foreground flex-1">{t('contactUs')}</span>
                           <ChevronRight className={`h-4 w-4 text-muted-foreground ${language === 'ar' ? 'rotate-180' : ''}`} />
                         </div>
                       </a>
                       {deferredPrompt && (
-                        <button onClick={() => { handleInstall(); closeSidebar(); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-all active:scale-95">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Download className="h-4 w-4 text-primary" /></div>
-                          <span className="font-bold text-sm text-foreground flex-1 text-right">{t('installApp')}</span>
+                        <button onClick={() => { handleInstall(); closeSidebar(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-all active:scale-95">
+                          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Download className="h-4 w-4 text-primary" /></div>
+                          <span className="font-bold text-[13px] text-foreground flex-1 text-right">{t('installApp')}</span>
                           <span className="text-[9px] font-black px-2 py-1 rounded-full bg-primary text-primary-foreground">{t('new')}</span>
                         </button>
                       )}
                       {user && (
-                        <button onClick={() => { logout(); closeSidebar(); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-50 transition-all active:scale-95">
-                          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0"><LogOut className="h-4 w-4 text-red-500" /></div>
-                          <span className="font-bold text-sm text-red-500 flex-1 text-right">{t('signOut')}</span>
+                        <button onClick={() => { logout(); closeSidebar(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-red-50 transition-all active:scale-95">
+                          <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center shrink-0"><LogOut className="h-4 w-4 text-red-500" /></div>
+                          <span className="font-bold text-[13px] text-red-500 flex-1 text-right">{t('signOut')}</span>
                         </button>
                       )}
                     </div>
