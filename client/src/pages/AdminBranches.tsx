@@ -27,6 +27,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { LocationMap } from "@/components/LocationMap";
 
 // Extended form schema: branch fields + optional manager credentials
 const branchFormSchema = insertBranchSchema.extend({
@@ -360,6 +361,34 @@ export default function AdminBranches() {
             </FormItem>
           )}
         />
+
+        {/* Interactive Apple Map for picking the branch location.
+            Selecting on the map updates latitude/longitude/address/mapUrl in
+            the form so the branch ends up with real coordinates that all the
+            "Open in Maps" buttons can use. */}
+        <FormItem className="text-right">
+          <FormLabel className="font-black flex items-center gap-2 justify-end">
+            <MapPin className="h-4 w-4" />
+            تحديد موقع الفرع على الخريطة
+          </FormLabel>
+          <LocationMap
+            initialLat={Number(form.watch("latitude")) || 24.7136}
+            initialLng={Number(form.watch("longitude")) || 46.6753}
+            onLocationSelect={(coords, addr) => {
+              form.setValue("latitude", coords.lat, { shouldDirty: true });
+              form.setValue("longitude", coords.lng, { shouldDirty: true });
+              if (addr && !form.getValues("address")) {
+                form.setValue("address", addr, { shouldDirty: true });
+              }
+              form.setValue(
+                "mapUrl",
+                `https://maps.google.com/?q=${coords.lat},${coords.lng}`,
+                { shouldDirty: true },
+              );
+              toast({ title: "تم تحديد الموقع", description: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` });
+            }}
+          />
+        </FormItem>
 
         <FormField
           control={form.control}
