@@ -222,47 +222,36 @@ export default function Home() {
                           className="group cursor-pointer"
                           data-testid={`tile-cat-mosaic-${cat.slug}`}
                         >
-                          {/* Single hero image for Men, mosaic of 4 product images for the rest */}
-                          {cat.slug === "men" ? (
-                            <div className="rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
+                          {/* Mosaic of 4 product images per category */}
+                          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
+                            {tiles.length > 0 ? (
+                              [...tiles, ...Array(Math.max(0, 4 - tiles.length)).fill(null)].slice(0, 4).map((p: any, i: number) => {
+                                const imgSrc = p?.images?.[0] || p?.image;
+                                return (
+                                  <div
+                                    key={i}
+                                    className="relative bg-[#F7F3EC] flex items-center justify-center overflow-hidden"
+                                  >
+                                    {imgSrc && (
+                                      <img
+                                        src={imgSrc}
+                                        alt={isRtl ? (p.nameAr || p.name) : p.name}
+                                        className="w-full h-full object-contain p-1.5 sm:p-2"
+                                        loading="lazy"
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })
+                            ) : cat.image ? (
                               <img
-                                src={menCategoryImg}
+                                src={cat.image}
                                 alt={catName}
-                                className="w-full h-full object-cover object-top"
+                                className="col-span-2 row-span-2 w-full h-full object-contain p-3 sm:p-4"
                                 loading="lazy"
                               />
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 rounded-3xl overflow-hidden bg-[#F7F3EC] aspect-square transition-transform duration-500 group-hover:scale-[1.02]">
-                              {tiles.length > 0 ? (
-                                [...tiles, ...Array(Math.max(0, 4 - tiles.length)).fill(null)].slice(0, 4).map((p: any, i: number) => {
-                                  const imgSrc = p?.images?.[0] || p?.image;
-                                  return (
-                                    <div
-                                      key={i}
-                                      className="relative bg-[#F7F3EC] flex items-center justify-center overflow-hidden"
-                                    >
-                                      {imgSrc && (
-                                        <img
-                                          src={imgSrc}
-                                          alt={isRtl ? (p.nameAr || p.name) : p.name}
-                                          className="w-full h-full object-contain p-1.5 sm:p-2"
-                                          loading="lazy"
-                                        />
-                                      )}
-                                    </div>
-                                  );
-                                })
-                              ) : cat.image ? (
-                                <img
-                                  src={cat.image}
-                                  alt={catName}
-                                  className="col-span-2 row-span-2 w-full h-full object-contain p-3 sm:p-4"
-                                  loading="lazy"
-                                />
-                              ) : null}
-                            </div>
-                          )}
+                            ) : null}
+                          </div>
                           {/* Category label coming from the right (RTL aware) */}
                           <div className={`mt-3 flex items-center justify-between gap-2 ${isRtl ? "flex-row-reverse text-right" : "text-left"}`}>
                             <h3 className="text-sm sm:text-base md:text-lg font-bold text-[#2B2B60] truncate">
@@ -282,6 +271,22 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* ── MEN'S CATEGORY — standalone framed hero image ─────── */}
+      <section className="py-6 md:py-10 bg-white" data-testid="section-men-hero">
+        <div className="container px-4 flex justify-center">
+          <Link href="/products?category=men" className="inline-block group" data-testid="link-men-hero">
+            <div className="rounded-3xl bg-white p-2 sm:p-3 ring-1 ring-[#E8E2D5] shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:scale-[1.01] group-hover:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.25)]">
+              <img
+                src={menCategoryImg}
+                alt="عطور رجالية"
+                className="block h-auto w-auto max-w-full max-h-[28rem] sm:max-h-[34rem] md:max-h-[40rem] rounded-2xl"
+                loading="lazy"
+              />
+            </div>
+          </Link>
+        </div>
+      </section>
 
       {/* ── NEWEST PRODUCTS — auto-scrolling marquee strip ─────── */}
       {(products && products.length >= 5) && (
