@@ -451,6 +451,9 @@ export function setupAuth(app: Express) {
       }).lean();
 
       if (user) {
+        if ((user as any).isActive === false) {
+          return res.redirect("/?auth_error=account_disabled");
+        }
         if (!(user as any).googleId) {
           await UserModel.updateOne({ _id: user._id }, { $set: { googleId: payload.sub } });
         }
@@ -520,6 +523,9 @@ export function setupAuth(app: Express) {
       }).lean();
 
       if (user) {
+        if ((user as any).isActive === false) {
+          return res.status(403).json({ message: "هذا الحساب معطل حالياً" });
+        }
         if (!(user as any).googleId) {
           await UserModel.updateOne({ _id: user._id }, { $set: { googleId: payload.sub } });
         }
@@ -576,7 +582,40 @@ export function setupAuth(app: Express) {
       }
 
       const jwt = await import("jsonwebtoken");
-      const decoded: any = jwt.default.decode(id_token);
+      const crypto = await import("crypto");
+
+      const unverified: any = jwt.default.decode(id_token, { complete: true });
+      const kid = unverified?.header?.kid;
+      if (!kid || unverified?.header?.alg !== "RS256") {
+        return res.status(400).json({ message: "رمز Apple غير صالح" });
+      }
+
+      const jwksRes = await fetch("https://appleid.apple.com/auth/keys");
+      if (!jwksRes.ok) {
+        console.error("[AUTH] Failed to fetch Apple JWKS");
+        return res.status(502).json({ message: "تعذّر التحقق من Apple" });
+      }
+      const jwks: any = await jwksRes.json();
+      const jwk = jwks.keys?.find((k: any) => k.kid === kid && k.alg === "RS256");
+      if (!jwk) {
+        return res.status(400).json({ message: "مفتاح Apple غير موجود" });
+      }
+
+      const publicKey = crypto.createPublicKey({ key: jwk, format: "jwk" });
+      const pem = publicKey.export({ type: "spki", format: "pem" }) as string;
+
+      let decoded: any;
+      try {
+        decoded = jwt.default.verify(id_token, pem, {
+          algorithms: ["RS256"],
+          audience: APPLE_CLIENT_ID,
+          issuer: "https://appleid.apple.com",
+        });
+      } catch (verifyErr: any) {
+        console.error("[AUTH] Apple id_token verify failed:", verifyErr?.message);
+        return res.status(401).json({ message: "فشل التحقق من رمز Apple" });
+      }
+
       if (!decoded?.sub || !decoded?.email) {
         return res.status(400).json({ message: "رمز Apple غير صالح" });
       }
