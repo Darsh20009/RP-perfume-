@@ -418,49 +418,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── BEST SELLERS ───────────────────────────────── */}
-      <section className="py-12 md:py-16 bg-white">
-        <div className="container px-4">
-          <div className={`flex items-center justify-between mb-8 ${isRtl ? "flex-row-reverse" : ""}`}>
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] block mb-1">
-                {t('bestSellers')}
-              </span>
-              <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
-                {t('customerFavorites')}
-              </h2>
-            </div>
-            <Link href="/products">
-              <Button className="rounded-lg bg-[#2B2B60] text-white hover:bg-[#3A3A75] font-bold text-xs tracking-wider h-10 px-6">
-                {t('viewAll')}
-                {isRtl ? <ChevronLeft className="mr-2 h-4 w-4" /> : <ChevronRight className="ml-2 h-4 w-4" />}
-              </Button>
-            </Link>
-          </div>
-          {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] bg-[#F5F2ED] animate-pulse rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {featuredProducts.slice(0, 8).map((product: any, i: number) => (
-                <motion.div
-                  key={product.id || product._id || i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                >
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* ── CATEGORIES WITH PRODUCTS (full sections) ──────────── */}
       {dbCategories && dbCategories.length > 0 && (
         <div className="bg-white">
@@ -663,6 +620,49 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── BEST SELLERS (Customer Favorites — moved to bottom) ───────── */}
+      <section className="py-12 md:py-16 bg-white">
+        <div className="container px-4">
+          <div className={`flex items-center justify-between mb-8 ${isRtl ? "flex-row-reverse" : ""}`}>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#DFB369] block mb-1">
+                {t('bestSellers')}
+              </span>
+              <h2 className="text-2xl md:text-4xl font-bold text-[#2B2B60]">
+                {t('customerFavorites')}
+              </h2>
+            </div>
+            <Link href="/products">
+              <Button className="rounded-lg bg-[#2B2B60] text-white hover:bg-[#3A3A75] font-bold text-xs tracking-wider h-10 px-6">
+                {t('viewAll')}
+                {isRtl ? <ChevronLeft className="mr-2 h-4 w-4" /> : <ChevronRight className="ml-2 h-4 w-4" />}
+              </Button>
+            </Link>
+          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="aspect-[3/4] bg-[#F5F2ED] animate-pulse rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {featuredProducts.slice(0, 8).map((product: any, i: number) => (
+                <motion.div
+                  key={product.id || product._id || i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
