@@ -217,54 +217,58 @@ export function ProductCard({ product }: ProductCardProps) {
                 🏪 {t('seller')}
               </p>
             )}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const variants = (product as any).variants;
-                if (variants && variants.length > 0) {
-                  const variant = variants[0];
-                  addItem(product, variant, 1);
-                  setAddedToCart(true);
-                  setTimeout(() => setAddedToCart(false), 2000);
-                  flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
-                }
-              }}
-              className={`mt-2 sm:mt-3 w-full flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${
-                addedToCart
-                  ? "bg-green-500 text-white"
-                  : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
-              }`}
-              data-testid={`button-add-cart-${product.id}`}
-            >
-              {addedToCart ? (
-                <>
-                  <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-                  {t('added')}
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
-                  {t('addToCart')}
-                </>
+            <div className="mt-2 sm:mt-3 flex items-stretch gap-1.5 sm:gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const variants = (product as any).variants;
+                  if (variants && variants.length > 0) {
+                    const variant = variants[0];
+                    addItem(product, variant, 1);
+                    setAddedToCart(true);
+                    setTimeout(() => setAddedToCart(false), 2000);
+                    flyToCart(e.currentTarget, images[currentImageIndex] || images[0]);
+                  }
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold tracking-tight transition-all duration-300 ${
+                  addedToCart
+                    ? "bg-green-500 text-white"
+                    : "bg-[#2B2B60] text-white hover:bg-[#3A3A75] active:scale-95"
+                }`}
+                data-testid={`button-add-cart-${product.id}`}
+              >
+                {addedToCart ? (
+                  <>
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {t('added')}
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {t('addToCart')}
+                  </>
+                )}
+              </button>
+              {user && (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist.mutate(); }}
+                  className={`shrink-0 w-8 sm:w-10 flex items-center justify-center rounded-md sm:rounded-lg border transition-all duration-300 active:scale-95 ${
+                    isWishlisted
+                      ? "bg-red-500 text-white border-red-500 hover:bg-red-600"
+                      : "bg-white text-[#850935] border-[#850935]/30 hover:bg-[#850935]/5 hover:border-[#850935]"
+                  }`}
+                  title={isWishlisted ? tx("إزالة من المفضلة", "Remove from wishlist") : t('addToWishlist')}
+                  aria-label={isWishlisted ? tx("إزالة من المفضلة", "Remove from wishlist") : t('addToWishlist')}
+                  data-testid={`button-wishlist-${product.id}`}
+                >
+                  <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isWishlisted ? "fill-white" : ""}`} />
+                </button>
               )}
-            </button>
+            </div>
           </CardContent>
         </Card>
       </Link>
-
-      {user && (
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist.mutate(); }}
-          className={`absolute top-3 ${language === 'ar' ? 'left-3' : 'right-3'} z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
-            isWishlisted ? "bg-red-500 text-white" : "bg-white/90 text-slate-600 hover:bg-white"
-          }`}
-          title={isWishlisted ? tx("إزالة من المفضلة", "Remove from wishlist") : t('addToWishlist')}
-          data-testid={`button-wishlist-${product.id}`}
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? "fill-white" : ""}`} />
-        </button>
-      )}
     </motion.div>
   );
 }

@@ -132,10 +132,22 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: manipulation;
+    overscroll-behavior-y: none;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Alexandria', system-ui, -apple-system, sans-serif;
     font-size: clamp(0.875rem, 2vw, 1rem);
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Prevent iOS Safari auto-zoom when focusing inputs (font-size < 16px triggers zoom). */
+  input, select, textarea {
+    font-size: max(16px, 1em);
   }
   [lang="en"] body, [lang="en"] {
     font-family: 'Playfair Display', 'Alexandria', serif;
