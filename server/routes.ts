@@ -289,11 +289,12 @@ export async function registerRoutes(
       const normalizedKey = envKey.includes("BEGIN") ? envKey.replace(/\\n/g, "\n") : envKey;
       return { privateKey: normalizedKey, keyId: envKid, teamId: envTeam };
     }
-    const fallbackKid = "XW8G48DGMQ";
     const fallbackTeam = "V4K6RM59LS";
-    const fallbackPath = path.resolve(process.cwd(), `server/keys/AuthKey_${fallbackKid}.p8`);
-    if (fs.existsSync(fallbackPath)) {
-      return { privateKey: fs.readFileSync(fallbackPath, "utf8"), keyId: fallbackKid, teamId: fallbackTeam };
+    for (const fallbackKid of ["WD3KBJP67H", "XW8G48DGMQ"]) {
+      const fallbackPath = path.resolve(process.cwd(), `server/keys/AuthKey_${fallbackKid}.p8`);
+      if (fs.existsSync(fallbackPath)) {
+        return { privateKey: fs.readFileSync(fallbackPath, "utf8"), keyId: fallbackKid, teamId: fallbackTeam };
+      }
     }
     return null;
   }
