@@ -271,9 +271,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── TRUST STRIP (admin-controlled with hardcoded fallback) ─────── */}
-      <PromoStripSection isRtl={isRtl} t={t} isAr={language === 'ar'} />
-
       {/* ── NEWEST PRODUCTS — auto-scrolling marquee strip ─────── */}
       {(products && products.length >= 5) && (
         <section className="py-10 md:py-14 bg-[#FFFFFF]">
