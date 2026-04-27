@@ -6,6 +6,7 @@ import {
   ArrowRight, X, CheckCircle2, ChevronLeft,
   FileText, CreditCard, Phone, Shield, Smartphone
 } from "lucide-react";
+import { RiyalSign } from "@/components/RiyalSign";
 
 type Step = "phone" | "otp" | "terms" | "national_id" | "plan" | "processing" | "success" | "cancelled";
 type PlanOption = 2 | 3 | 4;
@@ -167,7 +168,7 @@ export default function TamaraCheckout() {
                       {i + 1}
                     </div>
                     <span className="font-bold text-sm" style={{ color: i === 0 ? TAMARA_PURPLE : "#374151" }}>
-                      {installmentAmount.toLocaleString()} ر.س
+                      {installmentAmount.toLocaleString()} <RiyalSign />
                     </span>
                   </div>
                   <span className="text-xs text-gray-700 font-medium">{date}</span>
@@ -499,7 +500,7 @@ export default function TamaraCheckout() {
                 <CreditCard className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-black mb-1" style={{ color: TAMARA_PURPLE }}>اختر خطة الدفع</h1>
-              <p className="text-gray-800 text-sm">قسّط <span className="font-bold" style={{ color: TAMARA_PURPLE }}>{amount.toLocaleString()} ر.س</span> بدون فوائد</p>
+              <p className="text-gray-800 text-sm">قسّط <span className="font-bold" style={{ color: TAMARA_PURPLE }}>{amount.toLocaleString()} <RiyalSign /></span> بدون فوائد</p>
             </div>
             <div className="space-y-3 flex-1">
               {([2, 3, 4] as PlanOption[]).map(plan => {
@@ -538,7 +539,7 @@ export default function TamaraCheckout() {
                       <span className="text-3xl font-black" style={{ color: isSelected ? TAMARA_PURPLE : "#374151" }}>
                         {parseFloat(perInstallment).toLocaleString()}
                       </span>
-                      <span className="text-gray-800 text-sm font-bold">ر.س / شهر</span>
+                      <span className="text-gray-800 text-sm font-bold"><RiyalSign /> / شهر</span>
                     </div>
                     <div className="flex items-center gap-1.5 mr-8">
                       {Array.from({ length: plan }).map((_, i) => (
@@ -559,12 +560,12 @@ export default function TamaraCheckout() {
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-800">الدفعة الأولى الآن</span>
                   <span className="font-black" style={{ color: TAMARA_PURPLE }}>
-                    {(amount / selectedPlan).toFixed(2)} ر.س
+                    {(amount / selectedPlan).toFixed(2)} <RiyalSign />
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-700">
                   <span>الدفعات التالية</span>
-                  <span>{selectedPlan - 1} × {(amount / selectedPlan).toFixed(2)} ر.س</span>
+                  <span>{selectedPlan - 1} × {(amount / selectedPlan).toFixed(2)} <RiyalSign /></span>
                 </div>
               </div>
               <button
@@ -573,7 +574,7 @@ export default function TamaraCheckout() {
                 style={{ background: TAMARA_PURPLE }}
               >
                 تأكيد الدفع
-                <span className="opacity-80 text-sm">— {(amount / selectedPlan).toFixed(2)} ر.س الآن</span>
+                <span className="opacity-80 text-sm">— {(amount / selectedPlan).toFixed(2)} <RiyalSign /> الآن</span>
               </button>
             </div>
           </div>

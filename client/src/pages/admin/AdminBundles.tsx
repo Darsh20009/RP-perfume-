@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Package, Layers, Tag, Calendar, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RiyalSign } from "@/components/RiyalSign";
 
 type Tier = { quantity: number; price: number; label?: string; labelEn?: string };
 type Bundle = {
@@ -178,7 +179,7 @@ export default function AdminBundles() {
                   {b.tiers.map((t, i) => (
                     <div key={i} className="flex items-center justify-between bg-[#F5F2ED] rounded px-3 py-2 text-sm">
                       <span className="font-semibold text-[#2B2B60]">{t.quantity} قطع</span>
-                      <span className="text-[#850935] font-bold">{t.price} ر.س</span>
+                      <span className="text-[#850935] font-bold">{t.price} <RiyalSign /></span>
                     </div>
                   ))}
                 </div>
@@ -252,7 +253,7 @@ export default function AdminBundles() {
                                data-testid={`input-tier-quantity-${i}`} />
                       </div>
                       <div className="col-span-4">
-                        <Label className="text-xs">السعر (ر.س)</Label>
+                        <Label className="text-xs">السعر (<RiyalSign />)</Label>
                         <Input type="number" min={0} step="0.01" value={t.price}
                                onChange={(e) => updateTier(i, { price: parseFloat(e.target.value) || 0 })}
                                data-testid={`input-tier-price-${i}`} />

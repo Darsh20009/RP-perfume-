@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import brandCtaImg from "@assets/Screenshot_2026-04-16_at_2.09.21_PM_1777231488177.png";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const heroSlides: Array<{ img: string; webp?: string }> = [
   { img: "/images/banners/banner-hero-opt.png", webp: "/images/banners/banner-hero.webp" },
@@ -397,7 +398,7 @@ export default function Home() {
                             <span className="text-sm text-white/80">قطع</span>
                           </div>
                           <div className="text-right">
-                            <div className="text-xl font-bold">{t.price} <span className="text-xs font-normal">ر.س</span></div>
+                            <div className="text-xl font-bold">{t.price} <span className="text-xs font-normal"><RiyalSign /></span></div>
                             {t.label && <div className="text-[10px] text-[#DFB369]">{t.label}</div>}
                           </div>
                         </div>
@@ -820,7 +821,7 @@ function FeaturedBestSellerCard({ isRtl, t, bestSellers }: { isRtl: boolean; t: 
               </Link>
               <div className={`mt-1 flex items-center gap-1.5 ${isRtl ? "flex-row-reverse" : ""}`}>
                 <span className="text-[#DFB369] text-base md:text-lg font-bold">{Number(product.price).toFixed(0)}</span>
-                <span className="text-[10px] text-white/70 font-bold">{t('currency') || (isRtl ? "ر.س" : "SAR")}</span>
+                <span className="text-[10px] text-white/70 font-bold"><RiyalSign /></span>
               </div>
 
               {bullets.length > 0 ? (

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Brain, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Loader2, RefreshCw, Package, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RiyalSign } from "@/components/RiyalSign";
 
 type InventoryInsights = {
   topMovers: { name: string; insight: string }[];
@@ -65,7 +66,7 @@ export default function AdminAiInsights() {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl border border-[#E8E5E0] p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">إيرادات ٣٠ يوم</p>
-              <p className="text-3xl font-black text-[#2B2B60] mt-2">{Number(data.totalRevenue).toLocaleString("ar-SA")} <span className="text-sm font-normal text-slate-500">ر.س</span></p>
+              <p className="text-3xl font-black text-[#2B2B60] mt-2">{Number(data.totalRevenue).toLocaleString("ar-SA")} <span className="text-sm font-normal text-slate-500"><RiyalSign /></span></p>
             </div>
             <div className="bg-white rounded-2xl border border-[#E8E5E0] p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">عدد المنتجات</p>

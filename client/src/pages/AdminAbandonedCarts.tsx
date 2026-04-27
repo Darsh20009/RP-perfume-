@@ -11,6 +11,7 @@ import { ShoppingCart, Send, Phone, Mail, Clock, Tag, Trash2, Loader2, Sparkles,
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { RiyalSign } from "@/components/RiyalSign";
 
 interface AbandonedCart {
   id: string;
@@ -99,7 +100,7 @@ export default function AdminAbandonedCarts() {
           <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
             <CardContent className="p-5">
               <p className="text-xs font-bold text-green-700 uppercase tracking-widest">القيمة الإجمالية</p>
-              <p className="text-3xl font-black text-green-900 mt-1" data-testid="text-total-value">{totalValue.toFixed(2)} ر.س</p>
+              <p className="text-3xl font-black text-green-900 mt-1" data-testid="text-total-value">{totalValue.toFixed(2)} <RiyalSign /></p>
             </CardContent>
           </Card>
           <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -171,7 +172,7 @@ export default function AdminAbandonedCarts() {
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       <div className="text-left">
                         <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">الإجمالي</p>
-                        <p className="text-2xl font-black text-amber-700">{cart.total.toFixed(2)} <span className="text-xs">ر.س</span></p>
+                        <p className="text-2xl font-black text-amber-700">{cart.total.toFixed(2)} <span className="text-xs"><RiyalSign /></span></p>
                       </div>
                       <div className="flex gap-2">
                         {cart.userId && (
@@ -214,7 +215,7 @@ export default function AdminAbandonedCarts() {
             <div className="space-y-4 pt-2">
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 rounded-xl border border-amber-100">
                 <p className="text-xs text-amber-700 font-bold">
-                  {selected?.itemCount} منتج بقيمة {selected?.total.toFixed(2)} ر.س
+                  {selected?.itemCount} منتج بقيمة {selected?.total.toFixed(2)} <RiyalSign />
                 </p>
               </div>
               <div className="space-y-2">

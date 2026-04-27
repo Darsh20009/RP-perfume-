@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -137,7 +138,7 @@ export function Layout({ children }: { children: ReactNode }) {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-[9px] uppercase tracking-widest opacity-50 font-bold">{t('wallet')}</p>
-                        <p className="font-black text-sm text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} <span className="text-[10px] opacity-70">{t('currency')}</span></p>
+                        <p className="font-black text-sm text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} <span className="text-[10px] opacity-70"><RiyalSign /></span></p>
                       </div>
                     </div>
                   ) : (
@@ -452,7 +453,7 @@ export function Layout({ children }: { children: ReactNode }) {
                         <Wallet className="h-4 w-4 text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t('wallet')}</span>
                       </div>
-                      <span dir="ltr" className="text-sm font-black text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} {t('currency')}</span>
+                      <span dir="ltr" className="text-sm font-black text-primary">{(user as any)?.walletBalance?.toLocaleString() || '0'} <RiyalSign /></span>
                     </div>
 
                     <Link href="/orders">

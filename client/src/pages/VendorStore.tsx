@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function VendorStore() {
   const { id } = useParams<{ id: string }>();
@@ -144,7 +145,7 @@ export default function VendorStore() {
                   <div className="p-3">
                     <h3 className="font-bold text-sm line-clamp-1 mb-1">{product.name}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="font-black text-sm text-primary">{product.price} ر.س</span>
+                      <span className="font-black text-sm text-primary">{product.price} <RiyalSign /></span>
                       <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>

@@ -13,6 +13,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const SPECIAL_CATEGORIES = [
   { slug: "all",         label_ar: "الكل",         label_en: "All",          img: "/images/logos/logo-dark.png", special: null },
@@ -442,7 +443,7 @@ export default function Products() {
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{isRtl ? "السعر" : "Price"}</p>
                       <span className="text-xs font-bold text-foreground">
-                        {priceRange[0]} – {priceRange[1]} {isRtl ? "ر.س" : "SAR"}
+                        {priceRange[0]} – {priceRange[1]} <RiyalSign />
                       </span>
                     </div>
                     <Slider
@@ -454,8 +455,8 @@ export default function Products() {
                       className="mt-2"
                     />
                     <div className="flex justify-between mt-1.5">
-                      <span className="text-[10px] text-muted-foreground">{priceBounds[0]} {isRtl ? "ر.س" : "SAR"}</span>
-                      <span className="text-[10px] text-muted-foreground">{priceBounds[1]} {isRtl ? "ر.س" : "SAR"}</span>
+                      <span className="text-[10px] text-muted-foreground">{priceBounds[0]} <RiyalSign /></span>
+                      <span className="text-[10px] text-muted-foreground">{priceBounds[1]} <RiyalSign /></span>
                     </div>
                   </div>
 
@@ -602,7 +603,7 @@ export default function Products() {
               )}
               {(priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1]) && (
                 <Badge variant="secondary" className="flex items-center gap-1 pr-1 font-bold text-xs cursor-pointer" onClick={() => setPriceRange(priceBounds)}>
-                  {priceRange[0]}–{priceRange[1]} {isRtl ? "ر.س" : "SAR"}
+                  {priceRange[0]}–{priceRange[1]} <RiyalSign />
                   <X className="h-3 w-3" />
                 </Badge>
               )}

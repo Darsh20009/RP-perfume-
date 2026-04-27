@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Store, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2, Loader2, Star, Settings, ChevronRight, Eye } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const productSchema = z.object({
   name: z.string().min(1, "اسم المنتج مطلوب"),
@@ -311,7 +312,7 @@ export default function VendorDashboard() {
                           <img src={product.images[0]} alt={product.name} className="w-full h-40 object-cover mb-3" />
                         )}
                         <h3 className="font-bold text-sm mb-1 line-clamp-1">{product.name}</h3>
-                        <p className="text-primary font-black text-sm mb-3">{product.price} ر.س</p>
+                        <p className="text-primary font-black text-sm mb-3">{product.price} <RiyalSign /></p>
                         <div className="flex items-center gap-2">
                           <Button
                             size="sm"
@@ -376,7 +377,7 @@ export default function VendorDashboard() {
                              order.status === "shipped" ? "تم الشحن" :
                              order.status === "delivered" ? "مكتمل" : order.status}
                           </Badge>
-                          <p className="font-black text-sm">{order.total?.toLocaleString()} ر.س</p>
+                          <p className="font-black text-sm">{order.total?.toLocaleString()} <RiyalSign /></p>
                         </div>
                       </CardContent>
                     </Card>
@@ -511,7 +512,7 @@ export default function VendorDashboard() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-xs uppercase tracking-widest">السعر (ر.س) *</FormLabel>
+                      <FormLabel className="font-bold text-xs uppercase tracking-widest">السعر (<RiyalSign />) *</FormLabel>
                       <FormControl><Input {...field} type="number" min="0" className="rounded-none" /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -522,7 +523,7 @@ export default function VendorDashboard() {
                   name="cost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-xs uppercase tracking-widest">التكلفة (ر.س)</FormLabel>
+                      <FormLabel className="font-bold text-xs uppercase tracking-widest">التكلفة (<RiyalSign />)</FormLabel>
                       <FormControl><Input {...field} type="number" min="0" className="rounded-none" /></FormControl>
                     </FormItem>
                   )}
@@ -574,7 +575,7 @@ export default function VendorDashboard() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-xs uppercase tracking-widest">السعر (ر.س)</FormLabel>
+                      <FormLabel className="font-bold text-xs uppercase tracking-widest">السعر (<RiyalSign />)</FormLabel>
                       <FormControl><Input {...field} type="number" min="0" className="rounded-none" /></FormControl>
                     </FormItem>
                   )}
@@ -584,7 +585,7 @@ export default function VendorDashboard() {
                   name="cost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-xs uppercase tracking-widest">التكلفة (ر.س)</FormLabel>
+                      <FormLabel className="font-bold text-xs uppercase tracking-widest">التكلفة (<RiyalSign />)</FormLabel>
                       <FormControl><Input {...field} type="number" min="0" className="rounded-none" /></FormControl>
                     </FormItem>
                   )}

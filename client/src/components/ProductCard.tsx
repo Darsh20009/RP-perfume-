@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { flyToCart } from "@/lib/flyToCart";
+import { RiyalSign } from "@/components/RiyalSign";
 
 interface ProductCardProps {
   product: Product;
@@ -177,14 +178,14 @@ export function ProductCard({ product }: ProductCardProps) {
                 return (
                   <p className="text-xs text-muted-foreground font-bold" data-testid={`text-price-${product.id}`}>
                     <span className="text-[10px] font-normal text-gray-500">{t('startingFrom')} </span>
-                    {minPrice.toLocaleString()} {t('currency')}
+                    {minPrice.toLocaleString()} <RiyalSign />
                   </p>
                 );
               }
               const displayPrice = uniquePrices.length === 1 ? uniquePrices[0] : basePrice;
               return (
                 <p className="text-xs text-muted-foreground font-bold" data-testid={`text-price-${product.id}`}>
-                  {displayPrice.toLocaleString()} {t('currency')}
+                  {displayPrice.toLocaleString()} <RiyalSign />
                 </p>
               );
             })()}

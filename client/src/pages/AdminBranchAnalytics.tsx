@@ -8,6 +8,7 @@ import {
   Loader2, Package, Users, Award, BarChart3,
 } from "lucide-react";
 import { Link } from "wouter";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function AdminBranchAnalytics() {
   const { data, isLoading } = useQuery<any>({
@@ -51,7 +52,7 @@ export default function AdminBranchAnalytics() {
             </div>
             <p className="text-2xl font-black" data-testid="stat-revenue">
               {Number(totals.revenueMonth || 0).toLocaleString()}
-              <span className="text-sm font-bold opacity-75 mr-1">ر.س</span>
+              <span className="text-sm font-bold opacity-75 mr-1"><RiyalSign /></span>
             </p>
           </Card>
           <Card className="p-4">
@@ -94,7 +95,7 @@ export default function AdminBranchAnalytics() {
                 <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">🏆 الفرع الأعلى أداءً</p>
                 <p className="font-black text-lg text-amber-900">{topRevenue.name}</p>
                 <p className="text-xs text-amber-700 font-bold">
-                  {Number(topRevenue.revenueMonth).toLocaleString()} ر.س — {topRevenue.ordersMonth} طلب
+                  {Number(topRevenue.revenueMonth).toLocaleString()} <RiyalSign /> — {topRevenue.ordersMonth} طلب
                 </p>
               </div>
             </div>
@@ -143,7 +144,7 @@ export default function AdminBranchAnalytics() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 font-black text-primary">{Number(b.revenueMonth).toLocaleString()} ر.س</td>
+                      <td className="p-3 font-black text-primary">{Number(b.revenueMonth).toLocaleString()} <RiyalSign /></td>
                       <td className="p-3 font-bold">{b.ordersMonth}</td>
                       <td className="p-3">
                         <Badge className="bg-green-100 text-green-800 border-green-200">{b.todayPickups}</Badge>

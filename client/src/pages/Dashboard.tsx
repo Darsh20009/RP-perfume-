@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RiyalSign } from "@/components/RiyalSign";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
 
@@ -136,7 +137,7 @@ export default function Dashboard() {
     {
       title: "إجمالي الإيرادات",
       value: isAdmin ? (adminStats?.totalRevenue ?? "0") : (orders?.reduce((s: number, o: any) => s + parseFloat(o.total || "0"), 0).toFixed(0) ?? "0"),
-      sub: "ر.س",
+      sub: <RiyalSign />,
       icon: DollarSign,
       trend: +8,
       color: "from-emerald-500 to-teal-600",
@@ -158,7 +159,7 @@ export default function Dashboard() {
     {
       title: "رصيد المحفظة",
       value: parseFloat(user.walletBalance || "0").toFixed(0),
-      sub: "ر.س متاح",
+      sub: <><RiyalSign /> متاح</>,
       icon: Wallet,
       trend: 0,
       color: "from-amber-500 to-orange-500",
@@ -448,7 +449,7 @@ export default function Dashboard() {
                           <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full border ${statusColors[order.status] || "bg-white/5 text-white/40 border-white/10"}`}>
                             {statusLabel[order.status] || order.status}
                           </span>
-                          <p className="font-black text-sm text-white tabular-nums">{order.total} <span className="text-white/30 text-[10px] font-bold">ر.س</span></p>
+                          <p className="font-black text-sm text-white tabular-nums">{order.total} <span className="text-white/30 text-[10px] font-bold"><RiyalSign /></span></p>
                         </motion.div>
                       ))}
                     </div>
@@ -482,7 +483,7 @@ export default function Dashboard() {
                         <p className="text-[9px] text-white/60 font-bold uppercase tracking-widest mb-1">الرصيد المتاح</p>
                         <p className="text-3xl font-black text-white tabular-nums">
                           {parseFloat(user.walletBalance || "0").toFixed(0)}
-                          <span className="text-base font-light text-white/60 mr-1">ر.س</span>
+                          <span className="text-base font-light text-white/60 mr-1"><RiyalSign /></span>
                         </p>
                         <div className="mt-4 flex items-center justify-between">
                           <div>

@@ -9,6 +9,7 @@ import { CardBrandsLogo, ApplePayLogo } from "@/components/payment/PaymentBrands
 import { Lock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useCart } from "@/hooks/use-cart";
+import { RiyalSign } from "@/components/RiyalSign";
 
 type PaymentTab = "card" | "apple";
 type GatewayState = "selecting" | "processing" | "success" | "failed";
@@ -151,7 +152,7 @@ export default function PaymentGateway() {
                   <span>RRN</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-black/5">
-                  <span className="font-black text-lg text-primary">{receipt.amount?.toLocaleString()} ر.س</span>
+                  <span className="font-black text-lg text-primary">{receipt.amount?.toLocaleString()} <RiyalSign /></span>
                   <span className="font-black text-sm">المبلغ المدفوع</span>
                 </div>
               </div>
@@ -218,7 +219,7 @@ export default function PaymentGateway() {
             <p className="text-sm text-black/40 font-bold mt-1">
               طلب رقم: <span className="font-black text-black">#{orderRef}</span>
               {" · "}
-              المبلغ: <span className="font-black text-primary">{amount.toLocaleString()} ر.س</span>
+              المبلغ: <span className="font-black text-primary">{amount.toLocaleString()} <RiyalSign /></span>
             </p>
           </div>
 
@@ -260,7 +261,7 @@ export default function PaymentGateway() {
                     ادفع بسرعة وأمان باستخدام Face ID أو Touch ID
                   </p>
                   <div className="inline-block bg-green-50 border border-green-200 rounded px-4 py-2 text-sm font-black text-green-700">
-                    {amount.toLocaleString()} ر.س
+                    {amount.toLocaleString()} <RiyalSign />
                   </div>
                 </div>
                 <ApplePayButton

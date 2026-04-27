@@ -33,6 +33,10 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import { RiyalSign } from "@/components/RiyalSign";
+import riyalIconUrl from "@assets/dummy_1777292322734.png";
+
+const RIYAL_IMG = `<img src="${typeof window !== "undefined" ? window.location.origin : ""}${riyalIconUrl}" alt="ر.س" style="height:0.85em;width:auto;display:inline-block;vertical-align:-0.08em;margin:0 0.18em 0 0.05em;object-fit:contain;" />`;
 
 interface CartItem {
   productId: string;
@@ -162,15 +166,15 @@ export default function POS() {
   <div class="total-section">
     <div class="item">
       <span>المجموع الفرعي:</span>
-      <span>${total.toFixed(2)} ر.س</span>
+      <span>${total.toFixed(2)} ${RIYAL_IMG}</span>
     </div>
     <div class="item">
       <span>ضريبة القيمة المضافة (15%):</span>
-      <span>${taxAmount.toFixed(2)} ر.س</span>
+      <span>${taxAmount.toFixed(2)} ${RIYAL_IMG}</span>
     </div>
     <div class="item" style="font-size: 14px; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;">
       <span>الإجمالي النهائي:</span>
-      <span>${finalTotal.toFixed(2)} ر.س</span>
+      <span>${finalTotal.toFixed(2)} ${RIYAL_IMG}</span>
     </div>
   </div>
   <div class="qr">
@@ -619,7 +623,7 @@ export default function POS() {
                   step="0.5"
                   max={subtotal}
                 />
-                <span className="text-xs font-bold self-center">ر.س</span>
+                <span className="text-xs font-bold self-center"><RiyalSign /></span>
               </div>
             </div>
           )}
@@ -658,7 +662,7 @@ export default function POS() {
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold">{customer.name}</span>
                   <span className={`text-sm font-black ${Number(customer.walletBalance) >= total ? 'text-green-600' : 'text-destructive'}`}>
-                    {customer.walletBalance} ر.س
+                    {customer.walletBalance} <RiyalSign />
                   </span>
                 </div>
               ) : (

@@ -54,6 +54,7 @@ import {
 } from "recharts";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RiyalSign } from "@/components/RiyalSign";
 
 // Components extracted to prevent hook issues
 
@@ -245,7 +246,7 @@ const CreativeDashboardBanner = memo(({ totalOrders, totalRevenue }: { totalOrde
             <p className="text-[9px] font-bold tracking-widest uppercase text-emerald-300/80 mb-1">المبيعات الكلية</p>
             <p className="text-xl md:text-2xl font-black text-white leading-none">
               {Number(totalRevenue).toLocaleString("ar-SA", { maximumFractionDigits: 0 })}
-              <span className="text-[10px] font-semibold text-white/50 mr-1">ر.س</span>
+              <span className="text-[10px] font-semibold text-white/50 mr-1"><RiyalSign /></span>
             </p>
             <p className="text-[9px] font-semibold text-white/40 mt-1" dir="ltr">Total Revenue</p>
           </motion.div>
@@ -361,18 +362,18 @@ const OverviewPanel = memo(() => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl mt-2">
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">اليوم</p>
-                <p className="text-lg font-black">{Number(displayStats.today.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                <p className="text-lg font-black">{Number(displayStats.today.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50"><RiyalSign /></span></p>
               </div>
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">الأسبوع</p>
-                <p className="text-lg font-black">{Number(displayStats.thisWeek.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                <p className="text-lg font-black">{Number(displayStats.thisWeek.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50"><RiyalSign /></span></p>
                 {Number(displayStats.thisWeek.netProfit) > 0 && (
                   <p className="text-[9px] text-emerald-400 mt-0.5">ربح: {Number(displayStats.thisWeek.netProfit).toFixed(0)}</p>
                 )}
               </div>
               <div className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-1">الشهر</p>
-                <p className="text-lg font-black">{Number(displayStats.thisMonth.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50">ر.س</span></p>
+                <p className="text-lg font-black">{Number(displayStats.thisMonth.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-xs font-medium text-white/50"><RiyalSign /></span></p>
                 {Number(displayStats.thisMonth.netProfit) > 0 && (
                   <p className="text-[9px] text-emerald-400 mt-0.5">ربح: {Number(displayStats.thisMonth.netProfit).toFixed(0)}</p>
                 )}
@@ -407,7 +408,7 @@ const OverviewPanel = memo(() => {
           <p className="text-slate-500 text-xs font-bold">صافي الأرباح</p>
           <div className="text-3xl font-black text-[#DFB369]">
             {Number(displayStats.netProfit).toLocaleString()}
-            <span className="text-xs font-medium mr-1">ر.س</span>
+            <span className="text-xs font-medium mr-1"><RiyalSign /></span>
           </div>
           <div className="w-full space-y-1">
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -570,7 +571,7 @@ const OverviewPanel = memo(() => {
                   </div>
                 </div>
                 <div className="text-left">
-                  <p className="font-black text-sm text-[#2B2B60]">{order.total} ر.س</p>
+                  <p className="font-black text-sm text-[#2B2B60]">{order.total} <RiyalSign /></p>
                   <Badge className="bg-[#DFB369]/10 text-[#DFB369] border-none rounded-lg text-[9px] font-black h-4 px-1.5">مكتمل</Badge>
                 </div>
               </div>
@@ -607,7 +608,7 @@ const OverviewPanel = memo(() => {
                   </div>
                   <div className="text-left shrink-0">
                     <p className="font-black text-[#DFB369] text-sm">{Number(product.revenue).toLocaleString()}</p>
-                    <p className="text-[9px] font-bold text-slate-400">ر.س</p>
+                    <p className="text-[9px] font-bold text-slate-400"><RiyalSign /></p>
                   </div>
                 </div>
               ))}
@@ -836,11 +837,11 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
 
            <div className="grid grid-cols-2 gap-6 text-right">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("price")} className="rounded-none h-12 text-right" data-testid="input-product-price" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("cost")} className="rounded-none h-12 text-right" data-testid="input-product-cost" />
                 </div>
               </div>
@@ -893,7 +894,7 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
 
               {form.watch("isOnSale" as any) && (
                 <div className="space-y-2 text-right">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("salePrice" as any)} placeholder="السعر بعد التخفيض" className="rounded-none h-12 text-right border-red-300" data-testid="input-product-saleprice" />
                 </div>
               )}
@@ -979,7 +980,7 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
                         <Input value={v.size || ""} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="50ml" data-testid={`input-variant-size-${i}`} />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <Label className="text-[9px] font-bold text-emerald-700">السعر (ر.س)</Label>
+                        <Label className="text-[9px] font-bold text-emerald-700">السعر (<RiyalSign />)</Label>
                         <Input type="number" step="0.01" value={v.price ?? 0} onChange={(e) => updateVariant(i, "price", parseFloat(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right border-emerald-300" placeholder="0" data-testid={`input-variant-price-${i}`} />
                       </div>
                       <div className="col-span-1 space-y-1">
@@ -1243,11 +1244,11 @@ const ProductsTable = memo(() => {
 
               <div className="grid grid-cols-2 gap-6 text-right">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">السعر الأساسي (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("price")} className="rounded-none h-12 text-right" data-testid="input-product-price-add" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">التكلفة (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("cost")} className="rounded-none h-12 text-right" data-testid="input-product-cost-add" />
                 </div>
               </div>
@@ -1300,7 +1301,7 @@ const ProductsTable = memo(() => {
 
               {form.watch("isOnSale" as any) && (
                 <div className="space-y-2 text-right">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (ر.س)</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-red-500">سعر العرض (<RiyalSign />)</Label>
                   <Input type="number" step="0.01" {...form.register("salePrice" as any)} placeholder="السعر بعد التخفيض" className="rounded-none h-12 text-right border-red-300" data-testid="input-product-saleprice-add" />
                 </div>
               )}
@@ -1387,7 +1388,7 @@ const ProductsTable = memo(() => {
                         <Input value={v.size || ""} onChange={(e) => updateVariant(i, "size", e.target.value)} className="h-8 rounded-none text-xs text-right" placeholder="50ml" />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <Label className="text-[9px] font-bold text-emerald-700">السعر (ر.س)</Label>
+                        <Label className="text-[9px] font-bold text-emerald-700">السعر (<RiyalSign />)</Label>
                         <Input type="number" step="0.01" value={v.price ?? 0} onChange={(e) => updateVariant(i, "price", parseFloat(e.target.value) || 0)} className="h-8 rounded-none text-xs text-right border-emerald-300" placeholder="0" />
                       </div>
                       <div className="col-span-1 space-y-1">
@@ -1472,7 +1473,7 @@ const ProductsTable = memo(() => {
                 <div className="text-[10px] font-black uppercase opacity-60">
                   {productCatNames.length > 0 ? productCatNames.join("، ") : "بدون فئة"}
                 </div>
-                <div className="font-black tracking-tighter text-xs">{Number(product.price).toLocaleString()} ر.س</div>
+                <div className="font-black tracking-tighter text-xs">{Number(product.price).toLocaleString()} <RiyalSign /></div>
                 <div className="font-bold text-xs">
                   <span className={totalStock === 0 ? "text-destructive" : totalStock < 5 ? "text-orange-500" : "text-green-600"}>
                     {totalStock}
@@ -1928,8 +1929,8 @@ const OrdersTable = memo(() => {
             <div key={order.id} className="p-6 grid grid-cols-7 items-center hover:bg-secondary/10 transition-colors">
               <div className="font-black">#{order.id.slice(-6).toUpperCase()}</div>
               <div className="font-bold truncate">عميل</div>
-              <div className="font-black tracking-tighter">{Number(order.total).toLocaleString()} ر.س</div>
-              <div className="font-black text-green-600 text-[10px]">+{Number(order.netProfit || 0).toLocaleString()} ر.س</div>
+              <div className="font-black tracking-tighter">{Number(order.total).toLocaleString()} <RiyalSign /></div>
+              <div className="font-black text-green-600 text-[10px]">+{Number(order.netProfit || 0).toLocaleString()} <RiyalSign /></div>
               <div>{getStatusBadge(order.status)}</div>
               <div className="text-xs text-black/40">{new Date(order.createdAt).toLocaleDateString("ar-SA")}</div>
               <div className="flex justify-center gap-2">
@@ -2160,7 +2161,7 @@ const AdminReturnsPanel = memo(() => {
                     <div className="flex gap-3 text-xs text-slate-400">
                       <span>{ret.items?.length || 0} منتج</span>
                       <span>•</span>
-                      <span>المبلغ المقترح: {ret.refundAmount?.toLocaleString() || "0"} ر.س</span>
+                      <span>المبلغ المقترح: {ret.refundAmount?.toLocaleString() || "0"} <RiyalSign /></span>
                       <span>•</span>
                       <span>{ret.createdAt ? new Date(ret.createdAt).toLocaleDateString("ar-SA") : ""}</span>
                     </div>
@@ -2192,7 +2193,7 @@ const AdminReturnsPanel = memo(() => {
                 {selected.reasonDetail && <p className="text-xs text-slate-400 italic">{selected.reasonDetail}</p>}
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold">مبلغ الاسترداد (ر.س)</Label>
+                <Label className="text-xs font-bold">مبلغ الاسترداد (<RiyalSign />)</Label>
                 <Input type="number" value={refundAmt} onChange={e => setRefundAmt(Number(e.target.value))}
                   className="text-right" placeholder="0.00" />
               </div>
@@ -2738,7 +2739,7 @@ const OrdersManagement = memo(() => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-black text-base text-white">{Number(order.total).toFixed(2)} <span className="text-[10px] text-white/40">ر.س</span></p>
+                      <p className="font-black text-base text-white">{Number(order.total).toFixed(2)} <span className="text-[10px] text-white/40"><RiyalSign /></span></p>
                       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${statusColors[order.status] || "bg-white/5 text-white/40 border-white/10"}`}>
                         {statusLabels[order.status] || order.status}
                       </span>
@@ -2927,7 +2928,7 @@ const OrdersManagement = memo(() => {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs font-black text-white">{Number(item.price).toFixed(2)} ر.س</p>
+                                <p className="text-xs font-black text-white">{Number(item.price).toFixed(2)} <RiyalSign /></p>
                                 <p className="text-[10px] text-white/40 font-bold">× {item.quantity}</p>
                               </div>
                             </div>
@@ -2942,24 +2943,24 @@ const OrdersManagement = memo(() => {
                         {order.subtotal && (
                           <div className="flex justify-between gap-8 text-xs">
                             <span className="text-white/40 font-bold">المجموع الفرعي</span>
-                            <span className="font-black text-white">{Number(order.subtotal).toFixed(2)} ر.س</span>
+                            <span className="font-black text-white">{Number(order.subtotal).toFixed(2)} <RiyalSign /></span>
                           </div>
                         )}
                         {order.shippingCost != null && (
                           <div className="flex justify-between gap-8 text-xs">
                             <span className="text-white/40 font-bold">الشحن</span>
-                            <span className="font-black text-white">{Number(order.shippingCost).toFixed(2)} ر.س</span>
+                            <span className="font-black text-white">{Number(order.shippingCost).toFixed(2)} <RiyalSign /></span>
                           </div>
                         )}
                         {order.discount != null && Number(order.discount) > 0 && (
                           <div className="flex justify-between gap-8 text-xs">
                             <span className="text-emerald-400 font-bold">الخصم</span>
-                            <span className="font-black text-emerald-400">-{Number(order.discount).toFixed(2)} ر.س</span>
+                            <span className="font-black text-emerald-400">-{Number(order.discount).toFixed(2)} <RiyalSign /></span>
                           </div>
                         )}
                         <div className="flex justify-between gap-8 text-sm border-t border-white/10 pt-1 mt-1">
                           <span className="font-black text-white">الإجمالي</span>
-                          <span className="font-black text-white">{Number(order.total).toFixed(2)} ر.س</span>
+                          <span className="font-black text-white">{Number(order.total).toFixed(2)} <RiyalSign /></span>
                         </div>
                       </div>
                     </div>
@@ -3029,7 +3030,7 @@ const CustomersTable = memo(() => {
               </div>
               <div className="flex justify-between items-center p-3 bg-secondary/10 border border-black/5">
                 <span className="text-[10px] font-black uppercase tracking-widest text-black/40">رصيد المحفظة</span>
-                <span className="font-black text-green-600">{u.walletBalance} ر.س</span>
+                <span className="font-black text-green-600">{u.walletBalance} <RiyalSign /></span>
               </div>
               <div className="flex gap-2">
                 <Dialog open={selectedUser?.id === u.id && selectedUser?.action === 'deposit'} onOpenChange={(open) => { if (!open) setSelectedUser(null); }}>
@@ -4588,7 +4589,7 @@ const StoreSettingsPanel = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+              <Label className="text-xs font-black uppercase">الحد الأدنى (<RiyalSign />)</Label>
               <Input type="number" value={freeShippingThreshold} onChange={e => setFreeShippingThreshold(Number(e.target.value))} className="font-bold" min={0} disabled={!freeShippingEnabled} data-testid="input-free-shipping-threshold" />
             </div>
             <div className="space-y-2 md:col-span-2">
@@ -4617,11 +4618,11 @@ const StoreSettingsPanel = () => {
             <p className="text-sm font-black text-emerald-900 mb-3">Tabby — تابي</p>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+                <Label className="text-xs font-black uppercase">الحد الأدنى (<RiyalSign />)</Label>
                 <Input type="number" value={tabbyMin} onChange={e => setTabbyMin(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tabby-min" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase">الحد الأقصى (ر.س)</Label>
+                <Label className="text-xs font-black uppercase">الحد الأقصى (<RiyalSign />)</Label>
                 <Input type="number" value={tabbyMax} onChange={e => setTabbyMax(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tabby-max" />
               </div>
             </div>
@@ -4630,11 +4631,11 @@ const StoreSettingsPanel = () => {
             <p className="text-sm font-black text-purple-900 mb-3">Tamara — تمارة</p>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase">الحد الأدنى (ر.س)</Label>
+                <Label className="text-xs font-black uppercase">الحد الأدنى (<RiyalSign />)</Label>
                 <Input type="number" value={tamaraMin} onChange={e => setTamaraMin(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tamara-min" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-black uppercase">الحد الأقصى (ر.س)</Label>
+                <Label className="text-xs font-black uppercase">الحد الأقصى (<RiyalSign />)</Label>
                 <Input type="number" value={tamaraMax} onChange={e => setTamaraMax(Number(e.target.value))} className="font-bold" min={0} data-testid="input-tamara-max" />
               </div>
             </div>
@@ -5995,7 +5996,7 @@ const ShiftsManagement = () => {
       {activeShift && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4">
-            <p className="text-sm font-bold text-green-700">وردية مفتوحة حالياً: {activeShift.openingBalance?.toFixed(2)} ر.س</p>
+            <p className="text-sm font-bold text-green-700">وردية مفتوحة حالياً: {activeShift.openingBalance?.toFixed(2)} <RiyalSign /></p>
           </CardContent>
         </Card>
       )}
@@ -6018,12 +6019,12 @@ const ShiftsManagement = () => {
               <div className="flex items-center gap-8">
                 <div className="text-right">
                   <p className="text-[10px] font-black uppercase text-black/40">الرصيد الافتتاحي</p>
-                  <p className="text-sm font-bold">{shift.openingBalance?.toFixed(2)} ر.س</p>
+                  <p className="text-sm font-bold">{shift.openingBalance?.toFixed(2)} <RiyalSign /></p>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-black uppercase text-black/40">الفرق</p>
                   <p className={`text-sm font-bold ${(shift.difference || 0) === 0 ? "text-green-600" : (shift.difference || 0) > 0 ? "text-blue-600" : "text-red-600"}`}>
-                    {(shift.difference || 0).toFixed(2)} ر.س
+                    {(shift.difference || 0).toFixed(2)} <RiyalSign />
                   </p>
                 </div>
               </div>

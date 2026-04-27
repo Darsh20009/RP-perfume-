@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const LOGO_LIGHT = "/images/logos/logo-light-nobg.png";
 
@@ -377,7 +378,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                               <div>
                                 <p className="font-black text-sm text-[#2B2B60] line-clamp-2 leading-tight">{p.name}</p>
                                 <p className="text-base text-[#DFB369] font-black mt-1">
-                                  {Number(p.price).toLocaleString("ar-SA")} <span className="text-[10px]">ر.س</span>
+                                  {Number(p.price).toLocaleString("ar-SA")} <span className="text-[10px]"><RiyalSign /></span>
                                 </p>
                               </div>
                               <div className="flex gap-1.5 mt-2">

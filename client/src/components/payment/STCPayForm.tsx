@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Phone, Smartphone, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { RiyalSign } from "@/components/RiyalSign";
 
 interface STCPayFormProps {
   orderId: string;
@@ -106,7 +107,7 @@ export function STCPayForm({ orderId, amount, onSuccess, onError }: STCPayFormPr
           <div className="font-black text-white text-sm">STC Pay</div>
           <div className="text-[10px] text-white/60 font-bold">محفظة STC للدفع الإلكتروني</div>
         </div>
-        <div className="mr-auto font-black text-white text-lg">{amount.toLocaleString()} ر.س</div>
+        <div className="mr-auto font-black text-white text-lg">{amount.toLocaleString()} <RiyalSign /></div>
       </div>
 
       {step === "phone" && (

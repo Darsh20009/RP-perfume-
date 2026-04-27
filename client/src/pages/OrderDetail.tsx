@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RiyalSign } from "@/components/RiyalSign";
 
 // ─── Status Config ──────────────────────────────────────────────────────────
 const statusConfig: Record<string, { icon: any; color: string; label: string; bg: string; border: string; step: number; }> = {
@@ -556,7 +557,7 @@ export default function OrderDetail() {
                     {item.variantSku && <p className="text-[9px] text-black/20 font-bold uppercase tracking-wider mt-0.5">{item.variantSku}</p>}
                   </div>
                   <div className="text-left shrink-0">
-                    <p className="font-black text-base">{(item.price * item.quantity).toFixed(2)}<span className="text-[9px] text-black/25 mr-0.5">ر.س</span></p>
+                    <p className="font-black text-base">{(item.price * item.quantity).toFixed(2)}<span className="text-[9px] text-black/25 mr-0.5"><RiyalSign /></span></p>
                     <p className="text-[10px] text-black/30 font-bold text-center">×{item.quantity}</p>
                   </div>
                 </div>
@@ -586,12 +587,12 @@ export default function OrderDetail() {
               ].filter(Boolean).map((row: any, i) => (
                 <div key={i} className="flex justify-between text-sm font-bold text-black/45">
                   <span>{row.label}</span>
-                  <span className={row.green ? "text-green-600 font-black" : ""}>{row.value} ر.س</span>
+                  <span className={row.green ? "text-green-600 font-black" : ""}>{row.value} <RiyalSign /></span>
                 </div>
               ))}
               <div className="flex justify-between items-center pt-4 border-t border-black/8 mt-2">
                 <span className="font-black text-base">الإجمالي</span>
-                <span className="font-black text-2xl text-primary">{Number(order.total || 0).toLocaleString()} <span className="text-xs font-bold text-black/30">ر.س</span></span>
+                <span className="font-black text-2xl text-primary">{Number(order.total || 0).toLocaleString()} <span className="text-xs font-bold text-black/30"><RiyalSign /></span></span>
               </div>
             </div>
 

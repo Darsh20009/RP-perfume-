@@ -11,6 +11,7 @@ import { Loader2, Plus, Trash2, UserPlus, Shield, ArrowRight, Edit2 } from "luci
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function Employees() {
   const { toast } = useToast();
@@ -340,7 +341,7 @@ export default function Employees() {
                     </DialogHeader>
                     <div className="space-y-4 py-4 text-right" dir="rtl">
                       <div className="space-y-2">
-                        <Label>المبلغ (ر.س)</Label>
+                        <Label>المبلغ (<RiyalSign />)</Label>
                         <Input type="number" value={depositData.amount} onChange={e => setDepositData({...depositData, amount: e.target.value})} />
                       </div>
                       <div className="space-y-2">

@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/AuthModal";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, total } = useCart();
@@ -169,7 +170,7 @@ export default function Cart() {
                           {item.color} <span className="mx-2 opacity-20">|</span> {item.size}
                         </p>
                         <div className="pt-4">
-                          <span className="font-black text-xl tracking-tight">{(item.price * item.quantity).toLocaleString()} {t('currency')}</span>
+                          <span className="font-black text-xl tracking-tight">{(item.price * item.quantity).toLocaleString()} <RiyalSign /></span>
                         </div>
                       </div>
                       
@@ -206,17 +207,17 @@ export default function Cart() {
                   
                   <div className="space-y-4 text-[11px] font-bold uppercase tracking-widest">
                     <div className={`flex justify-between ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-black">{subtotal.toLocaleString()} {t('currency')}</span>
+                      <span className="text-black">{subtotal.toLocaleString()} <RiyalSign /></span>
                       <span className="opacity-40">{t('subtotal')}</span>
                     </div>
                     <div className={`flex justify-between ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-black/50">{vatIncluded.toLocaleString()} {t('currency')}</span>
+                      <span className="text-black/50">{vatIncluded.toLocaleString()} <RiyalSign /></span>
                       <span className="opacity-40">ضريبة ١٥٪ (مشمولة)</span>
                     </div>
                     
                     {appliedCoupon && discountAmount > 0 && (
                       <div className={`flex justify-between text-green-600 ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                        <span>-{discountAmount.toLocaleString()} {t('currency')}</span>
+                        <span>-{discountAmount.toLocaleString()} <RiyalSign /></span>
                         <div className="flex items-center gap-2">
                           <span className="opacity-60">{t('discount')}</span>
                           <button
@@ -234,7 +235,7 @@ export default function Cart() {
                         className={`flex justify-between text-[#850935] ${language === 'ar' ? '' : 'flex-row-reverse'}`}
                         data-testid="row-bundle-savings"
                       >
-                        <span className="font-bold">-{bundleSavings.toLocaleString()} {t('currency')}</span>
+                        <span className="font-bold">-{bundleSavings.toLocaleString()} <RiyalSign /></span>
                         <span className="opacity-80">عرض الباقة</span>
                       </div>
                     )}
@@ -242,7 +243,7 @@ export default function Cart() {
                       <div className="text-[10px] text-[#2B2B60] bg-[#F5F2ED] rounded p-2 leading-relaxed">
                         {bundleResult.applications.map((a: any, i: number) => (
                           <div key={i}>
-                            ✓ {a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} ر.س
+                            ✓ {a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} <RiyalSign />
                           </div>
                         ))}
                       </div>
@@ -250,7 +251,7 @@ export default function Cart() {
                     
                     {appliedCoupon && cashbackAmount > 0 && (
                       <div className={`flex justify-between text-blue-600 ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                        <span>+{cashbackAmount.toLocaleString()} {t('currency')}</span>
+                        <span>+{cashbackAmount.toLocaleString()} <RiyalSign /></span>
                         <div className="flex items-center gap-2">
                           <span className="opacity-60">{t('cashback')}</span>
                           <button
@@ -264,7 +265,7 @@ export default function Cart() {
                     )}
                     
                     <div className={`flex justify-between pt-6 mt-6 border-t border-black/5 font-black text-3xl tracking-tighter text-black ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-primary">{finalTotal.toLocaleString()} {t('currency')}</span>
+                      <span className="text-primary">{finalTotal.toLocaleString()} <RiyalSign /></span>
                       <span>{t('total')}</span>
                     </div>
                   </div>

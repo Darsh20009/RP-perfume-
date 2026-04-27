@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import type { ProductReview } from "@shared/schema";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function ProductDetails() {
   const [, params] = useRoute("/products/:id");
@@ -421,10 +422,15 @@ export default function ProductDetails() {
                     className="text-3xl font-light text-primary tracking-tight"
                     data-testid="text-product-price"
                   >
-                    {displayedPrice.type === 'range'
-                      ? `${displayedPrice.min.toLocaleString()} - ${displayedPrice.max.toLocaleString()} ${t('currency')}`
-                      : `${displayedPrice.value.toLocaleString()} ${t('currency')}`
-                    }
+                    {displayedPrice.type === 'range' ? (
+                      <>
+                        {displayedPrice.min.toLocaleString()} - {displayedPrice.max.toLocaleString()} <RiyalSign />
+                      </>
+                    ) : (
+                      <>
+                        {displayedPrice.value.toLocaleString()} <RiyalSign />
+                      </>
+                    )}
                   </p>
                   <p className="text-xs text-black/40 font-bold uppercase tracking-widest mt-1">
                     {language === 'ar' ? 'شامل ضريبة القيمة المضافة ١٥٪' : 'VAT 15% Included'}
@@ -542,7 +548,7 @@ export default function ProductDetails() {
                       <span>{size}</span>
                       {sizePrice !== null && (
                         <span className={`text-[10px] font-light mt-0.5 tracking-normal normal-case ${selectedSize === size ? 'text-white/80' : 'text-black/50'}`}>
-                          {sizePrice.toLocaleString()} {t('currency')}
+                          {sizePrice.toLocaleString()} <RiyalSign />
                         </span>
                       )}
                     </motion.button>

@@ -20,6 +20,10 @@ import {
   Clock, TrendingUp, AlertCircle, FileText, FileSpreadsheet,
   CheckSquare, Square, Filter, X,
 } from "lucide-react";
+import { RiyalSign } from "@/components/RiyalSign";
+import riyalIconUrl from "@assets/dummy_1777292322734.png";
+
+const RIYAL_IMG = `<img src="${typeof window !== "undefined" ? window.location.origin : ""}${riyalIconUrl}" alt="ر.س" style="height:0.85em;width:auto;display:inline-block;vertical-align:-0.08em;margin:0 0.18em 0 0.05em;object-fit:contain;" />`;
 
 function ShiftSummaryButton() {
   const handleDownload = async () => {
@@ -54,9 +58,9 @@ th{background:#f8f8f8;font-weight:800}
 </div>
 <h2>الطلبات المسلَّمة (${data.deliveredOrders.length})</h2>
 <table><thead><tr><th>المرجع</th><th>العميل</th><th>المبلغ</th><th>وقت التسليم</th></tr></thead><tbody>
-${data.deliveredOrders.map((o:any)=>`<tr><td>#${o.ref}</td><td>${o.customerName||"-"}</td><td>${o.total} ر.س</td><td>${new Date(o.verifiedAt).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("") || '<tr><td colspan="4" style="text-align:center;color:#888">لا توجد عمليات تسليم اليوم</td></tr>'}
+${data.deliveredOrders.map((o:any)=>`<tr><td>#${o.ref}</td><td>${o.customerName||"-"}</td><td>${o.total} ${RIYAL_IMG}</td><td>${new Date(o.verifiedAt).toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("") || '<tr><td colspan="4" style="text-align:center;color:#888">لا توجد عمليات تسليم اليوم</td></tr>'}
 </tbody></table>
-<div class="total"><div class="l" style="font-size:11px;opacity:.85;font-weight:700">إجمالي إيرادات اليوم</div><div class="v">${Number(data.revenueToday).toLocaleString()} ر.س</div></div>
+<div class="total"><div class="l" style="font-size:11px;opacity:.85;font-weight:700">إجمالي إيرادات اليوم</div><div class="v">${Number(data.revenueToday).toLocaleString()} ${RIYAL_IMG}</div></div>
 <div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="background:#2B2B60;color:white;border:0;padding:10px 24px;border-radius:10px;font-weight:800;cursor:pointer">🖨️ طباعة</button></div>
 </body></html>`;
     const w = window.open("", "_blank");
@@ -320,7 +324,7 @@ function BranchOrdersTab() {
               return (
                 <div key={o.id} className="bg-white/15 rounded-xl px-3 py-2 flex items-center justify-between text-xs font-bold" data-testid={`onway-${o.id}`}>
                   <span className="font-mono">#{(o.id || "").slice(-6).toUpperCase()}</span>
-                  <span>{o.total} ر.س</span>
+                  <span>{o.total} <RiyalSign /></span>
                   <span className={remaining < 3 ? "bg-amber-300 text-amber-900 px-2 py-0.5 rounded-lg" : ""}>
                     {remaining > 0 ? `يصل خلال ~${remaining} د` : "وصل تقريباً"}
                   </span>
@@ -424,11 +428,11 @@ function BranchOrdersTab() {
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black mb-1 block">المبلغ من (ر.س)</Label>
+                <Label className="text-xs font-black mb-1 block">المبلغ من (<RiyalSign />)</Label>
                 <Input type="number" min="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="0" data-testid="filter-min-amount" />
               </div>
               <div>
-                <Label className="text-xs font-black mb-1 block">المبلغ إلى (ر.س)</Label>
+                <Label className="text-xs font-black mb-1 block">المبلغ إلى (<RiyalSign />)</Label>
                 <Input type="number" min="0" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="∞" data-testid="filter-max-amount" />
               </div>
             </div>
@@ -448,7 +452,7 @@ function BranchOrdersTab() {
             />
             <span className="text-xs font-bold">
               {selected.size > 0 ? (
-                <>محدد <span className="font-mono font-black text-[#DFB369]">{selected.size}</span> من {filtered.length} — إجمالي <span className="font-mono font-black text-[#DFB369]">{selectedTotal.toLocaleString("ar-SA")}</span> ر.س</>
+                <>محدد <span className="font-mono font-black text-[#DFB369]">{selected.size}</span> من {filtered.length} — إجمالي <span className="font-mono font-black text-[#DFB369]">{selectedTotal.toLocaleString("ar-SA")}</span> <RiyalSign /></>
               ) : (
                 <>عرض {filtered.length} طلب</>
               )}
@@ -539,7 +543,7 @@ function BranchOrdersTab() {
                       )}
                       <p className="text-xs text-gray-800 font-bold">{o.deliveryAddress}</p>
                       <p className="text-xs text-gray-700 mt-1">
-                        {o.items?.length || 0} منتج — <span className="font-black text-black">{o.total} ر.س</span>
+                        {o.items?.length || 0} منتج — <span className="font-black text-black">{o.total} <RiyalSign /></span>
                         {o.createdAt && <span className="text-gray-500 mr-2">— {new Date(o.createdAt).toLocaleDateString("ar-SA")}</span>}
                       </p>
                       {o.pickupCode && !o.pickupVerified && (

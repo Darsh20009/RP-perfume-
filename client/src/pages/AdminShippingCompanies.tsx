@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Truck, Trash2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const emptyForm = {
   name: "",
@@ -150,10 +151,10 @@ export default function AdminShippingCompanies() {
                         )}
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted-foreground">
-                        <p><span className="font-bold">السعر:</span> {company.price} ر.س</p>
+                        <p><span className="font-bold">السعر:</span> {company.price} <RiyalSign /></p>
                         <p><span className="font-bold">المدة:</span> {company.estimatedDays} أيام</p>
                         {Number(company.freeShippingThreshold) > 0 && (
-                          <p><span className="font-bold">شحن مجاني فوق:</span> {company.freeShippingThreshold} ر.س</p>
+                          <p><span className="font-bold">شحن مجاني فوق:</span> {company.freeShippingThreshold} <RiyalSign /></p>
                         )}
                         {company.supportPhone && (
                           <p><span className="font-bold">الدعم:</span> <span dir="ltr">{company.supportPhone}</span></p>
@@ -232,7 +233,7 @@ export default function AdminShippingCompanies() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-bold mb-2 block">السعر (ر.س) *</label>
+                    <label className="text-sm font-bold mb-2 block">السعر (<RiyalSign />) *</label>
                     <Input
                       type="number"
                       value={formData.price}
@@ -254,7 +255,7 @@ export default function AdminShippingCompanies() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-bold mb-2 block">شحن مجاني فوق (ر.س) — اتركه 0 للتعطيل</label>
+                  <label className="text-sm font-bold mb-2 block">شحن مجاني فوق (<RiyalSign />) — اتركه 0 للتعطيل</label>
                   <Input
                     type="number"
                     value={formData.freeShippingThreshold}

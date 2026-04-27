@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { LocationMap } from "@/components/LocationMap";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RiyalSign } from "@/components/RiyalSign";
 
 const profileSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
@@ -75,8 +76,10 @@ function LoyaltyCard() {
               <span className={`text-sm font-bold mr-2 ${colors.text}`}>نقطة</span>
             </div>
             <p className={`text-xs ${colors.text}`}>
-              القيمة: {loyalty.pointsValue || "0.00"} ر.س
-              {loyalty.nextTier && ` • ${loyalty.nextTierThreshold?.toLocaleString()} ر.س للمستوى التالي`}
+              القيمة: {loyalty.pointsValue || "0.00"} <RiyalSign />
+              {loyalty.nextTier && (
+                <> • {loyalty.nextTierThreshold?.toLocaleString()} <RiyalSign /> للمستوى التالي</>
+              )}
             </p>
           </div>
           <div className="text-right space-y-2">

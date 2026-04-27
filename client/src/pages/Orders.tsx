@@ -19,6 +19,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { RiyalSign } from "@/components/RiyalSign";
+import riyalIconUrl from "@assets/dummy_1777292322734.png";
+
+const RIYAL_IMG = `<img src="${typeof window !== "undefined" ? window.location.origin : ""}${riyalIconUrl}" alt="ر.س" style="height:0.85em;width:auto;display:inline-block;vertical-align:-0.08em;margin:0 0.18em 0 0.05em;object-fit:contain;" />`;
 
 // ─── Status Config ─────────────────────────────────────────────────────────
 const statusConfig: Record<string, {
@@ -295,9 +299,9 @@ const OrderCard = ({ order }: { order: any }) => {
 <b>العنوان:</b> ${order.shippingAddress?.city || ""}, ${order.shippingAddress?.street || ""}</div>
 <div style="margin-bottom:20px">${itemsHtml}</div>
 <div class="totals">
-<div class="total-row"><span>المجموع الفرعي</span><span>${Number(order.subtotal).toFixed(2)} ر.س</span></div>
-<div class="total-row"><span>ضريبة القيمة المضافة (15%)</span><span>${Number(order.vatAmount).toFixed(2)} ر.س</span></div>
-<div class="total-row" style="font-size:20px"><span>الإجمالي</span><span>${Number(order.total).toFixed(2)} ر.س</span></div>
+<div class="total-row"><span>المجموع الفرعي</span><span>${Number(order.subtotal).toFixed(2)} ${RIYAL_IMG}</span></div>
+<div class="total-row"><span>ضريبة القيمة المضافة (15%)</span><span>${Number(order.vatAmount).toFixed(2)} ${RIYAL_IMG}</span></div>
+<div class="total-row" style="font-size:20px"><span>الإجمالي</span><span>${Number(order.total).toFixed(2)} ${RIYAL_IMG}</span></div>
 </div>
 <div style="text-align:center;margin-top:40px">${qrUrl ? `<img src="${qrUrl}" width="150"/><p style="font-size:9px;color:#999;margin-top:6px;letter-spacing:0.1em">ZATCA · رمز الفاتورة الإلكترونية</p>` : ""}</div>
 <div class="footer">عطور آر اف • الرقم الضريبي: ${vatNumber}</div>
@@ -346,7 +350,7 @@ const OrderCard = ({ order }: { order: any }) => {
                 <div className="flex items-center gap-2">
                   <div className="flex items-baseline gap-1">
                     <p className="font-black text-2xl text-primary">{order.total}</p>
-                    <span className="text-[10px] font-black text-black/20">ر.س</span>
+                    <span className="text-[10px] font-black text-black/20"><RiyalSign /></span>
                   </div>
                 </div>
               </div>
@@ -410,7 +414,7 @@ const OrderCard = ({ order }: { order: any }) => {
                         <p className="text-xs font-bold text-red-700">سيتم إلغاء طلبك فوراً</p>
                         {order.paymentStatus === "paid" && (
                           <p className="text-[11px] text-red-600 mt-1">
-                            ✓ سيتم استرداد <b>{Number(order.total).toLocaleString()} ر.س</b> لمحفظتك تلقائياً
+                            ✓ سيتم استرداد <b>{Number(order.total).toLocaleString()} <RiyalSign /></b> لمحفظتك تلقائياً
                           </p>
                         )}
                         <p className="text-[11px] text-red-600 mt-0.5">
@@ -458,7 +462,7 @@ const OrderCard = ({ order }: { order: any }) => {
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
                       <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
-                        <p className="text-xs font-bold text-amber-700">مبلغ الاسترداد المتوقع: {Number(order.total).toLocaleString()} ر.س</p>
+                        <p className="text-xs font-bold text-amber-700">مبلغ الاسترداد المتوقع: {Number(order.total).toLocaleString()} <RiyalSign /></p>
                         <p className="text-[10px] text-amber-600 mt-0.5">سيتم إعادة المبلغ للمحفظة أو وسيلة الدفع الأصلية</p>
                       </div>
                       <div className="space-y-2">
@@ -546,7 +550,7 @@ const OrderCard = ({ order }: { order: any }) => {
                               </div>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="font-black text-base">{(item.price * item.quantity).toFixed(2)}<span className="text-[9px] text-black/20 mr-1">ر.س</span></p>
+                              <p className="font-black text-base">{(item.price * item.quantity).toFixed(2)}<span className="text-[9px] text-black/20 mr-1"><RiyalSign /></span></p>
                               <p className="text-[10px] text-black/30 font-bold">×{item.quantity}</p>
                             </div>
                           </div>
@@ -556,18 +560,18 @@ const OrderCard = ({ order }: { order: any }) => {
                       {/* Totals */}
                       <div className="bg-black/[0.02] rounded-2xl p-4 space-y-2 border border-black/[0.03]">
                         <div className="flex justify-between text-xs font-bold text-black/40">
-                          <span>المجموع الفرعي</span><span>{Number(order.subtotal || 0).toFixed(2)} ر.س</span>
+                          <span>المجموع الفرعي</span><span>{Number(order.subtotal || 0).toFixed(2)} <RiyalSign /></span>
                         </div>
                         <div className="flex justify-between text-xs font-bold text-black/40">
-                          <span>ضريبة القيمة المضافة (15%)</span><span>{Number(order.vatAmount || 0).toFixed(2)} ر.س</span>
+                          <span>ضريبة القيمة المضافة (15%)</span><span>{Number(order.vatAmount || 0).toFixed(2)} <RiyalSign /></span>
                         </div>
                         {Number(order.shippingCost || 0) > 0 && (
                           <div className="flex justify-between text-xs font-bold text-black/40">
-                            <span>رسوم الشحن</span><span>{Number(order.shippingCost).toFixed(2)} ر.س</span>
+                            <span>رسوم الشحن</span><span>{Number(order.shippingCost).toFixed(2)} <RiyalSign /></span>
                           </div>
                         )}
                         <div className="flex justify-between font-black text-base border-t border-black/8 pt-2 mt-2">
-                          <span>الإجمالي</span><span className="text-primary">{Number(order.total || 0).toFixed(2)} ر.س</span>
+                          <span>الإجمالي</span><span className="text-primary">{Number(order.total || 0).toFixed(2)} <RiyalSign /></span>
                         </div>
                       </div>
 

@@ -6,6 +6,7 @@ import {
   ArrowLeft, X, CheckCircle2, ChevronRight,
   FileText, CreditCard, Phone, Shield
 } from "lucide-react";
+import { RiyalSign } from "@/components/RiyalSign";
 
 type Step = "phone" | "otp" | "terms" | "national_id" | "plan" | "processing" | "success" | "cancelled";
 type PlanOption = 2 | 4 | 6;
@@ -137,7 +138,7 @@ export default function TabbyCheckout() {
                     {i + 1}
                   </div>
                   <span className="text-sm font-semibold" style={{ color: i === 0 ? TABBY_PRIMARY : "#7f8b99" }}>
-                    {ia.toLocaleString()} ر.س
+                    {ia.toLocaleString()} <RiyalSign />
                   </span>
                 </div>
                 <span className="text-xs text-gray-700">{date}</span>
@@ -431,7 +432,7 @@ export default function TabbyCheckout() {
                 <CreditCard className="h-6 w-6" style={{ color: TABBY_PRIMARY }} />
               </div>
               <h1 className="text-2xl font-bold mb-2" style={{ color: TABBY_PRIMARY }}>اختر خطة الدفع</h1>
-              <p className="text-gray-800 text-sm">قسّط {amount.toLocaleString()} ر.س بدون فوائد</p>
+              <p className="text-gray-800 text-sm">قسّط {amount.toLocaleString()} <RiyalSign /> بدون فوائد</p>
             </div>
             <div className="space-y-3 flex-1">
               {([2, 4, 6] as PlanOption[]).map(plan => {
@@ -465,7 +466,7 @@ export default function TabbyCheckout() {
                       <span className="text-2xl font-bold" style={{ color: TABBY_PRIMARY }}>
                         {parseFloat(perInstallment).toLocaleString()}
                       </span>
-                      <span className="text-gray-800 text-sm">ر.س / شهرياً</span>
+                      <span className="text-gray-800 text-sm"><RiyalSign /> / شهرياً</span>
                     </div>
                     <div className="flex gap-1.5 mt-3 mr-8">
                       {Array.from({ length: plan }).map((_, i) => (
@@ -486,7 +487,7 @@ export default function TabbyCheckout() {
               style={{ background: TABBY_PRIMARY, color: "#fff" }}
             >
               <span style={{ color: TABBY_GREEN }}>✓</span>
-              تأكيد — {(amount / selectedPlan).toFixed(2)} ر.س الآن
+              تأكيد — {(amount / selectedPlan).toFixed(2)} <RiyalSign /> الآن
             </button>
           </div>
         )}

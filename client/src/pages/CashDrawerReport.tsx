@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, Download, TrendingUp, TrendingDown } from "lucide-react";
 import type { CashShift } from "@shared/schema";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function CashDrawerReport() {
   const { user } = useAuth();
@@ -82,7 +83,7 @@ export default function CashDrawerReport() {
               <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">إجمالي الأرصدة الافتتاحية</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-black text-primary">{totalOpened.toFixed(2)} ر.س</p>
+              <p className="text-3xl font-black text-primary">{totalOpened.toFixed(2)} <RiyalSign /></p>
             </CardContent>
           </Card>
 
@@ -91,7 +92,7 @@ export default function CashDrawerReport() {
               <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">إجمالي الأرصدة الفعلية</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-black text-blue-600">{totalActual.toFixed(2)} ر.س</p>
+              <p className="text-3xl font-black text-blue-600">{totalActual.toFixed(2)} <RiyalSign /></p>
             </CardContent>
           </Card>
 
@@ -104,7 +105,7 @@ export default function CashDrawerReport() {
                 totalDifference === 0 ? "text-green-600" : totalDifference > 0 ? "text-blue-600" : "text-red-600"
               }`}>
                 {totalDifference > 0 ? <TrendingUp className="h-6 w-6" /> : totalDifference < 0 ? <TrendingDown className="h-6 w-6" /> : null}
-                {totalDifference.toFixed(2)} ر.س
+                {totalDifference.toFixed(2)} <RiyalSign />
               </p>
             </CardContent>
           </Card>
@@ -132,8 +133,8 @@ export default function CashDrawerReport() {
                     {report.shifts.map((shift: CashShift) => (
                       <tr key={shift.id} className="border-b hover:bg-muted/50">
                         <td className="py-3 px-4 text-sm">{new Date(shift.closedAt || new Date()).toLocaleString("ar-SA")}</td>
-                        <td className="py-3 px-4 text-sm font-bold">{shift.openingBalance?.toFixed(2)} ر.س</td>
-                        <td className="py-3 px-4 text-sm font-bold">{shift.actualCash?.toFixed(2)} ر.س</td>
+                        <td className="py-3 px-4 text-sm font-bold">{shift.openingBalance?.toFixed(2)} <RiyalSign /></td>
+                        <td className="py-3 px-4 text-sm font-bold">{shift.actualCash?.toFixed(2)} <RiyalSign /></td>
                         <td className={`py-3 px-4 text-sm font-bold ${
                           (shift.difference || 0) === 0
                             ? "text-green-600"
@@ -141,7 +142,7 @@ export default function CashDrawerReport() {
                             ? "text-blue-600"
                             : "text-red-600"
                         }`}>
-                          {(shift.difference || 0).toFixed(2)} ر.س
+                          {(shift.difference || 0).toFixed(2)} <RiyalSign />
                         </td>
                         <td className="py-3 px-4">
                           <Badge

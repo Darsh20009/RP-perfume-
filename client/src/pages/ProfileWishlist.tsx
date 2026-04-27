@@ -5,6 +5,7 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function ProfileWishlist() {
   const { language } = useLanguage();
@@ -81,7 +82,7 @@ export default function ProfileWishlist() {
                 <div className="p-3">
                   <p className="font-black text-sm text-slate-900 truncate">{product.name}</p>
                   <p className="text-xs font-bold text-slate-800 mt-1">
-                    {Number(product.price).toLocaleString()} {isAr ? "ر.س" : "SAR"}
+                    {Number(product.price).toLocaleString()} <RiyalSign />
                   </p>
                 </div>
               </Link>

@@ -27,6 +27,7 @@ import {
   TabbyLogo, TamaraLogo, BankLogo
 } from "@/components/payment/PaymentBrands";
 import { STCPayForm } from "@/components/payment/STCPayForm";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
@@ -865,7 +866,7 @@ export default function Checkout() {
                                 <p className="text-[10px] text-gray-700 font-bold mt-0.5">التوصيل خلال ٢-٤ أيام عمل</p>
                               </div>
                               <span className={`font-black text-sm ${isSelected ? "text-primary" : "text-gray-600"}`}>
-                                {company.price} ر.س
+                                {company.price} <RiyalSign />
                               </span>
                             </div>
                           );
@@ -926,7 +927,7 @@ export default function Checkout() {
                           </div>
                           <div className="flex-1">
                             <p className="font-black text-sm">رصيد المحفظة</p>
-                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">رصيدك: {user?.walletBalance} ر.س</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">رصيدك: {user?.walletBalance} <RiyalSign /></p>
                           </div>
                         </label>
                       )}
@@ -1150,7 +1151,7 @@ export default function Checkout() {
                           )}
                         </button>
                         <p className="text-[10px] text-center text-gray-700 font-bold">
-                          المبلغ: <span className="font-black text-gray-600">{finalTotal.toLocaleString()} ر.س</span>
+                          المبلغ: <span className="font-black text-gray-600">{finalTotal.toLocaleString()} <RiyalSign /></span>
                         </p>
                       </div>
                     )}
@@ -1194,7 +1195,7 @@ export default function Checkout() {
                         {item.quantity}x · {item.color} · {item.size}
                       </p>
                     </div>
-                    <p className="font-black text-xs shrink-0 text-gray-700">{item.price.toLocaleString()} ر.س</p>
+                    <p className="font-black text-xs shrink-0 text-gray-700">{item.price.toLocaleString()} <RiyalSign /></p>
                   </div>
                 ))}
               </div>
@@ -1202,26 +1203,26 @@ export default function Checkout() {
               {/* Totals */}
               <div className="p-5 space-y-3 border-b border-gray-100 text-sm">
                 <div className="flex justify-between text-gray-800 font-bold">
-                  <span>{subtotal.toLocaleString()} ر.س</span>
+                  <span>{subtotal.toLocaleString()} <RiyalSign /></span>
                   <span>المجموع الفرعي</span>
                 </div>
                 <div className="flex justify-between text-gray-500 font-bold">
-                  <span>{vatIncluded.toLocaleString()} ر.س</span>
+                  <span>{vatIncluded.toLocaleString()} <RiyalSign /></span>
                   <span>ضريبة ١٥٪ (مشمولة)</span>
                 </div>
                 <div className="flex justify-between text-gray-800 font-bold">
-                  <span>{shipping.toLocaleString()} ر.س</span>
+                  <span>{shipping.toLocaleString()} <RiyalSign /></span>
                   <span>رسوم الشحن</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600 font-black">
-                    <span>- {discountAmount.toLocaleString()} ر.س</span>
+                    <span>- {discountAmount.toLocaleString()} <RiyalSign /></span>
                     <span>الخصم</span>
                   </div>
                 )}
                 {cashbackAmount > 0 && (
                   <div className="flex justify-between text-blue-600 font-black">
-                    <span>+ {cashbackAmount.toLocaleString()} ر.س</span>
+                    <span>+ {cashbackAmount.toLocaleString()} <RiyalSign /></span>
                     <span>كاش باك</span>
                   </div>
                 )}
@@ -1243,14 +1244,14 @@ export default function Checkout() {
                     </div>
                     {useLoyaltyPoints && (
                       <div className="flex justify-between text-amber-700 font-black text-sm">
-                        <span>- {loyaltyDiscount.toFixed(2)} ر.س</span>
+                        <span>- {loyaltyDiscount.toFixed(2)} <RiyalSign /></span>
                         <span>خصم النقاط</span>
                       </div>
                     )}
                   </div>
                 )}
                 <div className="flex justify-between font-black text-lg pt-3 border-t border-gray-100">
-                  <span className="text-primary">{finalTotal.toLocaleString()} ر.س</span>
+                  <span className="text-primary">{finalTotal.toLocaleString()} <RiyalSign /></span>
                   <span>الإجمالي</span>
                 </div>
               </div>

@@ -4,6 +4,11 @@ import { Invoice } from "@shared/schema";
 import { format } from "date-fns";
 import { FileText, Download, Eye, X } from "lucide-react";
 import { useState } from "react";
+import { RiyalSign } from "@/components/RiyalSign";
+import riyalIconUrl from "@assets/dummy_1777292322734.png";
+
+// Inline <img> for use inside the printable HTML string (different window/document).
+const RIYAL_IMG = `<img src="${typeof window !== "undefined" ? window.location.origin : ""}${riyalIconUrl}" alt="ر.س" style="height:0.85em;width:auto;display:inline-block;vertical-align:-0.08em;margin:0 0.18em 0 0.05em;object-fit:contain;" />`;
 
 function printInvoice(invoice: Invoice, language: string) {
   const isAr = language === "ar";
@@ -82,18 +87,18 @@ function printInvoice(invoice: Invoice, language: string) {
         <tr>
           <td>${item.description || item.name || ""}</td>
           <td style="text-align:center">${item.quantity || 1}</td>
-          <td style="text-align:${isAr ? "left" : "right"}">${Number(item.unitPrice || item.price || 0).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</td>
-          <td style="text-align:${isAr ? "left" : "right"}">${Number(item.total || (item.quantity || 1) * (item.unitPrice || item.price || 0)).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</td>
+          <td style="text-align:${isAr ? "left" : "right"}">${Number(item.unitPrice || item.price || 0).toFixed(2)} ${RIYAL_IMG}</td>
+          <td style="text-align:${isAr ? "left" : "right"}">${Number(item.total || (item.quantity || 1) * (item.unitPrice || item.price || 0)).toFixed(2)} ${RIYAL_IMG}</td>
         </tr>`).join("")}
       </tbody>
     </table>
   </div>` : ""}
 
   <div class="totals">
-    ${invoice.subtotal != null ? `<div class="total-row"><span>${isAr ? "المجموع الفرعي" : "Subtotal"}</span><span>${Number(invoice.subtotal).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</span></div>` : ""}
-    ${invoice.discount != null && Number(invoice.discount) > 0 ? `<div class="total-row"><span>${isAr ? "الخصم" : "Discount"}</span><span>-${Number(invoice.discount).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</span></div>` : ""}
-    ${invoice.tax != null ? `<div class="total-row"><span>${isAr ? "ضريبة القيمة المضافة (15%)" : "VAT (15%)"}</span><span>${Number(invoice.tax).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</span></div>` : ""}
-    <div class="total-row"><span>${isAr ? "الإجمالي الكلي" : "Grand Total"}</span><span>${Number(invoice.total).toFixed(2)} ${isAr ? "ر.س" : "SAR"}</span></div>
+    ${invoice.subtotal != null ? `<div class="total-row"><span>${isAr ? "المجموع الفرعي" : "Subtotal"}</span><span>${Number(invoice.subtotal).toFixed(2)} ${RIYAL_IMG}</span></div>` : ""}
+    ${invoice.discount != null && Number(invoice.discount) > 0 ? `<div class="total-row"><span>${isAr ? "الخصم" : "Discount"}</span><span>-${Number(invoice.discount).toFixed(2)} ${RIYAL_IMG}</span></div>` : ""}
+    ${invoice.tax != null ? `<div class="total-row"><span>${isAr ? "ضريبة القيمة المضافة (15%)" : "VAT (15%)"}</span><span>${Number(invoice.tax).toFixed(2)} ${RIYAL_IMG}</span></div>` : ""}
+    <div class="total-row"><span>${isAr ? "الإجمالي الكلي" : "Grand Total"}</span><span>${Number(invoice.total).toFixed(2)} ${RIYAL_IMG}</span></div>
   </div>
 
   ${invoice.notes ? `<div class="section" style="margin-top:24px"><div class="section-title">${isAr ? "ملاحظات" : "Notes"}</div><p style="font-size:12px;color:#555">${invoice.notes}</p></div>` : ""}
@@ -168,7 +173,7 @@ export default function ProfileInvoices() {
                         <span className="text-slate-700">{item.description || item.name || `${isAr ? "منتج" : "Item"} ${idx + 1}`}</span>
                         <div className="flex items-center gap-4 text-slate-600">
                           <span className="text-xs">×{item.quantity || 1}</span>
-                          <span className="font-bold">{Number(item.total || 0).toFixed(2)} {isAr ? "ر.س" : "SAR"}</span>
+                          <span className="font-bold">{Number(item.total || 0).toFixed(2)} <RiyalSign /></span>
                         </div>
                       </div>
                     ))}
@@ -180,24 +185,24 @@ export default function ProfileInvoices() {
                 {viewing.subtotal != null && (
                   <div className="flex justify-between text-sm text-slate-600">
                     <span>{isAr ? "المجموع الفرعي" : "Subtotal"}</span>
-                    <span>{Number(viewing.subtotal).toFixed(2)} {isAr ? "ر.س" : "SAR"}</span>
+                    <span>{Number(viewing.subtotal).toFixed(2)} <RiyalSign /></span>
                   </div>
                 )}
                 {viewing.discount != null && Number(viewing.discount) > 0 && (
                   <div className="flex justify-between text-sm text-emerald-600">
                     <span>{isAr ? "الخصم" : "Discount"}</span>
-                    <span>-{Number(viewing.discount).toFixed(2)} {isAr ? "ر.س" : "SAR"}</span>
+                    <span>-{Number(viewing.discount).toFixed(2)} <RiyalSign /></span>
                   </div>
                 )}
                 {viewing.tax != null && (
                   <div className="flex justify-between text-sm text-slate-600">
                     <span>{isAr ? "ضريبة القيمة المضافة" : "VAT (15%)"}</span>
-                    <span>{Number(viewing.tax).toFixed(2)} {isAr ? "ر.س" : "SAR"}</span>
+                    <span>{Number(viewing.tax).toFixed(2)} <RiyalSign /></span>
                   </div>
                 )}
                 <div className="flex justify-between font-black text-base border-t border-slate-200 pt-2 mt-2">
                   <span>{isAr ? "الإجمالي" : "Total"}</span>
-                  <span>{Number(viewing.total).toFixed(2)} {isAr ? "ر.س" : "SAR"}</span>
+                  <span>{Number(viewing.total).toFixed(2)} <RiyalSign /></span>
                 </div>
               </div>
 
@@ -243,7 +248,7 @@ export default function ProfileInvoices() {
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-sm font-bold" data-testid={`text-invoice-total-${invoice.id}`}>
-                  {Number(invoice.total).toFixed(2)} {t("currency")}
+                  {Number(invoice.total).toFixed(2)} <RiyalSign />
                 </span>
                 <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-none ${
                   invoice.status === "paid" ? "bg-emerald-100 text-emerald-700" :

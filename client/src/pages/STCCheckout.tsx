@@ -6,6 +6,7 @@ import { useCart } from "@/hooks/use-cart";
 import { CheckCircle2, XCircle, Phone, RefreshCw, Shield, Clock, Smartphone } from "lucide-react";
 import { STCPayLogo } from "@/components/payment/PaymentBrands";
 import { cn } from "@/lib/utils";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function STCCheckout() {
   const [, setLocation] = useLocation();
@@ -117,7 +118,7 @@ export default function STCCheckout() {
             </div>
             <div>
               <h2 className="font-black text-2xl text-[#2B2B60]">تمت العملية بنجاح!</h2>
-              <p className="text-sm text-gray-800 font-bold mt-1">تم خصم {amount.toLocaleString()} ر.س من محفظة STC Pay</p>
+              <p className="text-sm text-gray-800 font-bold mt-1">تم خصم {amount.toLocaleString()} <RiyalSign /> من محفظة STC Pay</p>
             </div>
             <div className="flex justify-center">
               <STCPayLogo className="h-10" />

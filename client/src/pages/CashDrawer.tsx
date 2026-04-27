@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, DollarSign, Lock, Unlock, TrendingUp, TrendingDown } from "lucide-react";
 import type { CashShift } from "@shared/schema";
+import { RiyalSign } from "@/components/RiyalSign";
 
 export default function CashDrawer() {
   const { user } = useAuth();
@@ -105,11 +106,11 @@ export default function CashDrawer() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-4 rounded border border-green-200">
                   <p className="text-sm text-muted-foreground mb-1">الرصيد الافتتاحي</p>
-                  <p className="text-3xl font-black text-green-700">{activeShift.openingBalance?.toFixed(2)} ر.س</p>
+                  <p className="text-3xl font-black text-green-700">{activeShift.openingBalance?.toFixed(2)} <RiyalSign /></p>
                 </div>
                 <div className="bg-white p-4 rounded border border-green-200">
                   <p className="text-sm text-muted-foreground mb-1">المتوقع</p>
-                  <p className="text-3xl font-black text-blue-700">{(activeShift.openingBalance || 0).toFixed(2)} ر.س</p>
+                  <p className="text-3xl font-black text-blue-700">{(activeShift.openingBalance || 0).toFixed(2)} <RiyalSign /></p>
                 </div>
               </div>
 
@@ -126,7 +127,7 @@ export default function CashDrawer() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-bold mb-1 block">الرصيد الفعلي في الصندوق (ر.س)</label>
+                      <label className="text-sm font-bold mb-1 block">الرصيد الفعلي في الصندوق (<RiyalSign />)</label>
                       <Input
                         type="number"
                         placeholder="0.00"
@@ -140,11 +141,11 @@ export default function CashDrawer() {
                       <div className="p-3 bg-muted rounded space-y-1">
                         <div className="flex justify-between text-sm">
                           <span>الرصيد المتوقع:</span>
-                          <span className="font-bold">{(activeShift.openingBalance || 0).toFixed(2)} ر.س</span>
+                          <span className="font-bold">{(activeShift.openingBalance || 0).toFixed(2)} <RiyalSign /></span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>الرصيد الفعلي:</span>
-                          <span className="font-bold">{Number(actualCash).toFixed(2)} ر.س</span>
+                          <span className="font-bold">{Number(actualCash).toFixed(2)} <RiyalSign /></span>
                         </div>
                         <div className={`flex justify-between text-sm font-black pt-2 border-t ${
                           Number(actualCash) === (activeShift.openingBalance || 0)
@@ -154,7 +155,7 @@ export default function CashDrawer() {
                             : "text-red-600"
                         }`}>
                           <span>الفرق:</span>
-                          <span>{(Number(actualCash) - (activeShift.openingBalance || 0)).toFixed(2)} ر.س</span>
+                          <span>{(Number(actualCash) - (activeShift.openingBalance || 0)).toFixed(2)} <RiyalSign /></span>
                         </div>
                       </div>
                     )}
@@ -189,7 +190,7 @@ export default function CashDrawer() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-bold mb-1 block">الرصيد الافتتاحي (ر.س)</label>
+                      <label className="text-sm font-bold mb-1 block">الرصيد الافتتاحي (<RiyalSign />)</label>
                       <Input
                         type="number"
                         placeholder="0.00"
@@ -239,11 +240,11 @@ export default function CashDrawer() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">الرصيد الافتتاحي</p>
-                          <p className="text-sm font-bold">{shift.openingBalance?.toFixed(2)} ر.س</p>
+                          <p className="text-sm font-bold">{shift.openingBalance?.toFixed(2)} <RiyalSign /></p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">الرصيد الفعلي</p>
-                          <p className="text-sm font-bold">{shift.actualCash?.toFixed(2)} ر.س</p>
+                          <p className="text-sm font-bold">{shift.actualCash?.toFixed(2)} <RiyalSign /></p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">الفرق</p>
@@ -255,7 +256,7 @@ export default function CashDrawer() {
                               : "text-red-600"
                           }`}>
                             {(shift.difference || 0) > 0 ? <TrendingUp className="h-4 w-4" /> : (shift.difference || 0) < 0 ? <TrendingDown className="h-4 w-4" /> : null}
-                            {(shift.difference || 0).toFixed(2)} ر.س
+                            {(shift.difference || 0).toFixed(2)} <RiyalSign />
                           </p>
                         </div>
                         <div className="flex justify-end">

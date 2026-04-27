@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Printer } from "lucide-react";
+import { RiyalSign } from "@/components/RiyalSign";
 const logoDark = "/images/logos/logo-dark.png";
 const logoWhite = "/images/logos/logo-light-nobg.png";
 
@@ -315,29 +316,29 @@ export default function Invoice() {
             <div className="bg-[#FAF8F4] rounded-2xl p-5 space-y-2 border border-[#DFB369]/30">
               <div className="flex justify-between text-sm">
                 <span className="font-bold text-gray-800">المجموع الفرعي</span>
-                <span className="font-mono font-bold">{formatMoney(totals.subtotal)} ر.س</span>
+                <span className="font-mono font-bold">{formatMoney(totals.subtotal)} <RiyalSign /></span>
               </div>
               {totals.shipping > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="font-bold text-gray-800">الشحن</span>
-                  <span className="font-mono font-bold">{formatMoney(totals.shipping)} ر.س</span>
+                  <span className="font-mono font-bold">{formatMoney(totals.shipping)} <RiyalSign /></span>
                 </div>
               )}
               {totals.discount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-700">
                   <span className="font-bold">الخصم</span>
-                  <span className="font-mono font-bold">−{formatMoney(totals.discount)} ر.س</span>
+                  <span className="font-mono font-bold">−{formatMoney(totals.discount)} <RiyalSign /></span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="font-bold text-gray-800">ضريبة القيمة المضافة (15%)</span>
-                <span className="font-mono font-bold">{formatMoney(totals.vat)} ر.س</span>
+                <span className="font-mono font-bold">{formatMoney(totals.vat)} <RiyalSign /></span>
               </div>
               <div className="gold-line my-2" />
               <div className="flex justify-between items-baseline">
                 <span className="font-black text-base text-[#2B2B60]">الإجمالي النهائي</span>
                 <span className="font-mono font-black text-2xl text-[#850935]" data-testid="text-invoice-total">
-                  {formatMoney(totals.total)} <span className="text-sm">ر.س</span>
+                  {formatMoney(totals.total)} <span className="text-sm"><RiyalSign /></span>
                 </span>
               </div>
             </div>
