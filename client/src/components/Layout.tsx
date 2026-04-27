@@ -687,7 +687,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <span className="text-[#850935] text-base leading-none animate-pulse" aria-label="حب">♥</span>
               <span>عبر</span>
               <a
-                href="https://qiroxstudio.sa"
+                href="https://qiroxstudio.online"
                 target="_blank"
                 rel="noreferrer"
                 data-testid="link-qirox-studio"
