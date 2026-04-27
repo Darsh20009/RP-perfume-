@@ -389,12 +389,13 @@ export function Layout({ children }: { children: ReactNode }) {
             )}
           </div>
 
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-0.5 md:gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-              className="no-default-hover-elevate hover:text-primary h-11 w-11 active:scale-95 transition-transform"
+              className="hidden md:inline-flex no-default-hover-elevate hover:text-primary h-11 w-11 active:scale-95 transition-transform"
+              data-testid="button-language-toggle"
             >
               <Globe className="h-6 w-6" />
             </Button>
@@ -412,7 +413,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   setLocation("/cart");
                 }
               }}
-              className="relative no-default-hover-elevate hover:text-primary h-11 w-11 active:scale-95 transition-transform"
+              className="relative no-default-hover-elevate hover:text-primary h-10 w-10 md:h-11 md:w-11 active:scale-95 transition-transform"
             >
               <ShoppingBag className="h-6 w-6" />
               {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
@@ -511,14 +512,27 @@ export function Layout({ children }: { children: ReactNode }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`font-black uppercase text-[10px] ${language === 'en' ? 'tracking-widest' : ''} h-9 px-4`}
-                onClick={() => { setAuthModalTab("login"); setAuthModalOpen(true); }}
-              >
-                {t('signIn')}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('signIn')}
+                  className="md:hidden no-default-hover-elevate hover:text-primary h-10 w-10 active:scale-95 transition-transform"
+                  onClick={() => { setAuthModalTab("login"); setAuthModalOpen(true); }}
+                  data-testid="button-signin-mobile"
+                >
+                  <User className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`hidden md:inline-flex font-black uppercase text-[10px] ${language === 'en' ? 'tracking-widest' : ''} h-9 px-4`}
+                  onClick={() => { setAuthModalTab("login"); setAuthModalOpen(true); }}
+                  data-testid="button-signin-desktop"
+                >
+                  {t('signIn')}
+                </Button>
+              </>
             )}
           </div>
         </div>
