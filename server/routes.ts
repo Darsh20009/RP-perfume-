@@ -279,16 +279,34 @@ export async function registerRoutes(
   });
 
   // Apple Maps JWT token for MapKit JS
-  const _mapsKeyPath = path.resolve(process.cwd(), "server/keys/AuthKey_XW8G48DGMQ.p8");
-  const _mapsPrivateKey = fs.existsSync(_mapsKeyPath) ? fs.readFileSync(_mapsKeyPath, "utf8") : null;
+  // Prefers env-secrets (APPLE_MAPS_PRIVATE_KEY/KEY_ID/TEAM_ID) over disk file fallback
+  function getMapsSigningConfig(): { privateKey: string; keyId: string; teamId: string } | null {
+    const envKey = process.env.APPLE_MAPS_PRIVATE_KEY;
+    const envKid = process.env.APPLE_MAPS_KEY_ID;
+    const envTeam = process.env.APPLE_MAPS_TEAM_ID;
+    if (envKey && envKid && envTeam) {
+      // Allow \n escapes in secret values to be turned into real newlines
+      const normalizedKey = envKey.includes("BEGIN") ? envKey.replace(/\\n/g, "\n") : envKey;
+      return { privateKey: normalizedKey, keyId: envKid, teamId: envTeam };
+    }
+    const fallbackKid = "XW8G48DGMQ";
+    const fallbackTeam = "V4K6RM59LS";
+    const fallbackPath = path.resolve(process.cwd(), `server/keys/AuthKey_${fallbackKid}.p8`);
+    if (fs.existsSync(fallbackPath)) {
+      return { privateKey: fs.readFileSync(fallbackPath, "utf8"), keyId: fallbackKid, teamId: fallbackTeam };
+    }
+    return null;
+  }
+
   app.get("/api/maps/token", (_req, res) => {
     try {
-      if (!_mapsPrivateKey) return res.status(500).json({ error: "Maps key not configured" });
+      const cfg = getMapsSigningConfig();
+      if (!cfg) return res.status(500).json({ error: "Maps key not configured" });
       const now = Math.floor(Date.now() / 1000);
       const token = jwt.sign(
-        { iss: "V4K6RM59LS", iat: now, exp: now + 1800 },
-        _mapsPrivateKey,
-        { algorithm: "ES256", header: { alg: "ES256", kid: "XW8G48DGMQ", typ: "JWT" } } as any
+        { iss: cfg.teamId, iat: now, exp: now + 1800 },
+        cfg.privateKey,
+        { algorithm: "ES256", header: { alg: "ES256", kid: cfg.keyId, typ: "JWT" } } as any
       );
       res.json({ token });
     } catch (e) {
