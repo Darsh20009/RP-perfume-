@@ -112,11 +112,14 @@ export default function AdminBranches() {
       setIsCreateOpen(false);
       createForm.reset(emptyBranch);
     },
-    onError: (err: any) => toast({
-      title: "تعذّر إنشاء الفرع",
-      description: err?.message || "حدث خطأ غير متوقع",
-      variant: "destructive",
-    }),
+    onError: (err: any) => {
+      console.error("[AdminBranches] create failed:", err);
+      toast({
+        title: "تعذّر إنشاء الفرع",
+        description: err?.message || "حدث خطأ غير متوقع — حاول مرة أخرى",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateMutation = useMutation({
@@ -234,13 +237,26 @@ export default function AdminBranches() {
   const renderForm = (form: typeof createForm, isEdit: boolean) => (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((data) => {
-          if (isEdit && editingBranch) {
-            updateMutation.mutate({ id: editingBranch.id, data });
-          } else {
-            createMutation.mutate(data);
-          }
-        })}
+        onSubmit={form.handleSubmit(
+          (data) => {
+            if (isEdit && editingBranch) {
+              updateMutation.mutate({ id: editingBranch.id, data });
+            } else {
+              createMutation.mutate(data);
+            }
+          },
+          (errors) => {
+            console.error("[AdminBranches] form validation errors:", errors);
+            const firstField = Object.keys(errors)[0];
+            const firstMessage =
+              (errors as any)?.[firstField]?.message || "يرجى تعبئة الحقول المطلوبة";
+            toast({
+              title: "تعذّر حفظ الفرع",
+              description: String(firstMessage),
+              variant: "destructive",
+            });
+          },
+        )}
         className="space-y-5"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

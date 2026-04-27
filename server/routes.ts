@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema, insertBundleOfferSchema } from "@shared/schema";
+import { insertProductSchema, insertOrderSchema, insertCouponSchema, insertCashShiftSchema, insertCategorySchema, insertBundleOfferSchema, insertBranchSchema } from "@shared/schema";
 import { seed } from "./seed";
 import multer from "multer";
 import path from "path";
@@ -1434,7 +1434,18 @@ export async function registerRoutes(
   app.post("/api/admin/branches", checkPermission("settings.manage"), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const { managerName, managerPhone, managerPassword, ...branchData } = req.body || {};
+      const { managerName, managerPhone, managerPassword, ...rawBranchData } = req.body || {};
+
+      // Validate the branch payload up-front so we can return a clear,
+      // user-friendly Arabic error instead of a generic 500.
+      const parsed = insertBranchSchema.safeParse(rawBranchData);
+      if (!parsed.success) {
+        const firstIssue = parsed.error.issues[0];
+        const fieldPath = firstIssue?.path?.join(".") || "حقل";
+        const message = firstIssue?.message || "بيانات الفرع غير صالحة";
+        return res.status(400).json({ message: `${message} (${fieldPath})` });
+      }
+      const branchData = parsed.data;
       const branch = await storage.createBranch(branchData);
 
       // Auto-create a branch manager login if credentials provided
@@ -1498,7 +1509,17 @@ export async function registerRoutes(
   app.patch("/api/admin/branches/:id", checkPermission("settings.manage"), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const { managerName, managerPhone, managerPassword, ...branchData } = req.body || {};
+      const { managerName, managerPhone, managerPassword, ...rawBranchData } = req.body || {};
+
+      // Validate the partial branch payload — same Arabic-friendly errors as POST.
+      const parsed = insertBranchSchema.partial().safeParse(rawBranchData);
+      if (!parsed.success) {
+        const firstIssue = parsed.error.issues[0];
+        const fieldPath = firstIssue?.path?.join(".") || "حقل";
+        const message = firstIssue?.message || "بيانات الفرع غير صالحة";
+        return res.status(400).json({ message: `${message} (${fieldPath})` });
+      }
+      const branchData = parsed.data;
       const branch = await storage.updateBranch(req.params.id, branchData);
 
       // Optional: update / create a manager on this branch
