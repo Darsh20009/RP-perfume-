@@ -551,7 +551,7 @@ export default function Checkout() {
     wallet: "رصيد المحفظة",
     tap: "بطاقة بنكية",
     stc_pay: "STC Pay",
-    apple_pay: "Apple Pay",
+    apple_pay: "توجيه",
     tabby: "Tabby — أقساط",
     tamara: "Tamara — أقساط",
     bank_transfer: "تحويل بنكي",
@@ -1024,30 +1024,7 @@ export default function Checkout() {
                         </label>
                       )}
 
-                      {/* STC Pay */}
-                      {enabledMethods.stc_pay !== false && (
-                        <label
-                          htmlFor="pay-stc"
-                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            paymentMethod === "stc_pay" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <RadioGroupItem value="stc_pay" id="pay-stc" className="shrink-0" />
-                          <STCPayLogo className="h-6 shrink-0" />
-                          <div className="flex-1">
-                            <p className="font-black text-sm">STC Pay</p>
-                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">محفظة STC الإلكترونية</p>
-                          </div>
-                          {paymentMethod === "stc_pay" && paymentConfirmed && (
-                            <span className="text-[10px] text-green-600 font-black flex items-center gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              تم التحقق
-                            </span>
-                          )}
-                        </label>
-                      )}
-
-                      {/* Apple Pay */}
+                      {/* Apple Pay (visible label: "توجيه") */}
                       {enabledMethods.apple_pay !== false && (
                         <label
                           htmlFor="pay-apple"
@@ -1058,8 +1035,8 @@ export default function Checkout() {
                           <RadioGroupItem value="apple_pay" id="pay-apple" className="shrink-0" />
                           <ApplePayLogo className="h-6 shrink-0" />
                           <div className="flex-1">
-                            <p className="font-black text-sm">Apple Pay</p>
-                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">Face ID / Touch ID</p>
+                            <p className="font-black text-sm">توجيه</p>
+                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">دفع موجّه عبر بوابة آمنة</p>
                           </div>
                           {paymentMethod === "apple_pay" && paymentConfirmed && (
                             <span className="text-[10px] text-green-600 font-black flex items-center gap-1">
@@ -1106,47 +1083,6 @@ export default function Checkout() {
                         </label>
                       )}
 
-                      {/* Bank Transfer */}
-                      {enabledMethods.bank_transfer !== false && (
-                        <label
-                          htmlFor="pay-bank"
-                          className={`flex flex-col gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <RadioGroupItem value="bank_transfer" id="pay-bank" className="shrink-0" />
-                            <div className={`p-1.5 rounded-md ${paymentMethod === "bank_transfer" ? "bg-primary/10" : "bg-gray-100"}`}>
-                              <Landmark className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-800"}`} />
-                            </div>
-                            <div>
-                              <p className="font-black text-sm">تحويل بنكي</p>
-                              <p className="text-[10px] text-gray-700 font-bold mt-0.5">يتطلب رفع إيصال التحويل</p>
-                            </div>
-                            <BankLogo bankName={storeSettings?.bankName} bankLogoUrl={storeSettings?.bankLogo} className="h-8 w-auto mr-auto" />
-                          </div>
-                          {paymentMethod === "bank_transfer" && (
-                            <div className="mt-2 pt-4 border-t border-primary/10 space-y-3">
-                              <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2 text-sm">
-                                <p className="font-black">{storeSettings?.bankName || "مصرف الراجحي"}</p>
-                                <p className="text-gray-600 font-bold">الاسم: {storeSettings?.bankAccountHolder || "عطور آر اف"}</p>
-                                <p className="font-mono text-gray-600 text-xs">IBAN: {storeSettings?.bankIBAN || "SA6280000501608016226411"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-xs font-black text-gray-800 mb-2 block">
-                                  رفع إيصال التحويل <span className="text-red-500">*</span>
-                                </Label>
-                                <Input type="file" onChange={handleReceiptUpload} accept="image/*" className="h-10 text-xs border-gray-200 rounded-lg" />
-                                {!receiptFile ? (
-                                  <p className="text-[10px] text-red-500 font-bold mt-1.5">⚠ لا يمكن إتمام الطلب بدون رفع الإيصال</p>
-                                ) : (
-                                  <p className="text-[10px] text-green-600 font-bold mt-1.5">✓ {receiptFile.name}</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </label>
-                      )}
                     </RadioGroup>
 
                     {/* Paymob card info */}
@@ -1176,46 +1112,17 @@ export default function Checkout() {
                       </div>
                     )}
 
-                    {/* Inline STC Pay */}
-                    {paymentMethod === "stc_pay" && !paymentConfirmed && (
-                      <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Smartphone className="h-4 w-4 text-primary" />
-                          <p className="font-black text-sm text-gray-700">STC Pay</p>
-                        </div>
-                        <STCPayForm
-                          orderId="PENDING"
-                          amount={finalTotal}
-                          onSuccess={() => setPaymentConfirmed(true)}
-                          onError={(msg) => toast({ title: "خطأ", description: msg, variant: "destructive" })}
-                        />
-                      </div>
-                    )}
-
-                    {/* Apple Pay — handled by Paymob hosted checkout (no inline confirm needed) */}
+                    {/* "توجيه" (Apple Pay) — handled by Paymob hosted checkout (no inline confirm needed) */}
                     {paymentMethod === "apple_pay" && (
                       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center shrink-0">
                           <Apple className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-black text-sm text-black">Apple Pay</p>
+                          <p className="font-black text-sm text-black">توجيه</p>
                           <p className="text-[10px] text-gray-700 font-bold mt-0.5">
-                            عند الضغط على "تأكيد الطلب" ستُنقل إلى صفحة دفع آمنة لإكمال المصادقة عبر Face ID / Touch ID
+                            عند الضغط على "تأكيد الطلب" ستُنقل إلى صفحة دفع آمنة لإكمال العملية
                           </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Payment confirmed success (STC Pay only) */}
-                    {paymentMethod === "stc_pay" && paymentConfirmed && (
-                      <div className="bg-green-50 rounded-xl p-4 border border-green-200 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-black text-sm text-green-800">تمت معالجة الدفع بنجاح</p>
-                          <p className="text-[10px] text-green-600 font-bold mt-0.5">يمكنك الآن تأكيد الطلب</p>
                         </div>
                       </div>
                     )}

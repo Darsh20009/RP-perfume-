@@ -3168,6 +3168,99 @@ export async function registerRoutes(
     res.json({ configured: isPaymobConfigured() });
   });
 
+  // ── Admin: Discover the actual Integration IDs in the merchant's Paymob account ──
+  // Useful when the user keeps confusing Merchant ID (e.g. 16417) with the per-method
+  // Integration IDs. This calls Paymob with the SECRET key and returns the live list,
+  // so the admin can copy the right number into PAYMOB_INTEGRATION_ID.
+  app.get("/api/admin/paymob/integrations", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const sk = process.env.PAYMOB_SECRET_KEY || "";
+      const pk = process.env.PAYMOB_PUBLIC_KEY || "";
+      if (!sk) return res.status(400).json({ ok: false, error: "PAYMOB_SECRET_KEY غير مُعدّ في الأسرار" });
+
+      const base = sk.startsWith("sau_") || pk.startsWith("sau_")
+        ? "https://ksa.paymob.com"
+        : "https://accept.paymob.com";
+
+      // Endpoint that lists payment integrations attached to this merchant (KSA + EG)
+      const url = `${base}/v1/intention/payment-methods/`;
+      const r = await fetch(url, { headers: { Authorization: `Token ${sk}` } });
+      const text = await r.text();
+      let data: any = {}; try { data = JSON.parse(text); } catch {}
+
+      if (!r.ok) {
+        return res.status(r.status).json({
+          ok: false,
+          status: r.status,
+          base,
+          error: data?.detail || data?.message || text.slice(0, 200),
+          hint: r.status === 401
+            ? "PAYMOB_SECRET_KEY خاطئ أو منتهي — أعد توليده من Developers → API Keys في لوحة Paymob."
+            : "إذا كانت القائمة فارغة، اطلب من Paymob تفعيل طريقة دفع لحسابك.",
+        });
+      }
+
+      // Normalize: Paymob returns {results: [...]} or {data: [...]} depending on version
+      const list = Array.isArray(data) ? data : (data.results || data.data || []);
+      const integrations = list.map((it: any) => ({
+        id: it.id ?? it.integration_id,
+        name: it.name || it.integration_name || it.payment_method_name || "—",
+        type: it.payment_method_type || it.type || "",
+        currency: it.currency || "",
+        active: it.active ?? it.is_active ?? null,
+      })).filter((it: any) => it.id != null);
+
+      const cardInt = integrations.find((i: any) => /card|mada|visa|master/i.test(i.name) || /card/i.test(i.type));
+      const applePayInt = integrations.find((i: any) => /apple/i.test(i.name) || /apple/i.test(i.type));
+
+      res.json({
+        ok: true,
+        base,
+        currentEnvIntegrationId: process.env.PAYMOB_INTEGRATION_ID || null,
+        integrations,
+        suggestion: {
+          cardIntegrationId: cardInt?.id || null,
+          applePayIntegrationId: applePayInt?.id || null,
+          message: integrations.length === 0
+            ? "لم يُعد Paymob أي طرق دفع — اطلب من دعم Paymob تفعيل Online Card."
+            : `انسخ الرقم ${cardInt?.id ?? integrations[0].id} وضعه في خانة PAYMOB_INTEGRATION_ID في الأسرار.`,
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err?.message || "Network error" });
+    }
+  });
+
+  // ── Admin: Quick connectivity test for Tabby (validates the keys before letting customers try) ──
+  app.get("/api/admin/tabby/check", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const pk = process.env.TABBY_PUBLIC_KEY || "";
+      const sk = process.env.TABBY_SECRET_KEY || "";
+      if (!pk || !sk) {
+        return res.json({ ok: false, error: "TABBY_PUBLIC_KEY أو TABBY_SECRET_KEY غير مُعدّ" });
+      }
+      // Use the merchant-info endpoint (cheap, doesn't create a session). 401 → bad key.
+      const r = await fetch("https://api.tabby.ai/api/v1/merchant/me", {
+        headers: { Authorization: `Bearer ${sk}` },
+      });
+      const text = await r.text();
+      let data: any = {}; try { data = JSON.parse(text); } catch {}
+      if (r.status === 401) {
+        return res.json({
+          ok: false,
+          status: 401,
+          error: "Tabby يرفض المفاتيح — افتح merchant.tabby.ai → Settings → API Keys وأعد توليد Public/Secret keys ثم حدّثها في الأسرار.",
+        });
+      }
+      if (!r.ok) {
+        return res.json({ ok: false, status: r.status, error: data?.message || text.slice(0, 200) });
+      }
+      res.json({ ok: true, merchant: data });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err?.message });
+    }
+  });
+
   // Initiate Paymob payment (create intention → return iframe URL)
   app.post("/api/paymob/initiate", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
