@@ -383,8 +383,10 @@ export default function Checkout() {
       };
       const res = await apiRequest("POST", "/api/orders", orderData);
       const order = await res.json();
+      console.log("[Checkout] Order created:", order.id, "paymentMethod=", paymentMethod, "requiresGateway=", requiresGateway);
       // Card (tap) AND Apple Pay both go through Paymob's hosted unified checkout
       if (paymentMethod === "tap" || paymentMethod === "apple_pay") {
+        console.log("[Checkout] → Paymob initiate for order", order.id);
         try {
           const selectedAddr = user?.addresses?.find((a) => a.id === selectedAddressId);
           const paymobRes = await fetch("/api/paymob/initiate", {
@@ -1285,13 +1287,11 @@ export default function Checkout() {
                       أكمل الخطوات أعلاه للمتابعة
                     </p>
                   </div>
-                ) : ["stc_pay", "apple_pay"].includes(paymentMethod) && !paymentConfirmed ? (
+                ) : paymentMethod === "stc_pay" && !paymentConfirmed ? (
                   <div className="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5">
                     <Lock className="h-4 w-4 text-gray-700" />
                     <p className="text-[10px] text-gray-700 font-black text-center">
-                      {paymentMethod === "stc_pay"
-                        ? "تحقق من STC Pay أولاً"
-                        : "صادق عبر Apple Pay أولاً"}
+                      تحقق من STC Pay أولاً
                     </p>
                   </div>
                 ) : (

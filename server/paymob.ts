@@ -1,8 +1,19 @@
 import crypto from "crypto";
 
-// Default to global Paymob endpoint. KSA accounts can override via env if needed.
-const PAYMOB_BASE = (process.env.PAYMOB_BASE_URL || "https://accept.paymob.com").replace(/\/+$/, "");
+// Auto-detect Paymob region from the secret key prefix:
+//   - "sau_sk_..." or "sau_pk_..." → KSA  → https://ksa.paymob.com
+//   - "egy_sk_..." or anything else  → Egypt → https://accept.paymob.com
+// Override with PAYMOB_BASE_URL if you really need a custom base.
+function detectPaymobBase(): string {
+  if (process.env.PAYMOB_BASE_URL) return process.env.PAYMOB_BASE_URL.replace(/\/+$/, "");
+  const sk = process.env.PAYMOB_SECRET_KEY || "";
+  const pk = process.env.PAYMOB_PUBLIC_KEY || "";
+  if (sk.startsWith("sau_") || pk.startsWith("sau_")) return "https://ksa.paymob.com";
+  return "https://accept.paymob.com";
+}
+const PAYMOB_BASE = detectPaymobBase();
 const PAYMOB_API_BASE = `${PAYMOB_BASE}/api`;
+console.log(`[Paymob] Using base URL: ${PAYMOB_BASE}`);
 
 function getConfig() {
   return {
