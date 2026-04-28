@@ -1,6 +1,8 @@
 type Audience = "customer" | "employee";
 
-const POOL_KEYS = [
+// Keys 1..7 are reserved for customers (high traffic, customer-facing AI).
+// Keys 8..11 + EMPLOYEE are reserved for staff so internal ops never starve.
+const CUSTOMER_POOL = [
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
@@ -8,6 +10,10 @@ const POOL_KEYS = [
   process.env.GROQ_API_KEY_5,
   process.env.GROQ_API_KEY_6,
   process.env.GROQ_API_KEY_7,
+].filter(Boolean) as string[];
+
+const EMPLOYEE_POOL = [
+  process.env.GROQ_API_KEY_EMPLOYEE,
   process.env.GROQ_API_KEY_8,
   process.env.GROQ_API_KEY_9,
   process.env.GROQ_API_KEY_10,
@@ -16,13 +22,10 @@ const POOL_KEYS = [
 
 const CUSTOMER_KEYS = Array.from(new Set([
   process.env.GROQ_API_KEY_CUSTOMER,
-  ...POOL_KEYS,
+  ...CUSTOMER_POOL,
 ].filter(Boolean) as string[]));
 
-const EMPLOYEE_KEYS = Array.from(new Set([
-  process.env.GROQ_API_KEY_EMPLOYEE,
-  ...POOL_KEYS,
-].filter(Boolean) as string[]));
+const EMPLOYEE_KEYS = Array.from(new Set(EMPLOYEE_POOL));
 
 const ALL_KEYS = Array.from(new Set([...CUSTOMER_KEYS, ...EMPLOYEE_KEYS]));
 

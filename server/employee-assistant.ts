@@ -11,16 +11,10 @@ import { sendEmail } from "./email";
 import { sendPushToUser, pushToUser } from "./notifications";
 import { detectLang } from "./groq";
 
-// Employee assistant uses the dedicated employee key first, then any pool keys.
+// Employee assistant has its OWN dedicated keys, separate from customer pool.
+// This guarantees staff AI keeps working even if customers exhaust their share.
 const GROQ_KEYS = Array.from(new Set([
   process.env.GROQ_API_KEY_EMPLOYEE,
-  process.env.GROQ_API_KEY_1,
-  process.env.GROQ_API_KEY_2,
-  process.env.GROQ_API_KEY_3,
-  process.env.GROQ_API_KEY_4,
-  process.env.GROQ_API_KEY_5,
-  process.env.GROQ_API_KEY_6,
-  process.env.GROQ_API_KEY_7,
   process.env.GROQ_API_KEY_8,
   process.env.GROQ_API_KEY_9,
   process.env.GROQ_API_KEY_10,
@@ -28,6 +22,7 @@ const GROQ_KEYS = Array.from(new Set([
 ].filter(Boolean) as string[]));
 
 let keyIndex = 0;
+const badKeys = new Set<number>(); // Permanently-bad (401/403) keys we won't retry
 
 // ─── Tool Definitions ───────────────────────────────────────────────────────
 
@@ -719,42 +714,60 @@ When done: a concise English reply summarising what you did — no excessive tab
 // ─── Assistant Loop ─────────────────────────────────────────────────────────
 
 async function callGroq(allMessages: any[]): Promise<{ ok: boolean; status?: number; data?: any; errText?: string }> {
-  // Try every available key once; rotate on 429/5xx
+  // Try every available key (skipping known-bad ones); rotate on 401/403/429/5xx.
+  // The previous version broke on the FIRST 401, which made the whole assistant
+  // appear dead if any key was revoked or had a typo.
   const triedKeys = new Set<number>();
   let lastStatus = 0;
   let lastText = "";
-  for (let attempt = 0; attempt < Math.max(GROQ_KEYS.length, 1); attempt++) {
-    const idx = (keyIndex + attempt) % Math.max(GROQ_KEYS.length, 1);
-    if (triedKeys.has(idx)) continue;
-    triedKeys.add(idx);
-    const key = GROQ_KEYS[idx];
-    if (!key) continue;
-    try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: allMessages,
-          tools: TOOLS,
-          tool_choice: "auto",
-          temperature: 0.2,
-          max_tokens: 1800,
-        }),
-      });
-      if (res.ok) {
-        keyIndex = (idx + 1) % Math.max(GROQ_KEYS.length, 1);
-        const data = await res.json();
-        return { ok: true, data };
+  const total = Math.max(GROQ_KEYS.length, 1);
+  // Try fallback model when all keys hit rate-limit on the primary
+  const models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+  for (const model of models) {
+    triedKeys.clear();
+    for (let attempt = 0; attempt < total; attempt++) {
+      const idx = (keyIndex + attempt) % total;
+      if (triedKeys.has(idx)) continue;
+      if (badKeys.has(idx)) continue;
+      triedKeys.add(idx);
+      const key = GROQ_KEYS[idx];
+      if (!key) continue;
+      try {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+          body: JSON.stringify({
+            model,
+            messages: allMessages,
+            tools: TOOLS,
+            tool_choice: "auto",
+            temperature: 0.2,
+            max_tokens: 1800,
+          }),
+        });
+        if (res.ok) {
+          keyIndex = (idx + 1) % total;
+          const data = await res.json();
+          return { ok: true, data };
+        }
+        lastStatus = res.status;
+        lastText = (await res.text()).slice(0, 300);
+        console.error(`[Assistant Groq] key#${idx} model=${model} HTTP ${res.status}: ${lastText}`);
+        // 401/403 → permanently bad key, mark and try next
+        if (res.status === 401 || res.status === 403) {
+          badKeys.add(idx);
+          continue;
+        }
+        // 429 or 5xx → try next key
+        if (res.status === 429 || res.status >= 500) continue;
+        // Real client error (400/404/422) → break out, retrying won't help
+        return { ok: false, status: res.status, errText: lastText };
+      } catch (e: any) {
+        lastText = e?.message || String(e);
+        console.error(`[Assistant Groq] key#${idx} network: ${lastText}`);
       }
-      lastStatus = res.status;
-      lastText = (await res.text()).slice(0, 300);
-      console.error("[Assistant Groq]", res.status, lastText);
-      if (res.status !== 429 && res.status < 500) break; // permanent error
-    } catch (e: any) {
-      lastText = e?.message || String(e);
-      console.error("[Assistant Groq] network", lastText);
     }
+    // All keys failed for this model — try the smaller model with all keys
   }
   return { ok: false, status: lastStatus, errText: lastText };
 }
