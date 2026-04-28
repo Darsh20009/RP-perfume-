@@ -17,9 +17,17 @@ import { fireNotify, fireNotifyAdmins, VAPID_PUBLIC_KEY } from "./notifications"
 import {
   initiateCardPayment, verify3DS, initiateSTPay, verifySTCPay,
   processApplePay, createTamaraCheckout, confirmTamaraCheckout,
-  createTabbyCheckout, confirmTabbyCheckout, getTransaction, TEST_CARD_GUIDE,
+  createTabbyCheckout as simulateTabbyCheckout,
+  confirmTabbyCheckout as simulateTabbyConfirm,
+  getTransaction, TEST_CARD_GUIDE,
   luhnCheck, detectCardBrand
 } from "./payment-simulator";
+import {
+  isTabbyConfigured,
+  createTabbyCheckout as realCreateTabbyCheckout,
+  retrieveTabbyPayment, captureTabbyPayment,
+  getCachedPaymentId, rememberPaymentId
+} from "./tabby";
 import {
   sendOrderConfirmationEmail, sendOrderStatusEmail,
   sendWelcomeEmail, sendPaymentConfirmationEmail
@@ -3312,13 +3320,36 @@ export async function registerRoutes(
     }
   });
 
-  // Tabby BNPL
+  // ── Tabby BNPL ─────────────────────────────────────────────
+  // When TABBY_PUBLIC_KEY + TABBY_SECRET_KEY are set, calls the real Tabby API and
+  // returns a hosted checkoutUrl. Otherwise falls back to the in-app simulator.
   app.post("/api/payments/tabby/checkout", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const { orderId, amount, customer } = req.body;
+      const { orderId, amount, customer, items, shipping } = req.body;
       if (!orderId || !amount) return res.status(400).json({ success: false, error: "بيانات ناقصة" });
-      const result = await createTabbyCheckout({
+
+      if (isTabbyConfigured()) {
+        // Build origin (prefer public host, fallback to request)
+        const origin =
+          (process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "") ||
+          (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
+          `${req.protocol}://${req.get("host")}`;
+
+        const result = await realCreateTabbyCheckout({
+          orderId,
+          amount: Number(amount),
+          customer: customer || { name: "Customer", phone: "", email: "" },
+          items,
+          shipping,
+          origin,
+          lang: "ar",
+        });
+        return res.json(result);
+      }
+
+      // Fallback: simulator
+      const result = await simulateTabbyCheckout({
         orderId, amount,
         customer: customer || { name: "Customer", phone: "", email: "" }
       });
@@ -3331,13 +3362,86 @@ export async function registerRoutes(
 
   app.post("/api/payments/tabby/confirm", async (req, res) => {
     try {
-      const { sessionId } = req.body;
-      if (!sessionId) return res.status(400).json({ success: false });
+      const { sessionId, paymentId, orderId } = req.body;
+      if (!sessionId && !paymentId && !orderId) return res.status(400).json({ success: false });
+
+      // Real Tabby: verify status with their API; auto-capture if AUTHORIZED.
+      if (isTabbyConfigured() && (paymentId || orderId)) {
+        const pid = paymentId || (orderId ? getCachedPaymentId(orderId) : undefined);
+        if (!pid) return res.json({ success: false, error: "payment_not_found" });
+        const r = await retrieveTabbyPayment(pid);
+        if (!r.ok) return res.json({ success: false, error: r.error });
+        if (r.status === "AUTHORIZED") {
+          await captureTabbyPayment(pid, r.amount || 0);
+          return res.json({ success: true, status: "CAPTURED", paymentId: pid });
+        }
+        return res.json({ success: r.status === "CLOSED", status: r.status, paymentId: pid });
+      }
+
+      // Simulator fallback
       await new Promise(r => setTimeout(r, 1500));
-      const result = await confirmTabbyCheckout(sessionId);
+      const result = await simulateTabbyConfirm(sessionId || paymentId || orderId || "");
       res.json(result);
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Tabby return URL (where Tabby redirects the customer after success/cancel/failure)
+  app.get("/api/payments/tabby/return", async (req, res) => {
+    const orderId = String(req.query.orderId || "");
+    const status = String(req.query.status || "");
+    const tabbyPaymentId = String(req.query.payment_id || "");
+    try {
+      if (tabbyPaymentId && orderId) rememberPaymentId(orderId, tabbyPaymentId);
+
+      if (status === "success" && tabbyPaymentId && isTabbyConfigured()) {
+        const r = await retrieveTabbyPayment(tabbyPaymentId);
+        if (r.ok && r.status === "AUTHORIZED") {
+          await captureTabbyPayment(tabbyPaymentId, r.amount || 0);
+          // Mark order as paid
+          if (orderId) {
+            try { await storage.updateOrder(orderId, { paymentStatus: "paid", paymentTransactionId: tabbyPaymentId } as any); } catch {}
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error("[Tabby return] error:", err?.message);
+    }
+    // Always redirect the customer back to the in-app status page
+    const path = status === "success"
+      ? `/orders?paid=1&via=tabby&orderId=${encodeURIComponent(orderId)}`
+      : `/cart?canceled=1&via=tabby`;
+    res.redirect(path);
+  });
+
+  // Tabby webhook (configure URL in Tabby dashboard → Settings → Webhooks)
+  app.post("/api/payments/tabby/webhook", async (req, res) => {
+    try {
+      const evt = req.body || {};
+      const paymentId = evt?.id || evt?.payment_id;
+      const status = evt?.status;
+      const orderRef = evt?.order?.reference_id || evt?.merchant_reference;
+      console.log("[Tabby webhook]", status, "order=", orderRef, "paymentId=", paymentId);
+
+      if (!paymentId || !orderRef) return res.status(200).json({ received: true });
+
+      rememberPaymentId(orderRef, paymentId);
+
+      if (status === "AUTHORIZED") {
+        const amount = parseFloat(evt?.amount || "0");
+        await captureTabbyPayment(paymentId, amount);
+        try { await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any); } catch {}
+      } else if (status === "CLOSED") {
+        try { await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any); } catch {}
+      } else if (status === "REJECTED" || status === "EXPIRED") {
+        try { await storage.updateOrder(orderRef, { paymentStatus: "failed" } as any); } catch {}
+      }
+
+      res.status(200).json({ received: true });
+    } catch (err: any) {
+      console.error("[Tabby webhook] error:", err?.message);
+      res.status(200).json({ received: true });
     }
   });
 

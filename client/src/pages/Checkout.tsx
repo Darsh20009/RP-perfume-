@@ -423,11 +423,36 @@ export default function Checkout() {
       }
       if (paymentMethod === "tabby") {
         const tabbyRes = await apiRequest("POST", "/api/payments/tabby/checkout", {
-          orderId: order.id, amount: finalTotal,
+          orderId: order.id,
+          amount: finalTotal,
           customer: { name: user?.name || "", phone: user?.phone || "", email: user?.email || "" },
+          items: cartItems.map(it => ({
+            title: it.title || it.productName || "Perfume",
+            quantity: it.quantity || 1,
+            price: Number(it.price) || 0,
+            sku: it.variantSku || it.productId || it._id,
+          })),
+          shipping: {
+            city: deliveryAddress?.city || "Riyadh",
+            address: deliveryAddress?.street || deliveryAddress?.line1 || "",
+            zip: deliveryAddress?.zip || "",
+          },
         });
         const tabbyData = await tabbyRes.json();
-        if (tabbyData.checkoutUrl) { setLocation(tabbyData.checkoutUrl + `&orderId=${order.id}`); return; }
+        if (tabbyData.checkoutUrl) {
+          // Real Tabby returns an absolute https URL → redirect away.
+          // Simulator returns a local path like /payment/tabby-checkout?...
+          if (/^https?:\/\//i.test(tabbyData.checkoutUrl)) {
+            window.location.href = tabbyData.checkoutUrl;
+          } else {
+            setLocation(tabbyData.checkoutUrl + `&orderId=${order.id}`);
+          }
+          return;
+        }
+        if (tabbyData.error) {
+          toast({ title: "تابي", description: tabbyData.error, variant: "destructive" });
+          return;
+        }
       }
       try {
         await apiRequest("POST", "/api/shipping/storage-station/create-order", {
