@@ -181,6 +181,101 @@ export function computeBundleSavings(
 }
 function round2(n: number) { return Math.round(n * 100) / 100; }
 
+/**
+ * Fire all the side-effects that were intentionally deferred at order-creation
+ * time for orders that go through an external gateway (paymob/tabby/tamara).
+ * Called from the gateway webhook/return handlers AFTER payment is confirmed.
+ * Safe to call more than once — uses a flag on the order to avoid duplicates.
+ */
+async function dispatchOrderPaidSideEffects(orderId: string) {
+  try {
+    const order: any = await storage.getOrder(orderId);
+    if (!order) {
+      console.warn(`[PaidSideEffects] order ${orderId} not found`);
+      return;
+    }
+    // ATOMIC idempotency guard — only the first caller to flip the flag wins.
+    // This prevents the race between paymob/tabby webhook + the browser-redirect callback
+    // both firing for the same payment.
+    const wonRace = await storage.markPaidSideEffectsSentIfUnset(order.id || orderId);
+    if (!wonRace) {
+      console.log(`[PaidSideEffects] order ${orderId} already dispatched (lost race), skipping`);
+      return;
+    }
+    const orderRef = String(order.id || orderId).slice(-8).toUpperCase();
+    const shortRef = String(order.id || orderId).slice(-6).toUpperCase();
+
+    enqueueJob("paid-notify-admins", async () => {
+      await fireNotifyAdmins(
+        "💳 طلب جديد مدفوع",
+        `طلب #${shortRef} بقيمة ${order.total} ر.س — تم الدفع عبر ${order.paymentMethod}`,
+        { type: "success", link: "/admin", icon: "💳", webPush: true }
+      );
+    });
+
+    enqueueJob("paid-notify-customer", async () => {
+      await fireNotify(
+        order.userId,
+        "✅ تم تأكيد دفعتك",
+        `تم استلام الدفع لطلبك #${shortRef} بقيمة ${order.total} ر.س. سنبدأ التجهيز فوراً.`,
+        { type: "success", link: "/orders", icon: "✅", webPush: true }
+      );
+    });
+
+    enqueueJob("paid-email-confirmation", async () => {
+      const customer = await storage.getUser(order.userId);
+      if (!customer?.email) return;
+      await sendOrderConfirmationEmail({
+        to: customer.email,
+        customerName: customer.name || "عزيزي العميل",
+        orderId: order.id,
+        orderRef,
+        items: (order.items || []).map((item: any) => ({
+          title: item.title || "",
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          color: item.color,
+          size: item.size,
+        })),
+        subtotal: Number(order.subtotal) || 0,
+        vatAmount: Number(order.vatAmount) || 0,
+        shippingCost: Number(order.shippingCost) || 0,
+        discountAmount: Number(order.discountAmount) || 0,
+        total: Number(order.total) || 0,
+        paymentMethod: order.paymentMethod || "unknown",
+        deliveryAddress: order.deliveryAddress || "",
+        shippingCompany: order.shippingCompany,
+      });
+    }, { critical: true, maxAttempts: 5 });
+
+    enqueueJob("paid-auto-invoice", async () => {
+      await storage.createInvoice({
+        userId: order.userId,
+        orderId: order.id,
+        invoiceNumber: `INV-${Date.now()}-${shortRef}`,
+        issueDate: new Date(),
+        status: "paid",
+        items: (order.items || []).map((item: any) => ({
+          description: item.title,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          taxRate: 15,
+          taxAmount: Number((item.price * item.quantity * 0.15).toFixed(2)),
+          total: Number((item.price * item.quantity * 1.15).toFixed(2)),
+        })),
+        subtotal: Number(order.subtotal),
+        taxTotal: Number(order.vatAmount),
+        total: Number(order.total),
+        notes: `فاتورة مرتبطة بالطلب #${shortRef}`,
+      });
+    }, { critical: true });
+
+    console.log(`[PaidSideEffects] order ${orderId} → notifications/email/invoice queued after payment confirmation`);
+  } catch (e: any) {
+    console.error(`[PaidSideEffects] error for ${orderId}:`, e?.message);
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -888,70 +983,83 @@ export async function registerRoutes(
       //    returns immediately. Critical for handling 100k orders/hour.
       const orderRef = order.id.slice(-8).toUpperCase();
 
-      enqueueJob("notify-admins-new-order", async () => {
-        await fireNotifyAdmins(
-          "🛒 طلب جديد",
-          `طلب جديد بقيمة ${order.total} ر.س — ${order.paymentMethod}`,
-          { type: "info", link: "/admin", icon: "🛒", webPush: true }
-        );
-      });
+      // CRITICAL: For orders that go through an external gateway (tabby/tamara/paymob/apple_pay),
+      // we must NOT send "تم استلام طلبك" / "طلب جديد" / invoices / confirmation emails until
+      // the gateway webhook confirms payment. Otherwise customers and admins see a confirmed
+      // order before the payment was even attempted.
+      const GATEWAY_METHODS = ["tap", "apple_pay", "tabby", "tamara"];
+      const isAwaitingGatewayPayment =
+        order.status === "pending_payment" &&
+        GATEWAY_METHODS.includes(order.paymentMethod);
 
-      enqueueJob("notify-customer-order-received", async () => {
-        await fireNotify(
-          order.userId,
-          "✅ تم استلام طلبك",
-          `طلبك رقم #${order.id.slice(-6).toUpperCase()} بقيمة ${order.total} ر.س في انتظار المراجعة.`,
-          { type: "success", link: "/orders", icon: "✅", webPush: true }
-        );
-      });
-
-      enqueueJob("email-order-confirmation", async () => {
-        const customer = await storage.getUser(order.userId);
-        if (!customer?.email) return;
-        await sendOrderConfirmationEmail({
-          to: customer.email,
-          customerName: customer.name || "عزيزي العميل",
-          orderId: order.id,
-          orderRef,
-          items: (order.items || []).map((item: any) => ({
-            title: item.title || "",
-            quantity: item.quantity || 1,
-            price: item.price || 0,
-            color: item.color,
-            size: item.size,
-          })),
-          subtotal: Number(order.subtotal) || 0,
-          vatAmount: Number(order.vatAmount) || 0,
-          shippingCost: Number(order.shippingCost) || 0,
-          discountAmount: Number(order.discountAmount) || 0,
-          total: Number(order.total) || 0,
-          paymentMethod: order.paymentMethod || "unknown",
-          deliveryAddress: order.deliveryAddress || "",
-          shippingCompany: order.shippingCompany,
+      if (!isAwaitingGatewayPayment) {
+        enqueueJob("notify-admins-new-order", async () => {
+          await fireNotifyAdmins(
+            "🛒 طلب جديد",
+            `طلب جديد بقيمة ${order.total} ر.س — ${order.paymentMethod}`,
+            { type: "info", link: "/admin", icon: "🛒", webPush: true }
+          );
         });
-      }, { critical: true, maxAttempts: 5 });
 
-      enqueueJob("auto-generate-invoice", async () => {
-        await storage.createInvoice({
-          userId: order.userId,
-          orderId: order.id,
-          invoiceNumber: `INV-${Date.now()}-${order.id.slice(-4).toUpperCase()}`,
-          issueDate: new Date(),
-          status: order.paymentStatus === "paid" ? "paid" : "issued",
-          items: order.items.map((item: any) => ({
-            description: item.title,
-            quantity: item.quantity,
-            unitPrice: item.price,
-            taxRate: 15,
-            taxAmount: Number((item.price * item.quantity * 0.15).toFixed(2)),
-            total: Number((item.price * item.quantity * 1.15).toFixed(2)),
-          })),
-          subtotal: Number(order.subtotal),
-          taxTotal: Number(order.vatAmount),
-          total: Number(order.total),
-          notes: `فاتورة مرتبطة بالطلب #${order.id.slice(-6).toUpperCase()}`
+        enqueueJob("notify-customer-order-received", async () => {
+          await fireNotify(
+            order.userId,
+            "✅ تم استلام طلبك",
+            `طلبك رقم #${order.id.slice(-6).toUpperCase()} بقيمة ${order.total} ر.س في انتظار المراجعة.`,
+            { type: "success", link: "/orders", icon: "✅", webPush: true }
+          );
         });
-      }, { critical: true });
+
+        enqueueJob("email-order-confirmation", async () => {
+          const customer = await storage.getUser(order.userId);
+          if (!customer?.email) return;
+          await sendOrderConfirmationEmail({
+            to: customer.email,
+            customerName: customer.name || "عزيزي العميل",
+            orderId: order.id,
+            orderRef,
+            items: (order.items || []).map((item: any) => ({
+              title: item.title || "",
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+              color: item.color,
+              size: item.size,
+            })),
+            subtotal: Number(order.subtotal) || 0,
+            vatAmount: Number(order.vatAmount) || 0,
+            shippingCost: Number(order.shippingCost) || 0,
+            discountAmount: Number(order.discountAmount) || 0,
+            total: Number(order.total) || 0,
+            paymentMethod: order.paymentMethod || "unknown",
+            deliveryAddress: order.deliveryAddress || "",
+            shippingCompany: order.shippingCompany,
+          });
+        }, { critical: true, maxAttempts: 5 });
+
+        enqueueJob("auto-generate-invoice", async () => {
+          await storage.createInvoice({
+            userId: order.userId,
+            orderId: order.id,
+            invoiceNumber: `INV-${Date.now()}-${order.id.slice(-4).toUpperCase()}`,
+            issueDate: new Date(),
+            status: order.paymentStatus === "paid" ? "paid" : "issued",
+            items: order.items.map((item: any) => ({
+              description: item.title,
+              quantity: item.quantity,
+              unitPrice: item.price,
+              taxRate: 15,
+              taxAmount: Number((item.price * item.quantity * 0.15).toFixed(2)),
+              total: Number((item.price * item.quantity * 1.15).toFixed(2)),
+            })),
+            subtotal: Number(order.subtotal),
+            taxTotal: Number(order.vatAmount),
+            total: Number(order.total),
+            notes: `فاتورة مرتبطة بالطلب #${order.id.slice(-6).toUpperCase()}`
+          });
+        }, { critical: true });
+      } else {
+        console.log(`[Order ${orderRef}] Gateway-payment pending — notifications/email/invoice DEFERRED until ${order.paymentMethod} webhook confirms`);
+      }
 
       enqueueJob("mark-cart-converted", async () => {
         await markCartConverted(order.userId, order.id);
@@ -3145,6 +3253,8 @@ export async function registerRoutes(
               await storage.updateOrderStatus(merchantOrderId, "new" as any);
             }
             console.log(`[Paymob] Order ${merchantOrderId} marked as paid`);
+            // Now fire the deferred customer/admin notifications, email, invoice
+            await dispatchOrderPaidSideEffects(String(merchantOrderId));
           }
         } catch (e: any) {
           console.error("[Paymob] Error updating order:", e?.message);
@@ -3426,9 +3536,16 @@ export async function registerRoutes(
         const r = await retrieveTabbyPayment(tabbyPaymentId);
         if (r.ok && r.status === "AUTHORIZED") {
           await captureTabbyPayment(tabbyPaymentId, r.amount || 0);
-          // Mark order as paid
+          // Mark order as paid + flip status from pending_payment → new
           if (orderId) {
-            try { await storage.updateOrder(orderId, { paymentStatus: "paid", paymentTransactionId: tabbyPaymentId } as any); } catch {}
+            try {
+              await storage.updateOrder(orderId, { paymentStatus: "paid", paymentTransactionId: tabbyPaymentId } as any);
+              const ord = await storage.getOrder(orderId);
+              if (ord && ord.status === "pending_payment") {
+                await storage.updateOrderStatus(orderId, "new" as any);
+              }
+              await dispatchOrderPaidSideEffects(orderId);
+            } catch {}
           }
         }
       }
@@ -3458,9 +3575,23 @@ export async function registerRoutes(
       if (status === "AUTHORIZED") {
         const amount = parseFloat(evt?.amount || "0");
         await captureTabbyPayment(paymentId, amount);
-        try { await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any); } catch {}
+        try {
+          await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any);
+          const ord = await storage.getOrder(orderRef);
+          if (ord && ord.status === "pending_payment") {
+            await storage.updateOrderStatus(orderRef, "new" as any);
+          }
+          await dispatchOrderPaidSideEffects(String(orderRef));
+        } catch {}
       } else if (status === "CLOSED") {
-        try { await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any); } catch {}
+        try {
+          await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any);
+          const ord = await storage.getOrder(orderRef);
+          if (ord && ord.status === "pending_payment") {
+            await storage.updateOrderStatus(orderRef, "new" as any);
+          }
+          await dispatchOrderPaidSideEffects(String(orderRef));
+        } catch {}
       } else if (status === "REJECTED" || status === "EXPIRED") {
         try { await storage.updateOrder(orderRef, { paymentStatus: "failed" } as any); } catch {}
       }

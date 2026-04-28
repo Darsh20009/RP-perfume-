@@ -384,6 +384,16 @@ export default function Checkout() {
       const res = await apiRequest("POST", "/api/orders", orderData);
       const order = await res.json();
       console.log("[Checkout] Order created:", order.id, "paymentMethod=", paymentMethod, "requiresGateway=", requiresGateway);
+
+      // Helper: cancel a pending_payment order if gateway init fails so it doesn't pile up.
+      const cancelPendingOrder = async (reason: string) => {
+        try {
+          await apiRequest("POST", `/api/orders/${order.id}/cancel`, {
+            reason: `gateway_init_failed: ${reason}`.slice(0, 200),
+          });
+        } catch (err) { console.warn("[Checkout] cancel pending order failed:", err); }
+      };
+
       // Card (tap) AND Apple Pay both go through Paymob's hosted unified checkout
       if (paymentMethod === "tap" || paymentMethod === "apple_pay") {
         console.log("[Checkout] → Paymob initiate for order", order.id);
@@ -402,17 +412,27 @@ export default function Checkout() {
             }),
           });
           const paymobData = await paymobRes.json();
+          console.log("[Checkout] Paymob response:", paymobRes.status, paymobData);
           if (paymobData.success && paymobData.iframeUrl) {
             clearCart();
             window.location.href = paymobData.iframeUrl;
             return;
           } else {
-            toast({ title: "تعذّر بدء الدفع", description: paymobData.error || "البوابة لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
+            await cancelPendingOrder(paymobData.error || "paymob_no_url");
+            toast({
+              title: "تعذّر فتح بوابة الدفع",
+              description: paymobData.error
+                ? `Paymob: ${paymobData.error}`
+                : "Paymob لم ترجع رابط دفع — تحقّق من Integration ID وHMAC في لوحة Paymob KSA",
+              variant: "destructive",
+              duration: 8000,
+            });
             setIsSubmitting(false);
             return;
           }
         } catch (e: any) {
-          toast({ title: "خطأ في الاتصال ببوابة الدفع", description: e.message, variant: "destructive" });
+          await cancelPendingOrder(e?.message || "network");
+          toast({ title: "خطأ في الاتصال ببوابة الدفع", description: e.message, variant: "destructive", duration: 8000 });
           setIsSubmitting(false);
           return;
         }
@@ -433,7 +453,8 @@ export default function Checkout() {
           }
           return;
         }
-        toast({ title: "تمارا", description: tamaraData.error || "تمارا لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
+        await cancelPendingOrder(tamaraData.error || "tamara_no_url");
+        toast({ title: "تمارا", description: tamaraData.error || "تمارا لم تستجب — جرّب طريقة أخرى", variant: "destructive", duration: 8000 });
         setIsSubmitting(false);
         return;
       }
@@ -455,6 +476,7 @@ export default function Checkout() {
           },
         });
         const tabbyData = await tabbyRes.json();
+        console.log("[Checkout] Tabby response:", tabbyRes.status, tabbyData);
         if (tabbyData.checkoutUrl) {
           clearCart();
           if (/^https?:\/\//i.test(tabbyData.checkoutUrl)) {
@@ -464,7 +486,13 @@ export default function Checkout() {
           }
           return;
         }
-        toast({ title: "تابي", description: tabbyData.error || "تابي لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
+        await cancelPendingOrder(tabbyData.error || tabbyData.rejectionReason || "tabby_no_url");
+        toast({
+          title: "تابي",
+          description: tabbyData.error || tabbyData.rejectionReason || "تابي لم تستجب — جرّب طريقة أخرى",
+          variant: "destructive",
+          duration: 8000,
+        });
         setIsSubmitting(false);
         return;
       }

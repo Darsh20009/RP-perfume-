@@ -49,6 +49,8 @@ export interface IStorage {
   updateOrderReceipt(id: string, receiptUrl: string): Promise<Order>;
   updateOrderReturn(id: string, returnRequest: any): Promise<Order>;
   updateOrderPaymentStatus(id: string, paymentStatus: "pending" | "paid" | "failed" | "refunded", paymentMethod?: string): Promise<Order>;
+  updateOrder(id: string, update: Partial<Order> & Record<string, any>): Promise<Order>;
+  markPaidSideEffectsSentIfUnset(id: string): Promise<boolean>;
   
   // Categories
   getCategories(): Promise<Category[]>;
@@ -557,6 +559,25 @@ export class MongoDBStorage implements IStorage {
     const order = await OrderModel.findByIdAndUpdate(id, update, { new: true }).lean();
     if (!order) throw new Error("Order not found");
     return { ...order, id: order._id.toString() } as any;
+  }
+
+  // Generic patch on the order document — used by gateway webhooks/return handlers
+  // for fields like paymentTransactionId, paymentStatus, paidNotificationsSent.
+  async updateOrder(id: string, update: Partial<Order> & Record<string, any>): Promise<Order> {
+    const order = await OrderModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+    if (!order) throw new Error("Order not found");
+    return { ...order, id: order._id.toString() } as any;
+  }
+
+  // Atomic idempotency guard: returns true exactly once per order, then false on subsequent calls.
+  // Used so a duplicate webhook + redirect callback can't enqueue notifications/email/invoice twice.
+  async markPaidSideEffectsSentIfUnset(id: string): Promise<boolean> {
+    const result = await OrderModel.updateOne(
+      { _id: id, $or: [{ paidNotificationsSent: { $exists: false } }, { paidNotificationsSent: false }] },
+      { $set: { paidNotificationsSent: true } }
+    );
+    // modifiedCount === 1 means we won the race; 0 means another caller already flipped it
+    return (result as any).modifiedCount === 1;
   }
 
   // Categories
