@@ -1,31 +1,56 @@
 type Audience = "customer" | "employee";
 
-const LEGACY_KEYS = [
+const POOL_KEYS = [
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
   process.env.GROQ_API_KEY_4,
+  process.env.GROQ_API_KEY_5,
+  process.env.GROQ_API_KEY_6,
+  process.env.GROQ_API_KEY_7,
+  process.env.GROQ_API_KEY_8,
+  process.env.GROQ_API_KEY_9,
+  process.env.GROQ_API_KEY_10,
+  process.env.GROQ_API_KEY_11,
 ].filter(Boolean) as string[];
 
-const CUSTOMER_KEYS = [
+const CUSTOMER_KEYS = Array.from(new Set([
   process.env.GROQ_API_KEY_CUSTOMER,
-  ...LEGACY_KEYS,
-].filter(Boolean) as string[];
+  ...POOL_KEYS,
+].filter(Boolean) as string[]));
 
-const EMPLOYEE_KEYS = [
+const EMPLOYEE_KEYS = Array.from(new Set([
   process.env.GROQ_API_KEY_EMPLOYEE,
-  ...LEGACY_KEYS,
-].filter(Boolean) as string[];
+  ...POOL_KEYS,
+].filter(Boolean) as string[]));
 
 const ALL_KEYS = Array.from(new Set([...CUSTOMER_KEYS, ...EMPLOYEE_KEYS]));
 
+// Per-audience round-robin index + per-key cooldown after 429
 const idx: Record<Audience, number> = { customer: 0, employee: 0 };
+const keyCooldownUntil = new Map<string, number>();
+
 function getNextKey(audience: Audience): string {
   const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
   if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
+  const now = Date.now();
+  // Try up to pool.length times to find a key NOT in cooldown
+  for (let i = 0; i < pool.length; i++) {
+    const key = pool[idx[audience] % pool.length];
+    idx[audience]++;
+    const until = keyCooldownUntil.get(key) || 0;
+    if (until <= now) return key;
+  }
+  // All in cooldown — return next anyway (will retry sooner than waiting)
   const key = pool[idx[audience] % pool.length];
   idx[audience]++;
   return key;
+}
+
+function markKeyCooldown(key: string, retryAfterSec?: number) {
+  // Default: cool down for 60s if Groq didn't tell us; 24h max for daily-quota errors
+  const ms = (retryAfterSec ? Math.min(retryAfterSec, 24 * 3600) : 60) * 1000;
+  keyCooldownUntil.set(key, Date.now() + ms);
 }
 
 export function isGroqConfigured(): boolean {
@@ -37,6 +62,9 @@ interface ChatMessage {
   content: string;
 }
 
+const PRIMARY_MODEL = "llama-3.3-70b-versatile";
+const FALLBACK_MODEL = "llama-3.1-8b-instant";
+
 async function groqChat(
   messages: ChatMessage[],
   maxTokens = 1024,
@@ -46,7 +74,8 @@ async function groqChat(
   if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
 
   let lastErr: any = null;
-  // Try each key in the pool once before giving up.
+  let allRateLimited = true;
+  // Try each key in the pool once with the primary model.
   for (let attempt = 0; attempt < pool.length; attempt++) {
     const key = getNextKey(audience);
     try {
@@ -57,7 +86,7 @@ async function groqChat(
           Authorization: `Bearer ${key}`,
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: PRIMARY_MODEL,
           messages,
           max_tokens: maxTokens,
           temperature: 0.7,
@@ -71,14 +100,55 @@ async function groqChat(
 
       const text = await res.text();
       console.error(`[Groq] ${audience} key#${attempt} HTTP ${res.status}:`, text.slice(0, 200));
-      // Retry on 401/429/5xx; fail fast on others.
-      if (![401, 403, 429, 500, 502, 503, 504].includes(res.status)) {
+      if (res.status === 429) {
+        // Daily TPD usually resets in <24h — cool down this key for 1 hour
+        markKeyCooldown(key, 3600);
+      } else if (res.status === 401 || res.status === 403) {
+        // Bad/revoked key — cool down for the day
+        markKeyCooldown(key, 24 * 3600);
+        allRateLimited = false;
+      } else if (![500, 502, 503, 504].includes(res.status)) {
+        // Hard error — fail fast
         throw new Error(`Groq API error ${res.status}`);
+      } else {
+        allRateLimited = false;
       }
       lastErr = new Error(`Groq API error ${res.status}`);
     } catch (err: any) {
       console.error(`[Groq] ${audience} key#${attempt} threw:`, err?.message || err);
       lastErr = err;
+      allRateLimited = false;
+    }
+  }
+
+  // ─── Fallback: try the lighter model with the same key pool ──────────────
+  if (allRateLimited) {
+    console.warn(`[Groq] all ${audience} keys rate-limited on ${PRIMARY_MODEL} — falling back to ${FALLBACK_MODEL}`);
+    for (let attempt = 0; attempt < pool.length; attempt++) {
+      const key = pool[attempt];
+      try {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model: FALLBACK_MODEL,
+            messages,
+            max_tokens: maxTokens,
+            temperature: 0.7,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return data.choices?.[0]?.message?.content || "";
+        }
+        const text = await res.text();
+        console.error(`[Groq][fallback] ${audience} key#${attempt} HTTP ${res.status}:`, text.slice(0, 150));
+      } catch (err: any) {
+        console.error(`[Groq][fallback] ${audience} key#${attempt} threw:`, err?.message || err);
+      }
     }
   }
   throw lastErr || new Error("Groq request failed on all keys");

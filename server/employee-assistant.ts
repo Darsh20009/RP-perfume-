@@ -11,14 +11,21 @@ import { sendEmail } from "./email";
 import { sendPushToUser, pushToUser } from "./notifications";
 import { detectLang } from "./groq";
 
-// Employee assistant uses the dedicated employee key first, then any legacy keys.
-const GROQ_KEYS = [
+// Employee assistant uses the dedicated employee key first, then any pool keys.
+const GROQ_KEYS = Array.from(new Set([
   process.env.GROQ_API_KEY_EMPLOYEE,
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
   process.env.GROQ_API_KEY_4,
-].filter(Boolean) as string[];
+  process.env.GROQ_API_KEY_5,
+  process.env.GROQ_API_KEY_6,
+  process.env.GROQ_API_KEY_7,
+  process.env.GROQ_API_KEY_8,
+  process.env.GROQ_API_KEY_9,
+  process.env.GROQ_API_KEY_10,
+  process.env.GROQ_API_KEY_11,
+].filter(Boolean) as string[]));
 
 let keyIndex = 0;
 
