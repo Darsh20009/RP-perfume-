@@ -389,7 +389,7 @@ export function Layout({ children }: { children: ReactNode }) {
             )}
           </div>
 
-          <div className="flex items-center gap-0.5 md:gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -413,11 +413,11 @@ export function Layout({ children }: { children: ReactNode }) {
                   setLocation("/cart");
                 }
               }}
-              className="relative no-default-hover-elevate hover:text-primary h-10 w-10 md:h-11 md:w-11 active:scale-95 transition-transform"
+              className="relative no-default-hover-elevate hover:text-primary h-9 w-9 md:h-11 md:w-11 active:scale-95 transition-transform"
             >
-              <ShoppingBag className="h-6 w-6" />
+              <ShoppingBag className="h-5 w-5 md:h-6 md:w-6" />
               {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
-                <span className={`absolute -top-1 ${language === 'ar' ? '-right-1' : '-left-1'} h-5 w-5 rounded-full bg-foreground text-[10px] font-black text-background flex items-center justify-center shadow-md`}>
+                <span className={`absolute -top-0.5 md:-top-1 ${language === 'ar' ? '-right-0.5 md:-right-1' : '-left-0.5 md:-left-1'} h-4 w-4 md:h-5 md:w-5 rounded-full bg-foreground text-[9px] md:text-[10px] font-black text-background flex items-center justify-center shadow-md`}>
                   {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
               )}
@@ -428,12 +428,12 @@ export function Layout({ children }: { children: ReactNode }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-10 md:h-11 px-1.5 md:px-4 flex items-center gap-2 md:gap-3 border border-transparent md:border-border md:hover:border-foreground/20 transition-all rounded-full md:rounded-none group no-default-hover-elevate active:scale-95">
+                  <Button variant="ghost" className="h-9 w-9 md:h-11 md:w-auto p-0 md:px-4 flex items-center justify-center md:gap-3 border border-transparent md:border-border md:hover:border-foreground/20 transition-all rounded-full md:rounded-none group no-default-hover-elevate active:scale-95">
                     <div className="hidden md:flex flex-col items-end">
                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">{t('myAccount') || 'حسابي'}</span>
                       <span className="text-[11px] font-bold text-foreground/60 truncate max-w-[100px]">{user?.name || user?.username}</span>
                     </div>
-                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-muted flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
+                    <div className="w-9 h-9 md:w-9 md:h-9 rounded-full bg-muted flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
                       <User className="h-4 w-4 md:h-5 md:w-5" />
                     </div>
                   </Button>
