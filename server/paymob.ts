@@ -1,6 +1,8 @@
 import crypto from "crypto";
 
-const PAYMOB_BASE = "https://accept.paymob.com/api";
+// Default to global Paymob endpoint. KSA accounts can override via env if needed.
+const PAYMOB_BASE = (process.env.PAYMOB_BASE_URL || "https://accept.paymob.com").replace(/\/+$/, "");
+const PAYMOB_API_BASE = `${PAYMOB_BASE}/api`;
 
 function getConfig() {
   return {
@@ -8,19 +10,31 @@ function getConfig() {
     integrationId: process.env.PAYMOB_INTEGRATION_ID || "",
     iframeId: process.env.PAYMOB_IFRAME_ID || "",
     hmacSecret: process.env.PAYMOB_HMAC_SECRET || "",
+    secretKey: process.env.PAYMOB_SECRET_KEY || "",
+    publicKey: process.env.PAYMOB_PUBLIC_KEY || "",
   };
 }
 
 export function isPaymobConfigured(): boolean {
   const c = getConfig();
+  // New unified flow needs: secret + public + integration_id + hmac
+  if (c.secretKey && c.publicKey && c.integrationId && c.hmacSecret) return true;
+  // Old iframe flow needs: api_key + integration_id + iframe_id
   return !!(c.apiKey && c.integrationId && c.iframeId);
+}
+
+export function paymobMode(): "intention" | "iframe" | "none" {
+  const c = getConfig();
+  if (c.secretKey && c.publicKey && c.integrationId) return "intention";
+  if (c.apiKey && c.integrationId && c.iframeId) return "iframe";
+  return "none";
 }
 
 async function getAuthToken(): Promise<string> {
   const { apiKey } = getConfig();
   if (!apiKey) throw new Error("PAYMOB_API_KEY غير مُعدّ");
 
-  const res = await fetch(`${PAYMOB_BASE}/auth/tokens`, {
+  const res = await fetch(`${PAYMOB_API_BASE}/auth/tokens`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ api_key: apiKey }),
@@ -36,7 +50,7 @@ async function getAuthToken(): Promise<string> {
 }
 
 async function registerOrder(authToken: string, merchantOrderId: string, amountCents: number, items: any[]) {
-  const res = await fetch(`${PAYMOB_BASE}/ecommerce/orders`, {
+  const res = await fetch(`${PAYMOB_API_BASE}/ecommerce/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -79,7 +93,7 @@ async function getPaymentKey(params: {
   const { integrationId } = getConfig();
   if (!integrationId) throw new Error("PAYMOB_INTEGRATION_ID غير مُعدّ");
 
-  const res = await fetch(`${PAYMOB_BASE}/acceptance/payment_keys`, {
+  const res = await fetch(`${PAYMOB_API_BASE}/acceptance/payment_keys`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -204,6 +218,92 @@ export function verifyPaymobHmac(data: Record<string, any>, receivedHmac: string
     .digest("hex");
 
   return computed === receivedHmac;
+}
+
+/**
+ * NEW: Unified Intention flow (Paymob's recommended modern API).
+ * Uses SECRET key + PUBLIC key + integration_id, returns a hosted-checkout URL.
+ * Endpoint: POST {base}/v1/intention/  (Authorization: Token <secret_key>)
+ * Then redirect to: {base}/unifiedcheckout/?publicKey=<pk>&clientSecret=<cs>
+ */
+export async function initiatePaymobIntention(params: {
+  merchantOrderId: string;
+  amount: number;
+  items: any[];
+  customer: { name: string; email: string; phone: string; address?: string; city?: string };
+  notificationUrl: string;
+  redirectionUrl: string;
+}): Promise<{ iframeUrl: string; intentionId: string; clientSecret: string }> {
+  const { secretKey, publicKey, integrationId } = getConfig();
+  if (!secretKey || !publicKey || !integrationId) {
+    throw new Error("Paymob intention flow needs PAYMOB_SECRET_KEY + PAYMOB_PUBLIC_KEY + PAYMOB_INTEGRATION_ID");
+  }
+
+  const amountCents = Math.round(params.amount * 100);
+  const nameParts = (params.customer.name || "Customer").split(" ");
+  const firstName = nameParts[0] || "Customer";
+  const lastName = nameParts.slice(1).join(" ") || ".";
+
+  const integrationIds = integrationId.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+
+  const body = {
+    amount: amountCents,
+    currency: "SAR",
+    payment_methods: integrationIds,
+    items: (params.items || []).map(it => ({
+      name: (it.title || it.name || "منتج").slice(0, 100),
+      amount: Math.round((Number(it.price) || 0) * 100),
+      quantity: it.quantity || 1,
+      description: (it.title || it.name || "").slice(0, 100),
+    })),
+    billing_data: {
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: params.customer.phone || "",
+      email: params.customer.email || "customer@rfperfume.sa",
+      country: "SAU",
+      city: params.customer.city || "الرياض",
+      street: params.customer.address || "N/A",
+      building: "N/A",
+      floor: "N/A",
+      apartment: "N/A",
+      state: params.customer.city || "الرياض",
+    },
+    customer: {
+      first_name: firstName,
+      last_name: lastName,
+      email: params.customer.email || "customer@rfperfume.sa",
+    },
+    extras: { merchant_order_id: params.merchantOrderId },
+    special_reference: params.merchantOrderId,
+    notification_url: params.notificationUrl,
+    redirection_url: params.redirectionUrl,
+  };
+
+  const res = await fetch(`${PAYMOB_BASE}/v1/intention/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${secretKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await res.text();
+  let data: any = {};
+  try { data = JSON.parse(text); } catch {}
+  if (!res.ok) {
+    console.error("[Paymob intention] HTTP", res.status, text.slice(0, 500));
+    throw new Error(`Paymob intention failed: ${res.status} ${data?.detail || data?.message || ""}`);
+  }
+
+  const clientSecret = data?.client_secret;
+  const intentionId = data?.id;
+  if (!clientSecret) throw new Error("Paymob intention returned no client_secret");
+
+  const iframeUrl = `${PAYMOB_BASE}/unifiedcheckout/?publicKey=${encodeURIComponent(publicKey)}&clientSecret=${encodeURIComponent(clientSecret)}`;
+
+  return { iframeUrl, intentionId, clientSecret };
 }
 
 export function flattenPaymobCallback(obj: any, prefix = ""): Record<string, any> {

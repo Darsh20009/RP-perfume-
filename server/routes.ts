@@ -33,7 +33,8 @@ import {
   sendWelcomeEmail, sendPaymentConfirmationEmail
 } from "./email";
 import {
-  initiatePaymobPayment, verifyPaymobHmac, flattenPaymobCallback, isPaymobConfigured
+  initiatePaymobPayment, verifyPaymobHmac, flattenPaymobCallback, isPaymobConfigured,
+  paymobMode, initiatePaymobIntention
 } from "./paymob";
 import {
   perfumeAdvisor, supportAssistant, adminAssistant, isGroqConfigured
@@ -3071,18 +3072,37 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, error: "بيانات الطلب ناقصة" });
       }
       const u = req.user as any;
-      const result = await initiatePaymobPayment({
-        merchantOrderId: String(orderId),
-        amount: Number(amount),
-        items: items || [],
-        customer: {
-          name: u?.name || "عميل",
-          email: u?.email || "",
-          phone: u?.phone || "",
-          address: address || "",
-          city: city || "",
-        },
-      });
+      const origin =
+        (process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "") ||
+        (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
+        `${req.protocol}://${req.get("host")}`;
+
+      const customer = {
+        name: u?.name || "عميل",
+        email: u?.email || "",
+        phone: u?.phone || "",
+        address: address || "",
+        city: city || "",
+      };
+
+      let result: any;
+      if (paymobMode() === "intention") {
+        result = await initiatePaymobIntention({
+          merchantOrderId: String(orderId),
+          amount: Number(amount),
+          items: items || [],
+          customer,
+          notificationUrl: `${origin}/api/paymob/callback`,
+          redirectionUrl: `${origin}/api/paymob/callback?merchant_order_id=${encodeURIComponent(String(orderId))}`,
+        });
+      } else {
+        result = await initiatePaymobPayment({
+          merchantOrderId: String(orderId),
+          amount: Number(amount),
+          items: items || [],
+          customer,
+        });
+      }
       res.json({ success: true, ...result });
     } catch (err: any) {
       console.error("[Paymob] initiate error:", err?.message);
@@ -3103,7 +3123,14 @@ export async function registerRoutes(
         return res.status(403).json({ error: "HMAC mismatch" });
       }
 
-      const merchantOrderId = txn.order?.merchant_order_id || txn.merchant_order_id;
+      const merchantOrderId =
+        txn.order?.merchant_order_id ||
+        txn.merchant_order_id ||
+        txn.extras?.merchant_order_id ||
+        txn.payment_key_claims?.extra?.merchant_order_id ||
+        txn.order?.shipping_data?.extra_description ||
+        txn.special_reference ||
+        txn.intention_order_id;
       const success = txn.success === true || txn.success === "true";
       const paymobTxnId = txn.id;
 
