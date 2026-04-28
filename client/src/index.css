@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Mobile hardening: prevent any horizontal overflow ────────── */
+html, body { max-width: 100vw; overflow-x: hidden; }
+img, video, iframe { max-width: 100%; height: auto; }
+@media (max-width: 640px) {
+  /* Tighten oversized utilities on small screens without touching desktop */
+  .container { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+  /* Tap-target safety */
+  button, a { -webkit-tap-highlight-color: transparent; }
+}
+
 /* ── SOVEREIGN PALETTE — لوحة الألوان السيادية ────────────────────
    #850935  Sovereign Crimson  (royal burgundy / wine)
    #DFB369  Sovereign Gold     (royal gold)

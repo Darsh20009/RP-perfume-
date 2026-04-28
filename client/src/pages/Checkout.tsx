@@ -537,10 +537,10 @@ export default function Checkout() {
   }) => (
     <button
       onClick={() => !isActive && setActiveStep(step as 1 | 2 | 3)}
-      className={`w-full flex items-center gap-4 p-5 text-right transition-colors ${isActive ? "cursor-default" : "hover:bg-gray-50"}`}
+      className={`w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-5 text-right transition-colors ${isActive ? "cursor-default" : "hover:bg-gray-50"}`}
     >
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0 transition-colors ${
+        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors ${
           isCompleted
             ? "bg-green-500 text-white"
             : isActive
@@ -548,16 +548,16 @@ export default function Checkout() {
             : "bg-gray-200 text-gray-800"
         }`}
       >
-        {isCompleted ? <Check className="h-4 w-4" /> : step}
+        {isCompleted ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : step}
       </div>
-      <div className="flex-1 text-right">
-        <p className={`font-black text-sm ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-700"}`}>{title}</p>
+      <div className="flex-1 text-right min-w-0">
+        <p className={`font-black text-xs sm:text-sm ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-700"}`}>{title}</p>
         {!isActive && summary && (
-          <p className="text-xs text-gray-800 mt-0.5 font-medium truncate">{summary}</p>
+          <p className="text-[10px] sm:text-xs text-gray-800 mt-0.5 font-medium truncate">{summary}</p>
         )}
       </div>
       {isCompleted && !isActive && (
-        <span className="text-[10px] text-primary font-black uppercase tracking-widest flex items-center gap-1 shrink-0">
+        <span className="text-[9px] sm:text-[10px] text-primary font-black uppercase tracking-widest flex items-center gap-1 shrink-0">
           <Pencil className="h-3 w-3" />
           تعديل
         </span>
@@ -572,29 +572,29 @@ export default function Checkout() {
     <div className="min-h-screen bg-gray-100" dir="rtl">
       {/* ── Checkout Header ── */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
           <Link href="/">
-            <span className="font-black text-xl tracking-tighter cursor-pointer">RF PERFUME</span>
+            <span className="font-black text-base sm:text-xl tracking-tighter cursor-pointer">RF PERFUME</span>
           </Link>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-gray-800 font-bold">
+          <div className="hidden md:flex items-center gap-2 text-xs text-gray-800 font-bold">
             <span className={activeStep >= 1 ? "text-primary font-black" : ""}>العنوان</span>
             <ChevronLeft className="h-3 w-3 rotate-180 text-gray-700" />
             <span className={activeStep >= 2 ? "text-primary font-black" : ""}>الشحن</span>
             <ChevronLeft className="h-3 w-3 rotate-180 text-gray-700" />
             <span className={activeStep >= 3 ? "text-primary font-black" : ""}>الدفع</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-green-600">
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-green-600">
             <ShieldCheck className="h-4 w-4" />
             <span className="hidden sm:block">دفع آمن ١٠٠٪</span>
           </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 items-start">
 
           {/* ── Left Column: Steps ── */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
 
             {/* ── Step 1: Address ── */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -605,7 +605,7 @@ export default function Checkout() {
                 isCompleted={activeStep > 1 && !!addressSummary}
               />
               {activeStep === 1 && (
-                <div className="px-6 pb-6 border-t border-gray-100">
+                <div className="px-3 sm:px-6 pb-4 sm:pb-6 border-t border-gray-100">
                   <div className="pt-5 space-y-4">
                     {!showAddAddressForm && user?.addresses && user.addresses.length > 0 ? (
                       <>
@@ -956,7 +956,7 @@ export default function Checkout() {
                       {enabledMethods.wallet !== false && (
                         <label
                           htmlFor="pay-wallet"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "wallet" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -975,7 +975,7 @@ export default function Checkout() {
                       {enabledMethods.tap !== false && (
                         <label
                           htmlFor="pay-tap"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "tap" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1000,7 +1000,7 @@ export default function Checkout() {
                       {enabledMethods.stc_pay !== false && (
                         <label
                           htmlFor="pay-stc"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "stc_pay" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1023,7 +1023,7 @@ export default function Checkout() {
                       {enabledMethods.apple_pay !== false && (
                         <label
                           htmlFor="pay-apple"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "apple_pay" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1046,7 +1046,7 @@ export default function Checkout() {
                       {enabledMethods.tabby !== false && (
                         <label
                           htmlFor="pay-tabby"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "tabby" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1064,7 +1064,7 @@ export default function Checkout() {
                       {enabledMethods.tamara !== false && (
                         <label
                           htmlFor="pay-tamara"
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "tamara" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1082,7 +1082,7 @@ export default function Checkout() {
                       {enabledMethods.bank_transfer !== false && (
                         <label
                           htmlFor="pay-bank"
-                          className={`flex flex-col gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          className={`flex flex-col gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -1199,32 +1199,32 @@ export default function Checkout() {
 
           {/* ── Right Column: Order Summary ── */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-5 border-b border-gray-100">
-                <h3 className="font-black text-base">ملخص الطلب</h3>
-                <p className="text-xs text-gray-700 font-bold mt-0.5">{items.length} منتج</p>
+            <div className="lg:sticky lg:top-24 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-3 sm:p-5 border-b border-gray-100">
+                <h3 className="font-black text-sm sm:text-base">ملخص الطلب</h3>
+                <p className="text-[10px] sm:text-xs text-gray-700 font-bold mt-0.5">{items.length} منتج</p>
               </div>
 
               {/* Product list */}
-              <div className="p-5 space-y-4 max-h-[260px] overflow-y-auto border-b border-gray-100">
+              <div className="p-3 sm:p-5 space-y-3 sm:space-y-4 max-h-[200px] sm:max-h-[260px] overflow-y-auto border-b border-gray-100">
                 {items.map((item) => (
-                  <div key={item.variantSku} className="flex gap-3 items-center">
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
+                  <div key={item.variantSku} className="flex gap-2 sm:gap-3 items-center">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
                       <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-black text-xs truncate">{item.title}</p>
-                      <p className="text-[10px] text-gray-700 font-bold mt-0.5">
+                      <p className="font-black text-[11px] sm:text-xs truncate">{item.title}</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-700 font-bold mt-0.5 truncate">
                         {item.quantity}x · {item.color} · {item.size}
                       </p>
                     </div>
-                    <p className="font-black text-xs shrink-0 text-gray-700">{item.price.toLocaleString()} <RiyalSign /></p>
+                    <p className="font-black text-[11px] sm:text-xs shrink-0 text-gray-700">{item.price.toLocaleString()} <RiyalSign /></p>
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
-              <div className="p-5 space-y-3 border-b border-gray-100 text-sm">
+              <div className="p-3 sm:p-5 space-y-2.5 sm:space-y-3 border-b border-gray-100 text-xs sm:text-sm">
                 <div className="flex justify-between text-gray-800 font-bold">
                   <span>{subtotal.toLocaleString()} <RiyalSign /></span>
                   <span>المجموع الفرعي</span>
@@ -1273,22 +1273,22 @@ export default function Checkout() {
                     )}
                   </div>
                 )}
-                <div className="flex justify-between font-black text-lg pt-3 border-t border-gray-100">
+                <div className="flex justify-between font-black text-base sm:text-lg pt-3 border-t border-gray-100">
                   <span className="text-primary">{finalTotal.toLocaleString()} <RiyalSign /></span>
                   <span>الإجمالي</span>
                 </div>
               </div>
 
               {/* CTA */}
-              <div className="p-5 space-y-3">
+              <div className="p-3 sm:p-5 space-y-3">
                 {activeStep < 3 ? (
-                  <div className="w-full py-4 bg-gray-100 rounded-lg text-center">
-                    <p className="text-xs text-gray-700 font-bold">
+                  <div className="w-full py-3 sm:py-4 bg-gray-100 rounded-lg text-center">
+                    <p className="text-[11px] sm:text-xs text-gray-700 font-bold">
                       أكمل الخطوات أعلاه للمتابعة
                     </p>
                   </div>
                 ) : paymentMethod === "stc_pay" && !paymentConfirmed ? (
-                  <div className="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5">
+                  <div className="w-full py-3 sm:py-4 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5">
                     <Lock className="h-4 w-4 text-gray-700" />
                     <p className="text-[10px] text-gray-700 font-black text-center">
                       تحقق من STC Pay أولاً
@@ -1298,7 +1298,7 @@ export default function Checkout() {
                   <Button
                     onClick={handleCheckoutInitiate}
                     disabled={isSubmitting || (paymentMethod === "bank_transfer" && !receiptFile)}
-                    className="w-full h-14 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50"
+                    className="w-full h-12 sm:h-14 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">

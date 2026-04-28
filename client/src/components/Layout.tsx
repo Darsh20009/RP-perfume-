@@ -549,31 +549,31 @@ export function Layout({ children }: { children: ReactNode }) {
       {!user && <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} defaultTab={authModalTab} />}
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white py-16 mt-24">
-        <div className="container grid grid-cols-1 md:grid-cols-4 gap-12 px-4">
-          <div className="space-y-4">
+      <footer className="border-t border-gray-200 bg-white py-8 sm:py-12 md:py-16 mt-12 sm:mt-16 md:mt-24">
+        <div className="container grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-12 px-4">
+          <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
             <Link href="/" className="flex items-center">
-              <img src={logoImg} alt="عطور آر اف" className="h-14 w-auto object-contain" />
+              <img src={logoImg} alt="عطور آر اف" className="h-10 sm:h-12 md:h-14 w-auto object-contain" />
             </Link>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
               {t('footerTagline')}
             </p>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('categories')}</h3>
-            <ul className="space-y-3 text-sm text-gray-800">
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('categories')}</h3>
+            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-800">
               <li><Link href="/products" className="hover:text-[#DFB369] transition-colors">{t('allProducts')}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('help')}</h3>
-            <ul className="space-y-3 text-sm text-gray-800">
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('help')}</h3>
+            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-800">
               <li><Link href="/terms" className="hover:text-[#DFB369] transition-colors">{t('terms')}</Link></li>
               <li><Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'فروعنا' : 'Our Branches'}</Link></li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-bold text-lg mb-6 text-[#DFB369]">{t('contactUs')}</h3>
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('contactUs')}</h3>
             <div className="space-y-4 text-sm text-gray-800">
               <a 
                 href="tel:+966551329821" 
@@ -609,8 +609,8 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </div>
-        <div className="container mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-700 px-4">
-          <div className="flex justify-center flex-wrap gap-4 mt-8">
+        <div className="container mt-8 sm:mt-12 md:mt-16 pt-6 sm:pt-8 border-t border-gray-200 text-center text-xs sm:text-sm text-gray-700 px-4">
+          <div className="flex justify-center flex-wrap gap-2 sm:gap-4 mt-4 sm:mt-8">
             {(() => {
               const fallback = [
                 { platform: 'instagram', url: 'https://www.instagram.com/rfperfume.sa', isActive: true },
@@ -655,9 +655,9 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Payment Methods */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-700 mb-5">{t('availablePayments')}</p>
-            <div className="flex flex-wrap justify-center items-center gap-3">
+          <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-gray-700 mb-3 sm:mb-5">{t('availablePayments')}</p>
+            <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
               <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Mada / Visa / Mastercard / Amex">
                 <img src="/uploads/card-brands-logo.png" alt="Card Brands" className="h-7 w-auto object-contain" />
               </div>
@@ -680,8 +680,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Commercial Registration & Tax */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <div className="flex flex-wrap justify-center items-center gap-8">
+          <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
+            <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-8">
               <a
                 href="https://qr.saudibusiness.gov.sa/viewcr?nCrNumber=et1BNw5nU2a6R1GygbnoPA=="
                 target="_blank"
@@ -712,12 +712,12 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Copyright */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-gray-700">© 2026 عطور آر اف | RF Perfume. {t('allRightsReserved')}.</p>
-            <p className="mt-2 text-xs text-gray-700">
+          <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-700">© 2026 عطور آر اف | RF Perfume. {t('allRightsReserved')}.</p>
+            <p className="mt-2 text-[10px] sm:text-xs text-gray-700">
               rfperfume.sa
             </p>
-            <p className="mt-4 text-xs text-gray-600 flex items-center justify-center gap-1.5 flex-wrap">
+            <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-600 flex items-center justify-center gap-1.5 flex-wrap">
               <span>صُنع بـ</span>
               <span className="text-[#850935] text-base leading-none animate-pulse" aria-label="حب">♥</span>
               <span>عبر</span>
