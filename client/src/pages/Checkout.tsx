@@ -261,18 +261,16 @@ export default function Checkout() {
       });
       return;
     }
-    if (paymentMethod === "tap") {
+    // Card (tap) and Apple Pay both go through Paymob's hosted checkout
+    if (paymentMethod === "tap" || paymentMethod === "apple_pay") {
       handleFinalCheckout();
       return;
     }
-    if (["stc_pay", "apple_pay"].includes(paymentMethod)) {
+    if (paymentMethod === "stc_pay") {
       if (!paymentConfirmed) {
         toast({
           title: "يجب إتمام الدفع أولاً",
-          description:
-            paymentMethod === "stc_pay"
-              ? "يرجى التحقق من رقم جوال STC Pay أولاً"
-              : "يرجى الضغط على 'Pay with Face ID' أولاً",
+          description: "يرجى التحقق من رقم جوال STC Pay أولاً",
           variant: "destructive",
         });
         return;
@@ -289,6 +287,9 @@ export default function Checkout() {
 
   const handleFinalCheckout = async () => {
     const noPasswordNeeded = ["tamara", "tabby", "tap", "stc_pay", "apple_pay"].includes(paymentMethod);
+    // Any method that REQUIRES an external gateway redirect:
+    const NEEDS_GATEWAY = ["tap", "apple_pay", "tabby", "tamara"];
+    const requiresGateway = NEEDS_GATEWAY.includes(paymentMethod);
     if (!confirmPassword && !noPasswordNeeded) {
       toast({ title: "خطأ", description: "يرجى إدخال كلمة المرور للتأكيد", variant: "destructive" });
       return;
@@ -375,13 +376,15 @@ export default function Checkout() {
         pickupBranch: shippingMethod === "pickup" ? pickupBranchId : undefined,
         paymentMethod,
         bankTransferReceipt: receiptUrl || undefined,
-        status: paymentMethod === "bank_transfer" || paymentMethod === "tap" ? "pending_payment" : "new",
-        paymentStatus:
-          paymentMethod === "wallet" || paymentConfirmed ? "paid" : "pending",
+        // CRITICAL: any method that needs an external gateway OR manual review must be pending_payment
+        // until the gateway/admin confirms. Only wallet (with sufficient balance) is paid up-front.
+        status: requiresGateway || paymentMethod === "bank_transfer" ? "pending_payment" : "new",
+        paymentStatus: paymentMethod === "wallet" ? "paid" : "pending",
       };
       const res = await apiRequest("POST", "/api/orders", orderData);
       const order = await res.json();
-      if (paymentMethod === "tap") {
+      // Card (tap) AND Apple Pay both go through Paymob's hosted unified checkout
+      if (paymentMethod === "tap" || paymentMethod === "apple_pay") {
         try {
           const selectedAddr = user?.addresses?.find((a) => a.id === selectedAddressId);
           const paymobRes = await fetch("/api/paymob/initiate", {
@@ -402,7 +405,7 @@ export default function Checkout() {
             window.location.href = paymobData.iframeUrl;
             return;
           } else {
-            toast({ title: "خطأ في بوابة الدفع", description: paymobData.error || "حاول مجدداً", variant: "destructive" });
+            toast({ title: "تعذّر بدء الدفع", description: paymobData.error || "البوابة لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
             setIsSubmitting(false);
             return;
           }
@@ -419,7 +422,18 @@ export default function Checkout() {
           installments: 4,
         });
         const tamaraData = await tamaraRes.json();
-        if (tamaraData.checkoutUrl) { setLocation(tamaraData.checkoutUrl + `&orderId=${order.id}`); return; }
+        if (tamaraData.checkoutUrl) {
+          clearCart();
+          if (/^https?:\/\//i.test(tamaraData.checkoutUrl)) {
+            window.location.href = tamaraData.checkoutUrl;
+          } else {
+            setLocation(tamaraData.checkoutUrl + `&orderId=${order.id}`);
+          }
+          return;
+        }
+        toast({ title: "تمارا", description: tamaraData.error || "تمارا لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
       }
       if (paymentMethod === "tabby") {
         const tabbyRes = await apiRequest("POST", "/api/payments/tabby/checkout", {
@@ -440,8 +454,7 @@ export default function Checkout() {
         });
         const tabbyData = await tabbyRes.json();
         if (tabbyData.checkoutUrl) {
-          // Real Tabby returns an absolute https URL → redirect away.
-          // Simulator returns a local path like /payment/tabby-checkout?...
+          clearCart();
           if (/^https?:\/\//i.test(tabbyData.checkoutUrl)) {
             window.location.href = tabbyData.checkoutUrl;
           } else {
@@ -449,10 +462,9 @@ export default function Checkout() {
           }
           return;
         }
-        if (tabbyData.error) {
-          toast({ title: "تابي", description: tabbyData.error, variant: "destructive" });
-          return;
-        }
+        toast({ title: "تابي", description: tabbyData.error || "تابي لم تستجب — جرّب طريقة أخرى", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
       }
       try {
         await apiRequest("POST", "/api/shipping/storage-station/create-order", {
@@ -1150,39 +1162,23 @@ export default function Checkout() {
                       </div>
                     )}
 
-                    {/* Inline Apple Pay */}
-                    {paymentMethod === "apple_pay" && !paymentConfirmed && (
-                      <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 space-y-3">
-                        <p className="text-xs text-gray-800 font-bold text-center">
-                          اضغط للمصادقة عبر Face ID أو Touch ID
-                        </p>
-                        <button
-                          onClick={async () => {
-                            setApplePayLoading(true);
-                            await new Promise((r) => setTimeout(r, 1500));
-                            setApplePayLoading(false);
-                            setPaymentConfirmed(true);
-                          }}
-                          disabled={applePayLoading}
-                          className="w-full h-12 bg-black text-white font-bold rounded-lg flex items-center justify-center gap-3 hover:bg-black/80 transition-all active:scale-95 disabled:opacity-60"
-                        >
-                          {applePayLoading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <Apple className="h-4 w-4" />
-                              <span className="text-sm">Pay with Face ID</span>
-                            </>
-                          )}
-                        </button>
-                        <p className="text-[10px] text-center text-gray-700 font-bold">
-                          المبلغ: <span className="font-black text-gray-600">{finalTotal.toLocaleString()} <RiyalSign /></span>
-                        </p>
+                    {/* Apple Pay — handled by Paymob hosted checkout (no inline confirm needed) */}
+                    {paymentMethod === "apple_pay" && (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center shrink-0">
+                          <Apple className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-black text-sm text-black">Apple Pay</p>
+                          <p className="text-[10px] text-gray-700 font-bold mt-0.5">
+                            عند الضغط على "تأكيد الطلب" ستُنقل إلى صفحة دفع آمنة لإكمال المصادقة عبر Face ID / Touch ID
+                          </p>
+                        </div>
                       </div>
                     )}
 
-                    {/* Payment confirmed success */}
-                    {["stc_pay", "apple_pay"].includes(paymentMethod) && paymentConfirmed && (
+                    {/* Payment confirmed success (STC Pay only) */}
+                    {paymentMethod === "stc_pay" && paymentConfirmed && (
                       <div className="bg-green-50 rounded-xl p-4 border border-green-200 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                           <CheckCircle2 className="h-5 w-5 text-green-600" />
