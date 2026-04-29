@@ -163,6 +163,12 @@ const orderSchema = new Schema<Order>(
     paymentMethod: { type: String, enum: ["cod", "bank_transfer", "apple_pay", "card", "cash", "wallet", "tap", "stc_pay", "tamara", "tabby"], required: true },
     bankTransferReceipt: String,
     paymentStatus: { type: String, default: "pending" },
+    paymentTransactionId: { type: String, index: true, sparse: true },
+    paidNotificationsSent: { type: Boolean, default: false },
+    // Paymob's internal order/transaction id, captured at checkout initiation.
+    // Used to bind the signed callback `order` field (which Paymob HMAC covers)
+    // back to OUR order without trusting the unsigned merchant_order_id.
+    paymobOrderId: { type: String, index: true, sparse: true },
     shippingProvider: { type: String },
     trackingNumber: { type: String },
     deliveryDriver: {

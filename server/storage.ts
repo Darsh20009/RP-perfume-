@@ -51,6 +51,10 @@ export interface IStorage {
   updateOrderPaymentStatus(id: string, paymentStatus: "pending" | "paid" | "failed" | "refunded", paymentMethod?: string): Promise<Order>;
   updateOrder(id: string, update: Partial<Order> & Record<string, any>): Promise<Order>;
   markPaidSideEffectsSentIfUnset(id: string): Promise<boolean>;
+  // Lookup an order by Paymob's internal order id (saved at checkout initiation).
+  // Used to resolve callbacks via the HMAC-signed `order` field instead of the
+  // unsigned merchant_order_id from the body.
+  getOrderByPaymobOrderId(paymobOrderId: string): Promise<Order | undefined>;
   
   // Categories
   getCategories(): Promise<Category[]>;
@@ -566,6 +570,13 @@ export class MongoDBStorage implements IStorage {
   async updateOrder(id: string, update: Partial<Order> & Record<string, any>): Promise<Order> {
     const order = await OrderModel.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
     if (!order) throw new Error("Order not found");
+    return { ...order, id: order._id.toString() } as any;
+  }
+
+  async getOrderByPaymobOrderId(paymobOrderId: string): Promise<Order | undefined> {
+    if (!paymobOrderId) return undefined;
+    const order = await OrderModel.findOne({ paymobOrderId }).lean();
+    if (!order) return undefined;
     return { ...order, id: order._id.toString() } as any;
   }
 

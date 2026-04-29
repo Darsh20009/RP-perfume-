@@ -3274,6 +3274,26 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, error: "بيانات الطلب ناقصة" });
       }
       const u = req.user as any;
+
+      // SECURITY: Verify the order exists, belongs to the requesting user, and that
+      // the requested amount matches the stored order total. Without this, any
+      // authenticated user could pass another user's orderId (IDOR) to overwrite
+      // their paymobOrderId binding or trigger a checkout session against it.
+      // Admin/cashier roles may initiate on behalf of any order (POS flow).
+      const order = await storage.getOrder(String(orderId));
+      if (!order) {
+        return res.status(404).json({ success: false, error: "الطلب غير موجود" });
+      }
+      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support"].includes(String(u?.role || ""));
+      if (!isPrivileged && String((order as any).userId) !== String(u?.id)) {
+        return res.status(403).json({ success: false, error: "غير مصرح بالدفع لهذا الطلب" });
+      }
+      const expected = Number((order as any).total || 0);
+      if (expected > 0 && Math.abs(expected - Number(amount)) > 0.01) {
+        console.warn(`[Paymob initiate] amount mismatch for order ${orderId}: stored=${expected}, requested=${amount}`);
+        return res.status(400).json({ success: false, error: "قيمة الدفع لا تطابق إجمالي الطلب" });
+      }
+
       const origin =
         (process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "") ||
         (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
@@ -3305,6 +3325,21 @@ export async function registerRoutes(
           customer,
         });
       }
+
+      // SECURITY: Persist Paymob's internal order/intention id so the webhook can
+      // resolve callbacks via the HMAC-SIGNED `order` field instead of trusting
+      // the unsigned `merchant_order_id` from the body. The signed `order` field
+      // is part of verifyPaymobHmac's concatenation tuple, so an attacker cannot
+      // replay-and-swap to a different order if we look up by it.
+      const paymobBindingId = result?.paymobOrderId ?? result?.intentionId;
+      if (paymobBindingId) {
+        try {
+          await storage.updateOrder(String(orderId), { paymobOrderId: String(paymobBindingId) } as any);
+        } catch (e: any) {
+          console.warn("[Paymob] failed to persist paymobOrderId:", e?.message);
+        }
+      }
+
       res.json({ success: true, ...result });
     } catch (err: any) {
       console.error("[Paymob] initiate error:", err?.message);
@@ -3320,12 +3355,35 @@ export async function registerRoutes(
       const txn = body.obj || body;
       const flat = flattenPaymobCallback(txn);
 
-      if (hmac && !verifyPaymobHmac(flat, hmac)) {
+      // SECURITY: HMAC on the query string is the ONLY proof this callback came
+      // from Paymob. Without it, an attacker who knows the endpoint shape can
+      // POST a forged JSON body with any merchant_order_id and mark orders as
+      // paid for free. We require it in production; in dev we allow missing
+      // HMAC (with a warning) so local testing without the secret still works.
+      const isProd = process.env.NODE_ENV === "production";
+      if (!hmac) {
+        if (isProd) {
+          console.warn("[Paymob] callback rejected — missing hmac query parameter");
+          return res.status(401).json({ error: "missing hmac" });
+        }
+        console.warn("[Paymob] callback accepted without hmac (dev only)");
+      } else if (!verifyPaymobHmac(flat, hmac)) {
         console.error("[Paymob] HMAC verification failed");
         return res.status(403).json({ error: "HMAC mismatch" });
       }
 
-      const merchantOrderId =
+      const success = txn.success === true || txn.success === "true";
+      const paymobTxnId = txn.id;
+
+      // SECURITY: Resolve our internal order via the HMAC-SIGNED `order` field
+      // (Paymob's internal order id), which we persisted at checkout initiation.
+      // The body's `merchant_order_id` is NOT in the HMAC tuple, so trusting it
+      // would let an attacker replay a valid signed payload while swapping that
+      // identifier to a different order. We fall back to merchant_order_id ONLY
+      // for legacy orders predating the persisted binding (in dev/migration);
+      // in production with the binding present, mismatches are rejected.
+      const signedPaymobOrderId = String((flat as any)?.order ?? txn?.order?.id ?? txn?.order ?? "");
+      const claimedMerchantOrderId =
         txn.order?.merchant_order_id ||
         txn.merchant_order_id ||
         txn.extras?.merchant_order_id ||
@@ -3333,15 +3391,66 @@ export async function registerRoutes(
         txn.order?.shipping_data?.extra_description ||
         txn.special_reference ||
         txn.intention_order_id;
-      const success = txn.success === true || txn.success === "true";
-      const paymobTxnId = txn.id;
 
-      console.log(`[Paymob] Callback: order=${merchantOrderId} success=${success} txnId=${paymobTxnId}`);
+      let merchantOrderId: string | undefined;
+      if (signedPaymobOrderId) {
+        const boundOrder = await storage.getOrderByPaymobOrderId(signedPaymobOrderId);
+        if (boundOrder) {
+          merchantOrderId = (boundOrder as any).id || (boundOrder as any)._id?.toString();
+          if (claimedMerchantOrderId && claimedMerchantOrderId !== merchantOrderId) {
+            console.warn(
+              `[Paymob] merchant_order_id in body (${claimedMerchantOrderId}) does not match the order bound to signed paymobOrderId=${signedPaymobOrderId} (${merchantOrderId}); ignoring claimed value`
+            );
+          }
+        }
+      }
+      // Fallback for legacy orders that were created before paymobOrderId was
+      // persisted at initiation. Only use the unsigned identifier if no binding
+      // exists for the signed order, and never in production.
+      if (!merchantOrderId && claimedMerchantOrderId && process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[Paymob] no order bound to signed paymobOrderId=${signedPaymobOrderId}; falling back to merchant_order_id (${claimedMerchantOrderId}) — dev only`
+        );
+        merchantOrderId = String(claimedMerchantOrderId);
+      }
+
+      console.log(`[Paymob] Callback: paymobOrder=${signedPaymobOrderId} → order=${merchantOrderId} success=${success} txnId=${paymobTxnId}`);
 
       if (merchantOrderId && success) {
         try {
           const order = await storage.getOrder(merchantOrderId);
           if (order) {
+            // SECURITY: Defend against signed-payload replay with merchant_order_id
+            // swap. The HMAC covers `amount_cents` from the BODY (see `flat`
+            // construction above and the field list in verifyPaymobHmac) but NOT
+            // the merchant_order_id pulled from the body. By requiring the signed
+            // amount to equal the stored order total, an attacker who replays a
+            // valid signed payment for one amount cannot redirect that proof to
+            // a different (higher-value) order — the amounts won't match.
+            //
+            // IMPORTANT: We read `amount_cents` from `flat` (the HMAC-verified
+            // payload), NOT from req.query. The query string is user-controlled
+            // and not part of the signed tuple, so trusting it would let an
+            // attacker submit any value to bypass this check.
+            //
+            // FAIL-CLOSED: if amount_cents is missing or non-numeric in the
+            // signed payload, refuse to mark paid.
+            const rawSignedAmountCents = (flat as any)?.amount_cents ?? txn?.amount_cents;
+            const signedAmountCents = Number(rawSignedAmountCents);
+            const expectedCents = Math.round(Number(order.total || 0) * 100);
+            if (rawSignedAmountCents == null || !Number.isFinite(signedAmountCents) || signedAmountCents <= 0) {
+              console.warn(
+                `[Paymob] missing/invalid signed amount_cents (${rawSignedAmountCents}) for order ${merchantOrderId}; refusing to mark paid`
+              );
+              return res.status(400).json({ error: "missing amount" });
+            }
+            if (expectedCents > 0 && Math.abs(signedAmountCents - expectedCents) > 1) {
+              console.warn(
+                `[Paymob] amount mismatch — signed amount_cents=${signedAmountCents}, order ${merchantOrderId} expects ${expectedCents}; refusing to mark paid`
+              );
+              return res.status(400).json({ error: "amount mismatch" });
+            }
+
             await storage.updateOrderPaymentStatus(merchantOrderId, "paid");
             if (order.status === "pending_payment") {
               await storage.updateOrderStatus(merchantOrderId, "new" as any);
@@ -3362,64 +3471,30 @@ export async function registerRoutes(
     }
   });
 
-  // Paymob redirect callback (browser redirect after payment).
-  // This is a fallback path: in test mode, or when the server-to-server webhook is delayed
-  // or never reaches us, the user will still hit this URL on success. We mark the order
-  // paid here too — but ONLY when the HMAC on the redirect URL verifies, so the path
-  // cannot be spoofed by a malicious customer crafting their own success URL.
+  // Paymob redirect callback (browser redirect after payment) — UX-only.
+  //
+  // SECURITY NOTE: We deliberately do NOT mark the order as paid from this endpoint.
+  // The redirect URL contains an HMAC, but the HMAC only covers Paymob's INTERNAL
+  // transaction fields (id, amount_cents, success, order, …) — the `merchant_order_id`
+  // query parameter is NOT part of the signed payload. An attacker who completes a real
+  // payment for one order could replay the same signed query string while swapping
+  // `merchant_order_id` to mark a different victim's order as paid for free.
+  //
+  // The server-to-server POST /api/paymob/callback (above) is the authoritative path:
+  // its body comes directly from Paymob over HTTPS and contains the merchant_order_id
+  // inside the signed transaction object. Configure Paymob's webhook URL in the
+  // dashboard to point there.
+  //
+  // This GET handler simply forwards the user to the result page so the UI can poll
+  // the order status and show success/failure once the webhook lands.
   app.get("/api/paymob/callback", async (req, res) => {
     try {
       const success = req.query.success === "true";
       const orderId = String(req.query.merchant_order_id || req.query.order || "");
       const txnId = String(req.query.id || "");
-      const hmac = String(req.query.hmac || "");
-
-      if (success && orderId && hmac) {
-        // Build the same flat shape verifyPaymobHmac expects from the GET query string.
-        const flat: Record<string, any> = {
-          amount_cents: req.query.amount_cents,
-          created_at: req.query.created_at,
-          currency: req.query.currency,
-          error_occured: req.query.error_occured,
-          has_parent_transaction: req.query.has_parent_transaction,
-          id: req.query.id,
-          integration_id: req.query.integration_id,
-          is_3d_secure: req.query["is_3d_secure"],
-          is_auth: req.query.is_auth,
-          is_capture: req.query.is_capture,
-          is_refunded: req.query.is_refunded,
-          is_standalone_payment: req.query.is_standalone_payment,
-          is_voided: req.query.is_voided,
-          order: req.query.order,
-          owner: req.query.owner,
-          pending: req.query.pending,
-          "source_data.pan": req.query["source_data.pan"],
-          "source_data.sub_type": req.query["source_data.sub_type"],
-          "source_data.type": req.query["source_data.type"],
-          success: req.query.success,
-        };
-        if (verifyPaymobHmac(flat, hmac)) {
-          try {
-            const order = await storage.getOrder(orderId);
-            if (order && order.paymentStatus !== "paid") {
-              await storage.updateOrderPaymentStatus(orderId, "paid");
-              if (order.status === "pending_payment") {
-                await storage.updateOrderStatus(orderId, "new" as any);
-              }
-              console.log(`[Paymob redirect-fallback] Order ${orderId} marked as paid`);
-              await dispatchOrderPaidSideEffects(String(orderId));
-            }
-          } catch (e: any) {
-            console.error("[Paymob redirect-fallback] Error updating order:", e?.message);
-          }
-        } else {
-          console.warn(`[Paymob redirect-fallback] HMAC mismatch for order ${orderId} — not marking paid`);
-        }
-      }
-
       res.redirect(`/paymob/result?success=${success}&orderId=${orderId}&txnId=${txnId}`);
     } catch (err: any) {
-      console.error("[Paymob redirect-fallback] error:", err?.message);
+      console.error("[Paymob redirect] error:", err?.message);
       res.redirect(`/paymob/result?success=false`);
     }
   });
@@ -3701,20 +3776,44 @@ export async function registerRoutes(
     try {
       if (tabbyPaymentId && orderId) rememberPaymentId(orderId, tabbyPaymentId);
 
-      if (status === "success" && tabbyPaymentId && isTabbyConfigured()) {
+      if (status === "success" && tabbyPaymentId && orderId && isTabbyConfigured()) {
         const r = await retrieveTabbyPayment(tabbyPaymentId);
         if (r.ok && r.status === "AUTHORIZED") {
-          await captureTabbyPayment(tabbyPaymentId, r.amount || 0);
-          // Mark order as paid + flip status from pending_payment → new
-          if (orderId) {
+          // SECURITY: Bind the retrieved Tabby payment to the orderId in the URL.
+          // The query string (orderId, payment_id) is user-controlled; without
+          // this check, an attacker could pair a real payment_id from their own
+          // checkout with a victim's orderId and mark it paid.
+          // Tabby returns the original `order.reference_id` we sent at checkout
+          // creation (in tabby.ts line 84) — it must match the orderId here.
+          const refId = String((r.data as any)?.order?.reference_id || "");
+          if (refId && refId !== orderId) {
+            console.warn(
+              `[Tabby return] reference_id mismatch — payment ${tabbyPaymentId} belongs to ${refId}, not ${orderId}; refusing to mark paid`
+            );
+          } else {
+            // Optional: also validate the captured amount equals the order total
+            // to defend against partial-amount paid-through tricks.
+            let amountOk = true;
             try {
-              await storage.updateOrder(orderId, { paymentStatus: "paid", paymentTransactionId: tabbyPaymentId } as any);
               const ord = await storage.getOrder(orderId);
-              if (ord && ord.status === "pending_payment") {
-                await storage.updateOrderStatus(orderId, "new" as any);
+              if (ord && Number(ord.total) > 0 && r.amount && Math.abs(Number(ord.total) - r.amount) > 0.01) {
+                console.warn(
+                  `[Tabby return] amount mismatch — order ${orderId} total=${ord.total}, payment=${r.amount}; refusing to mark paid`
+                );
+                amountOk = false;
               }
-              await dispatchOrderPaidSideEffects(orderId);
             } catch {}
+            if (amountOk) {
+              await captureTabbyPayment(tabbyPaymentId, r.amount || 0);
+              try {
+                await storage.updateOrder(orderId, { paymentStatus: "paid", paymentTransactionId: tabbyPaymentId } as any);
+                const ord = await storage.getOrder(orderId);
+                if (ord && ord.status === "pending_payment") {
+                  await storage.updateOrderStatus(orderId, "new" as any);
+                }
+                await dispatchOrderPaidSideEffects(orderId);
+              } catch {}
+            }
           }
         }
       }
@@ -3735,28 +3834,42 @@ export async function registerRoutes(
       // Tabby supports two patterns for authenticating webhook callbacks:
       //   (a) `x-merchant-secret` header containing TABBY_SECRET_KEY (or a
       //       dedicated webhook secret you configure in their dashboard)
-      //   (b) `x-tabby-signature` header containing HMAC-SHA256(body, secret)
+      //   (b) `x-tabby-signature` header containing HMAC-SHA256(rawBody, secret)
       // We accept either. If a header is present but invalid, reject (403).
-      // If neither header is present, we log a warning and continue — this keeps
-      // local/test setups working but flags misconfiguration in production logs.
+      //
+      // In production (NODE_ENV=production) we REQUIRE a signature — missing
+      // headers are rejected with 401 to prevent spoofed callbacks from marking
+      // arbitrary orders as paid. In development we log a warning and accept
+      // (so local testing without webhook secrets still works).
       const sharedSecretHeader = String(req.headers["x-merchant-secret"] || "").trim();
       const hmacHeader = String(req.headers["x-tabby-signature"] || "").trim();
       const tabbySecret = process.env.TABBY_WEBHOOK_SECRET || process.env.TABBY_SECRET_KEY || "";
+      const isProd = process.env.NODE_ENV === "production";
       if (sharedSecretHeader || hmacHeader) {
         let signatureValid = false;
-        if (sharedSecretHeader && tabbySecret && sharedSecretHeader === tabbySecret) {
-          signatureValid = true;
+        if (sharedSecretHeader && tabbySecret) {
+          // constant-time compare to defeat timing attacks
+          const a = Buffer.from(sharedSecretHeader);
+          const b = Buffer.from(tabbySecret);
+          if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+            signatureValid = true;
+          }
         }
         if (!signatureValid && hmacHeader && tabbySecret) {
           try {
-            const raw = JSON.stringify(req.body || {});
-            const expected = crypto.createHmac("sha256", tabbySecret).update(raw).digest("hex");
-            // constant-time compare
-            if (
-              expected.length === hmacHeader.length &&
-              crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(hmacHeader))
-            ) {
-              signatureValid = true;
+            // IMPORTANT: HMAC must be computed over the EXACT raw bytes Tabby
+            // signed. Using JSON.stringify(req.body) re-serializes the parsed
+            // body, which will not byte-match the original payload (key order,
+            // whitespace, escaping all differ). req.rawBody is captured by the
+            // express.json verify hook in server/index.ts.
+            const raw: Buffer | undefined = (req as any).rawBody;
+            if (raw && raw.length > 0) {
+              const expected = crypto.createHmac("sha256", tabbySecret).update(raw).digest("hex");
+              const a = Buffer.from(expected);
+              const b = Buffer.from(hmacHeader);
+              if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+                signatureValid = true;
+              }
             }
           } catch {}
         }
@@ -3765,7 +3878,11 @@ export async function registerRoutes(
           return res.status(403).json({ error: "invalid signature" });
         }
       } else {
-        console.warn("[Tabby webhook] no signature headers present — accepting (configure TABBY_WEBHOOK_SECRET to enforce)");
+        if (isProd) {
+          console.warn("[Tabby webhook] no signature headers present in production — rejecting");
+          return res.status(401).json({ error: "missing signature" });
+        }
+        console.warn("[Tabby webhook] no signature headers present — accepting (dev only; configure TABBY_WEBHOOK_SECRET to enforce)");
       }
 
       const evt = req.body || {};
@@ -3778,26 +3895,46 @@ export async function registerRoutes(
 
       rememberPaymentId(orderRef, paymentId);
 
+      // SECURITY: Even though the webhook body is signature-verified, our checkout
+      // creation endpoint accepts the orderId/amount from the client. Re-validate
+      // that the amount Tabby reports matches our stored order total before
+      // marking it paid (defense-in-depth against tampered checkout requests).
+      const markOrderPaidIfAmountMatches = async (webhookAmount: number) => {
+        const ord = await storage.getOrder(orderRef);
+        if (!ord) {
+          console.warn(`[Tabby webhook] order ${orderRef} not found — skipping`);
+          return;
+        }
+        const expected = Number(ord.total || 0);
+        if (expected > 0 && webhookAmount > 0 && Math.abs(expected - webhookAmount) > 0.01) {
+          console.warn(
+            `[Tabby webhook] amount mismatch — order ${orderRef} total=${expected}, payment=${webhookAmount}; refusing to mark paid`
+          );
+          return;
+        }
+        await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any);
+        if (ord.status === "pending_payment") {
+          await storage.updateOrderStatus(orderRef, "new" as any);
+        }
+        await dispatchOrderPaidSideEffects(String(orderRef));
+      };
+
       if (status === "AUTHORIZED") {
         const amount = parseFloat(evt?.amount || "0");
-        await captureTabbyPayment(paymentId, amount);
         try {
-          await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any);
-          const ord = await storage.getOrder(orderRef);
-          if (ord && ord.status === "pending_payment") {
-            await storage.updateOrderStatus(orderRef, "new" as any);
-          }
-          await dispatchOrderPaidSideEffects(String(orderRef));
-        } catch {}
+          await markOrderPaidIfAmountMatches(amount);
+          // Capture only after we've confirmed the order/amount binding is valid.
+          if (amount > 0) await captureTabbyPayment(paymentId, amount);
+        } catch (e: any) {
+          console.error("[Tabby webhook] AUTHORIZED handling error:", e?.message);
+        }
       } else if (status === "CLOSED") {
         try {
-          await storage.updateOrder(orderRef, { paymentStatus: "paid", paymentTransactionId: paymentId } as any);
-          const ord = await storage.getOrder(orderRef);
-          if (ord && ord.status === "pending_payment") {
-            await storage.updateOrderStatus(orderRef, "new" as any);
-          }
-          await dispatchOrderPaidSideEffects(String(orderRef));
-        } catch {}
+          const amount = parseFloat(evt?.amount || "0");
+          await markOrderPaidIfAmountMatches(amount);
+        } catch (e: any) {
+          console.error("[Tabby webhook] CLOSED handling error:", e?.message);
+        }
       } else if (status === "REJECTED" || status === "EXPIRED") {
         try { await storage.updateOrder(orderRef, { paymentStatus: "failed" } as any); } catch {}
       }

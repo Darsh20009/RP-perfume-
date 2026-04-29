@@ -196,9 +196,27 @@ export async function initiatePaymobPayment(params: {
 export function verifyPaymobHmac(data: Record<string, any>, receivedHmac: string): boolean {
   const { hmacSecret } = getConfig();
   if (!hmacSecret) {
-    console.warn("[Paymob] HMAC secret not configured, skipping verification");
+    // FAIL-CLOSED in production: if we don't have the HMAC secret we cannot
+    // prove the callback came from Paymob, so refuse to honour it. In dev we
+    // return true (with a loud warning) so local testing without the secret
+    // still works.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Paymob] HMAC secret not configured in production — rejecting callback");
+      return false;
+    }
+    console.warn("[Paymob] HMAC secret not configured, skipping verification (dev only)");
     return true;
   }
+
+  // The `order` field in Paymob's HMAC tuple is the internal order id. In a
+  // raw transaction body it appears as `order.id` (nested object); in a
+  // pre-flattened payload that becomes the dotted key `"order.id"`; in some
+  // event shapes it's a bare numeric `order`. Resolve all three so this verifier
+  // works whether the caller passes the original txn or a flattened map.
+  const orderField =
+    data["order.id"] ??
+    (data.order && typeof data.order === "object" ? data.order.id : data.order) ??
+    "";
 
   const concatenatedString = [
     data.amount_cents,
@@ -214,7 +232,7 @@ export function verifyPaymobHmac(data: Record<string, any>, receivedHmac: string
     data.is_refunded,
     data.is_standalone_payment,
     data.is_voided,
-    data.order?.id || data.order,
+    orderField,
     data.owner,
     data.pending,
     data["source_data.pan"],
