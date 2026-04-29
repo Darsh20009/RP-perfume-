@@ -10,6 +10,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { UserModel, NotificationModel, PushSubscriptionModel, ActivityLogModel, StoreSettingsModel, MailAccountModel, MailMessageModel } from "./models";
 import { encryptSecret, PROVIDER_PRESETS, testConnection as testInboxConnection, syncAccount as syncInboxAccount, setMessageFlags as setInboxFlags, deleteMessage as deleteInboxMessage, sendFromAccount as sendInboxMessage } from "./inbox";
 import { paymentGateway } from "./payments";
@@ -3361,12 +3362,66 @@ export async function registerRoutes(
     }
   });
 
-  // Paymob redirect callback (browser redirect after payment)
-  app.get("/api/paymob/callback", (req, res) => {
-    const success = req.query.success === "true";
-    const orderId = req.query.merchant_order_id || req.query.order || "";
-    const txnId = req.query.id || "";
-    res.redirect(`/paymob/result?success=${success}&orderId=${orderId}&txnId=${txnId}`);
+  // Paymob redirect callback (browser redirect after payment).
+  // This is a fallback path: in test mode, or when the server-to-server webhook is delayed
+  // or never reaches us, the user will still hit this URL on success. We mark the order
+  // paid here too — but ONLY when the HMAC on the redirect URL verifies, so the path
+  // cannot be spoofed by a malicious customer crafting their own success URL.
+  app.get("/api/paymob/callback", async (req, res) => {
+    try {
+      const success = req.query.success === "true";
+      const orderId = String(req.query.merchant_order_id || req.query.order || "");
+      const txnId = String(req.query.id || "");
+      const hmac = String(req.query.hmac || "");
+
+      if (success && orderId && hmac) {
+        // Build the same flat shape verifyPaymobHmac expects from the GET query string.
+        const flat: Record<string, any> = {
+          amount_cents: req.query.amount_cents,
+          created_at: req.query.created_at,
+          currency: req.query.currency,
+          error_occured: req.query.error_occured,
+          has_parent_transaction: req.query.has_parent_transaction,
+          id: req.query.id,
+          integration_id: req.query.integration_id,
+          is_3d_secure: req.query["is_3d_secure"],
+          is_auth: req.query.is_auth,
+          is_capture: req.query.is_capture,
+          is_refunded: req.query.is_refunded,
+          is_standalone_payment: req.query.is_standalone_payment,
+          is_voided: req.query.is_voided,
+          order: req.query.order,
+          owner: req.query.owner,
+          pending: req.query.pending,
+          "source_data.pan": req.query["source_data.pan"],
+          "source_data.sub_type": req.query["source_data.sub_type"],
+          "source_data.type": req.query["source_data.type"],
+          success: req.query.success,
+        };
+        if (verifyPaymobHmac(flat, hmac)) {
+          try {
+            const order = await storage.getOrder(orderId);
+            if (order && order.paymentStatus !== "paid") {
+              await storage.updateOrderPaymentStatus(orderId, "paid");
+              if (order.status === "pending_payment") {
+                await storage.updateOrderStatus(orderId, "new" as any);
+              }
+              console.log(`[Paymob redirect-fallback] Order ${orderId} marked as paid`);
+              await dispatchOrderPaidSideEffects(String(orderId));
+            }
+          } catch (e: any) {
+            console.error("[Paymob redirect-fallback] Error updating order:", e?.message);
+          }
+        } else {
+          console.warn(`[Paymob redirect-fallback] HMAC mismatch for order ${orderId} — not marking paid`);
+        }
+      }
+
+      res.redirect(`/paymob/result?success=${success}&orderId=${orderId}&txnId=${txnId}`);
+    } catch (err: any) {
+      console.error("[Paymob redirect-fallback] error:", err?.message);
+      res.redirect(`/paymob/result?success=false`);
+    }
   });
 
   // Initiate card payment
@@ -3544,6 +3599,27 @@ export async function registerRoutes(
       if (!sessionId) return res.status(400).json({ success: false });
       await new Promise(r => setTimeout(r, 1500));
       const result = await confirmTamaraCheckout(sessionId);
+
+      // On successful Tamara approval, mark the order paid + flip pending_payment → new
+      // and fire the deferred customer/admin notifications, email, invoice — exactly
+      // like Paymob/Tabby paths. This closes the "order completed before payment" gap
+      // for Tamara as well.
+      if (result.success && result.orderId) {
+        try {
+          await storage.updateOrder(result.orderId, {
+            paymentStatus: "paid",
+            paymentTransactionId: result.transactionId,
+          } as any);
+          const ord = await storage.getOrder(result.orderId);
+          if (ord && ord.status === "pending_payment") {
+            await storage.updateOrderStatus(result.orderId, "new" as any);
+          }
+          await dispatchOrderPaidSideEffects(String(result.orderId));
+        } catch (e: any) {
+          console.error("[Tamara confirm] post-payment side-effects error:", e?.message);
+        }
+      }
+
       res.json(result);
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
@@ -3655,6 +3731,43 @@ export async function registerRoutes(
   // Tabby webhook (configure URL in Tabby dashboard → Settings → Webhooks)
   app.post("/api/payments/tabby/webhook", async (req, res) => {
     try {
+      // ── Signature verification ──────────────────────────────
+      // Tabby supports two patterns for authenticating webhook callbacks:
+      //   (a) `x-merchant-secret` header containing TABBY_SECRET_KEY (or a
+      //       dedicated webhook secret you configure in their dashboard)
+      //   (b) `x-tabby-signature` header containing HMAC-SHA256(body, secret)
+      // We accept either. If a header is present but invalid, reject (403).
+      // If neither header is present, we log a warning and continue — this keeps
+      // local/test setups working but flags misconfiguration in production logs.
+      const sharedSecretHeader = String(req.headers["x-merchant-secret"] || "").trim();
+      const hmacHeader = String(req.headers["x-tabby-signature"] || "").trim();
+      const tabbySecret = process.env.TABBY_WEBHOOK_SECRET || process.env.TABBY_SECRET_KEY || "";
+      if (sharedSecretHeader || hmacHeader) {
+        let signatureValid = false;
+        if (sharedSecretHeader && tabbySecret && sharedSecretHeader === tabbySecret) {
+          signatureValid = true;
+        }
+        if (!signatureValid && hmacHeader && tabbySecret) {
+          try {
+            const raw = JSON.stringify(req.body || {});
+            const expected = crypto.createHmac("sha256", tabbySecret).update(raw).digest("hex");
+            // constant-time compare
+            if (
+              expected.length === hmacHeader.length &&
+              crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(hmacHeader))
+            ) {
+              signatureValid = true;
+            }
+          } catch {}
+        }
+        if (!signatureValid) {
+          console.warn("[Tabby webhook] signature mismatch — rejecting");
+          return res.status(403).json({ error: "invalid signature" });
+        }
+      } else {
+        console.warn("[Tabby webhook] no signature headers present — accepting (configure TABBY_WEBHOOK_SECRET to enforce)");
+      }
+
       const evt = req.body || {};
       const paymentId = evt?.id || evt?.payment_id;
       const status = evt?.status;

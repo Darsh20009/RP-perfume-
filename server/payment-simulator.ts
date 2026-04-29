@@ -432,7 +432,7 @@ export async function createTamaraCheckout(params: {
 }
 
 export async function confirmTamaraCheckout(sessionId: string): Promise<{
-  success: boolean; transactionId?: string; error?: string; receipt?: TransactionReceipt;
+  success: boolean; transactionId?: string; orderId?: string; amount?: number; error?: string; receipt?: TransactionReceipt;
 }> {
   const tx = transactions.get(sessionId);
   if (!tx) return { success: false, error: "جلسة تمارة منتهية" };
@@ -441,7 +441,7 @@ export async function confirmTamaraCheckout(sessionId: string): Promise<{
   tx.updatedAt = new Date();
   tx.receipt = buildReceipt(tx);
 
-  return { success: true, transactionId: tx.id, receipt: tx.receipt };
+  return { success: true, transactionId: tx.id, orderId: tx.orderId, amount: tx.amount, receipt: tx.receipt };
 }
 
 // ──────────────────────────────────────────────
