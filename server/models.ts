@@ -169,6 +169,7 @@ const orderSchema = new Schema<Order>(
     // Used to bind the signed callback `order` field (which Paymob HMAC covers)
     // back to OUR order without trusting the unsigned merchant_order_id.
     paymobOrderId: { type: String, index: true, sparse: true },
+    tamaraOrderId: { type: String, index: true, sparse: true },
     shippingProvider: { type: String },
     trackingNumber: { type: String },
     deliveryDriver: {

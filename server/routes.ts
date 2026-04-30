@@ -17,7 +17,9 @@ import { paymentGateway } from "./payments";
 import { fireNotify, fireNotifyAdmins, VAPID_PUBLIC_KEY } from "./notifications";
 import {
   initiateCardPayment, verify3DS, initiateSTPay, verifySTCPay,
-  processApplePay, createTamaraCheckout, confirmTamaraCheckout,
+  processApplePay,
+  createTamaraCheckout as simulateTamaraCheckout,
+  confirmTamaraCheckout as simulateTamaraConfirm,
   createTabbyCheckout as simulateTabbyCheckout,
   confirmTabbyCheckout as simulateTabbyConfirm,
   getTransaction, TEST_CARD_GUIDE,
@@ -29,6 +31,12 @@ import {
   retrieveTabbyPayment, captureTabbyPayment,
   getCachedPaymentId, rememberPaymentId
 } from "./tabby";
+import {
+  isTamaraConfigured,
+  createTamaraCheckout as realCreateTamaraCheckout,
+  authoriseTamaraOrder, getTamaraOrder, verifyTamaraWebhook,
+  getCachedTamaraOrderId, rememberTamaraOrderId
+} from "./tamara";
 import {
   sendOrderConfirmationEmail, sendOrderStatusEmail,
   sendWelcomeEmail, sendPaymentConfirmationEmail
@@ -3650,18 +3658,61 @@ export async function registerRoutes(
     }
   });
 
-  // Tamara BNPL
+  // Tamara BNPL — When TAMARA_API_TOKEN is set, calls real Tamara API and returns
+  // hosted checkout URL. Otherwise falls back to the in-app simulator.
   app.post("/api/payments/tamara/checkout", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const { orderId, amount, customer, installments } = req.body;
+      const { orderId, amount, customer, installments, items, shipping } = req.body;
       if (!orderId || !amount) return res.status(400).json({ success: false, error: "بيانات ناقصة" });
-      const result = await createTamaraCheckout({
-        orderId, amount,
+
+      // SECURITY: ownership + amount binding (same model as /api/paymob/initiate)
+      const u = req.user as any;
+      const order = await storage.getOrder(String(orderId));
+      if (!order) return res.status(404).json({ success: false, error: "الطلب غير موجود" });
+      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support"].includes(String(u?.role || ""));
+      if (!isPrivileged && String((order as any).userId) !== String(u?.id)) {
+        return res.status(403).json({ success: false, error: "غير مصرح بالدفع لهذا الطلب" });
+      }
+      const expected = Number((order as any).total || 0);
+      if (expected > 0 && Math.abs(expected - Number(amount)) > 0.01) {
+        return res.status(400).json({ success: false, error: "قيمة الدفع لا تطابق إجمالي الطلب" });
+      }
+
+      if (isTamaraConfigured()) {
+        const origin =
+          (process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "") ||
+          (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "") ||
+          `${req.protocol}://${req.get("host")}`;
+        const result = await realCreateTamaraCheckout({
+          orderId: String(orderId),
+          amount: Number(amount),
+          customer: customer || { name: "Customer", phone: "", email: "" },
+          items,
+          shipping,
+          installments: installments || 4,
+          origin,
+          lang: "ar",
+        });
+        // Persist Tamara order id on our order so webhook/return can resolve it.
+        if (result.success && result.tamaraOrderId) {
+          try {
+            await storage.updateOrder(String(orderId), { tamaraOrderId: String(result.tamaraOrderId) } as any);
+          } catch (e: any) {
+            console.warn("[Tamara] failed to persist tamaraOrderId:", e?.message);
+          }
+        }
+        return res.json(result);
+      }
+
+      // Fallback: simulator
+      const sim = await simulateTamaraCheckout({
+        orderId: String(orderId),
+        amount: Number(amount),
         customer: customer || { name: "Customer", phone: "", email: "" },
-        installments: installments || 4
+        installments: installments || 4,
       });
-      res.json(result);
+      res.json(sim);
     } catch (err: any) {
       console.error("[API] pay.tamara error:", err?.message);
       res.status(500).json({ success: false, error: "خطأ في تمارة" });
@@ -3669,16 +3720,22 @@ export async function registerRoutes(
   });
 
   app.post("/api/payments/tamara/confirm", async (req, res) => {
+    // SECURITY: this endpoint is for the LEGACY in-app simulator only. In production
+    // (or whenever real Tamara credentials are configured), real Tamara payments are
+    // confirmed exclusively through /api/payments/tamara/return + /webhook (both
+    // re-validated against Tamara API). Keeping this open would let a caller mark
+    // any sessionId as paid by spoofing the simulator. Hard-disable it in those cases.
+    if (process.env.NODE_ENV === "production" || isTamaraConfigured()) {
+      return res.status(410).json({ success: false, error: "simulator_disabled" });
+    }
     try {
       const { sessionId } = req.body;
       if (!sessionId) return res.status(400).json({ success: false });
       await new Promise(r => setTimeout(r, 1500));
-      const result = await confirmTamaraCheckout(sessionId);
+      const result = await simulateTamaraConfirm(sessionId);
 
       // On successful Tamara approval, mark the order paid + flip pending_payment → new
-      // and fire the deferred customer/admin notifications, email, invoice — exactly
-      // like Paymob/Tabby paths. This closes the "order completed before payment" gap
-      // for Tamara as well.
+      // and fire the deferred customer/admin notifications, email, invoice.
       if (result.success && result.orderId) {
         try {
           await storage.updateOrder(result.orderId, {
@@ -3698,6 +3755,167 @@ export async function registerRoutes(
       res.json(result);
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ── Tamara payment-validation helper ────────────────────────────────────
+  // Single source of truth for "is this Tamara order really paid?". Fail-closed:
+  // every check below MUST pass or we refuse to mark the local order paid.
+  //
+  // Validates:
+  //  • Tamara API recheck succeeds (`ok`).
+  //  • Returned `order_reference_id` matches OUR `orderId` (binding check).
+  //  • Returned `amount` is a finite, positive number AND exactly matches our `expected` total.
+  //  • Returned `status` is in the allowed paid/authorised/captured set.
+  // On `approved` we attempt to authorise first, then re-fetch and re-validate.
+  type TamaraValidation = { ok: true; status: string; amount: number } | { ok: false; reason: string };
+  async function validateTamaraPaid(orderId: string, expected: number, tamaraOrderId: string): Promise<TamaraValidation> {
+    // Statuses Tamara considers terminal/funds-secured for the merchant.
+    const PAID_STATUSES = new Set(["authorised", "captured", "fully_captured", "partially_captured"]);
+
+    let tr = await getTamaraOrder(tamaraOrderId);
+    if (!tr.ok) return { ok: false, reason: `tamara_api_failed:${tr.error || "unknown"}` };
+
+    // Bind: the Tamara order MUST belong to our local order.
+    if (!tr.orderReferenceId || String(tr.orderReferenceId) !== String(orderId)) {
+      return { ok: false, reason: `reference_mismatch:${tr.orderReferenceId || "missing"}` };
+    }
+
+    // Amount: must be present, finite, positive, and exactly match (within 0.01 SAR).
+    const got = Number(tr.amount);
+    if (!Number.isFinite(got) || got <= 0) return { ok: false, reason: "missing_or_invalid_amount" };
+    if (!Number.isFinite(expected) || expected <= 0) return { ok: false, reason: "missing_local_total" };
+    if (Math.abs(expected - got) > 0.01) return { ok: false, reason: `amount_mismatch:${expected}!=${got}` };
+
+    let status = String(tr.status || "").toLowerCase();
+    // If only `approved`, try to authorise then re-check. We do NOT mark paid on `approved` alone.
+    if (status === "approved") {
+      const a = await authoriseTamaraOrder(tamaraOrderId);
+      if (!a.ok) return { ok: false, reason: `authorise_failed:${a.error || "unknown"}` };
+      tr = await getTamaraOrder(tamaraOrderId);
+      if (!tr.ok) return { ok: false, reason: `recheck_failed:${tr.error || "unknown"}` };
+      if (String(tr.orderReferenceId) !== String(orderId)) return { ok: false, reason: "reference_mismatch_post_auth" };
+      const got2 = Number(tr.amount);
+      if (!Number.isFinite(got2) || got2 <= 0 || Math.abs(expected - got2) > 0.01) {
+        return { ok: false, reason: "amount_mismatch_post_auth" };
+      }
+      status = String(tr.status || "").toLowerCase();
+    }
+
+    if (!PAID_STATUSES.has(status)) return { ok: false, reason: `status_not_paid:${status}` };
+    return { ok: true, status, amount: got };
+  }
+
+  // Tamara return — consumer is sent here after authorising/cancelling at Tamara.
+  // The `status` query is UNTRUSTED; we re-verify against Tamara API before any
+  // payment-state change (mark paid OR cancel).
+  app.get("/api/payments/tamara/return", async (req, res) => {
+    const orderId = String(req.query.orderId || "");
+    try {
+      const ord = await storage.getOrder(orderId);
+      if (!ord) return res.redirect(`/orders?tamara=notfound&orderId=${encodeURIComponent(orderId)}`);
+      const tamaraOrderId = (ord as any).tamaraOrderId || getCachedTamaraOrderId(orderId);
+
+      // No way to verify without an id → just bounce back, do NOT mutate state.
+      if (!tamaraOrderId) {
+        console.warn("[Tamara return] no tamaraOrderId for", orderId);
+        return res.redirect(`/orders?tamara=pending&orderId=${encodeURIComponent(orderId)}`);
+      }
+
+      const expected = Number((ord as any).total || 0);
+      const v = await validateTamaraPaid(String(orderId), expected, String(tamaraOrderId));
+      if (!v.ok) {
+        console.warn("[Tamara return] not paid:", v.reason);
+        // Only cancel pending_payment when Tamara itself says the order is dead.
+        const dead = /status_not_paid:(declined|cancelled|expired|failed)/.test(v.reason);
+        if (dead && ord.status === "pending_payment") {
+          try { await storage.updateOrderStatus(orderId, "cancelled" as any); } catch {}
+          return res.redirect(`/orders?tamara=cancelled&orderId=${encodeURIComponent(orderId)}`);
+        }
+        return res.redirect(`/orders?tamara=pending&orderId=${encodeURIComponent(orderId)}`);
+      }
+
+      // ✅ Verified paid. Mark order paid (idempotent — side-effects guarded by markPaidSideEffectsSentIfUnset).
+      await storage.updateOrder(orderId, {
+        paymentStatus: "paid",
+        paymentTransactionId: tamaraOrderId,
+      } as any);
+      if (ord.status === "pending_payment") {
+        await storage.updateOrderStatus(orderId, "new" as any);
+      }
+      await dispatchOrderPaidSideEffects(String(orderId));
+      return res.redirect(`/orders?tamara=success&orderId=${encodeURIComponent(orderId)}`);
+    } catch (err: any) {
+      console.error("[Tamara return] error:", err?.message);
+      return res.redirect(`/orders?tamara=error&orderId=${encodeURIComponent(orderId)}`);
+    }
+  });
+
+  // Tamara webhook — server-to-server notifications (order_authorised, order_captured, ...).
+  // Signature verified, then EVERY paid-event is re-validated with Tamara API. Fail-closed.
+  app.post("/api/payments/tamara/webhook", async (req: any, res) => {
+    try {
+      const headerToken = String(req.header("tamara-token") || req.header("Tamara-Token") || "");
+      const raw = req.rawBody as Buffer | undefined;
+      if (!verifyTamaraWebhook(raw || JSON.stringify(req.body || {}), headerToken)) {
+        console.warn("[Tamara webhook] invalid signature");
+        return res.status(401).json({ ok: false, error: "invalid_signature" });
+      }
+      const body = req.body || {};
+      const eventType: string = String(body.event_type || body.type || "").toLowerCase();
+      const tamaraOrderId: string = String(body.order_id || body.data?.order_id || "");
+      const orderReferenceId: string = String(body.order_reference_id || body.data?.order_reference_id || "");
+
+      if (!tamaraOrderId) {
+        return res.status(400).json({ ok: false, error: "missing_tamara_order_id" });
+      }
+
+      // Resolve our order. Always re-check via Tamara API to get an authoritative reference_id.
+      const apiOrder = await getTamaraOrder(tamaraOrderId);
+      if (!apiOrder.ok || !apiOrder.orderReferenceId) {
+        console.warn("[Tamara webhook] cannot resolve order:", apiOrder.error);
+        return res.status(404).json({ ok: false, error: "tamara_lookup_failed" });
+      }
+      const ourOrderId = String(apiOrder.orderReferenceId);
+      // If body included a reference_id, it must agree with what Tamara reports.
+      if (orderReferenceId && orderReferenceId !== ourOrderId) {
+        return res.status(400).json({ ok: false, error: "reference_mismatch" });
+      }
+
+      const ord = await storage.getOrder(ourOrderId);
+      if (!ord) {
+        console.warn("[Tamara webhook] order not found:", ourOrderId);
+        return res.status(404).json({ ok: false, error: "order_not_found" });
+      }
+
+      // Only act on events that signal funds secured. `order_approved` is NOT enough — it just
+      // means Tamara approved the consumer; merchant must authorise to secure funds.
+      const PAID_EVENTS = ["order_authorised", "order_captured", "payment_capture", "order_fully_captured"];
+      const isPaidEvent = PAID_EVENTS.some(e => eventType.includes(e));
+      if (!isPaidEvent) {
+        return res.json({ ok: true, ignored: eventType });
+      }
+
+      const expected = Number((ord as any).total || 0);
+      const v = await validateTamaraPaid(ourOrderId, expected, tamaraOrderId);
+      if (!v.ok) {
+        console.warn("[Tamara webhook] validation failed:", v.reason);
+        return res.status(400).json({ ok: false, error: v.reason });
+      }
+
+      await storage.updateOrder(ourOrderId, {
+        paymentStatus: "paid",
+        paymentTransactionId: tamaraOrderId,
+      } as any);
+      if (ord.status === "pending_payment") {
+        await storage.updateOrderStatus(ourOrderId, "new" as any);
+      }
+      await dispatchOrderPaidSideEffects(ourOrderId);
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[Tamara webhook] error:", err?.message);
+      res.status(500).json({ ok: false, error: err?.message });
     }
   });
 
