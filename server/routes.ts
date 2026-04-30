@@ -3694,10 +3694,14 @@ export async function registerRoutes(
           origin,
           lang: "ar",
         });
-        // Persist Tamara order id on our order so webhook/return can resolve it.
+        // Persist Tamara order id + chosen installments on our order so the success
+        // page (and webhook/return) can resolve them later.
         if (result.success && result.tamaraOrderId) {
           try {
-            await storage.updateOrder(String(orderId), { tamaraOrderId: String(result.tamaraOrderId) } as any);
+            await storage.updateOrder(String(orderId), {
+              tamaraOrderId: String(result.tamaraOrderId),
+              installments: Number(installments) || 4,
+            } as any);
           } catch (e: any) {
             console.warn("[Tamara] failed to persist tamaraOrderId:", e?.message);
           }
@@ -3815,11 +3819,13 @@ export async function registerRoutes(
       const ord = await storage.getOrder(orderId);
       if (!ord) return res.redirect(`/orders?tamara=notfound&orderId=${encodeURIComponent(orderId)}`);
       const tamaraOrderId = (ord as any).tamaraOrderId || getCachedTamaraOrderId(orderId);
+      const inst = Number((ord as any).installments || 0);
+      const instQ = inst > 0 ? `&inst=${inst}` : "";
 
       // No way to verify without an id → just bounce back, do NOT mutate state.
       if (!tamaraOrderId) {
         console.warn("[Tamara return] no tamaraOrderId for", orderId);
-        return res.redirect(`/orders?tamara=pending&orderId=${encodeURIComponent(orderId)}`);
+        return res.redirect(`/orders/${encodeURIComponent(orderId)}?tamara=pending`);
       }
 
       const expected = Number((ord as any).total || 0);
@@ -3832,7 +3838,7 @@ export async function registerRoutes(
           try { await storage.updateOrderStatus(orderId, "cancelled" as any); } catch {}
           return res.redirect(`/orders?tamara=cancelled&orderId=${encodeURIComponent(orderId)}`);
         }
-        return res.redirect(`/orders?tamara=pending&orderId=${encodeURIComponent(orderId)}`);
+        return res.redirect(`/orders/${encodeURIComponent(orderId)}?tamara=pending`);
       }
 
       // ✅ Verified paid. Mark order paid (idempotent — side-effects guarded by markPaidSideEffectsSentIfUnset).
@@ -3844,7 +3850,7 @@ export async function registerRoutes(
         await storage.updateOrderStatus(orderId, "new" as any);
       }
       await dispatchOrderPaidSideEffects(String(orderId));
-      return res.redirect(`/orders?tamara=success&orderId=${encodeURIComponent(orderId)}`);
+      return res.redirect(`/orders/${encodeURIComponent(orderId)}/success?paid=tamara${instQ}`);
     } catch (err: any) {
       console.error("[Tamara return] error:", err?.message);
       return res.redirect(`/orders?tamara=error&orderId=${encodeURIComponent(orderId)}`);
@@ -3944,6 +3950,12 @@ export async function registerRoutes(
           origin,
           lang: "ar",
         });
+        // Persist installments=4 (Tabby Pay-In-4 SA) so the success page can render it.
+        if (result.success) {
+          try {
+            await storage.updateOrder(String(orderId), { installments: 4 } as any);
+          } catch {}
+        }
         return res.json(result);
       }
 
@@ -4039,9 +4051,18 @@ export async function registerRoutes(
       console.error("[Tabby return] error:", err?.message);
     }
     // Always redirect the customer back to the in-app status page
-    const path = status === "success"
-      ? `/orders?paid=1&via=tabby&orderId=${encodeURIComponent(orderId)}`
-      : `/cart?canceled=1&via=tabby`;
+    let path: string;
+    if (status === "success") {
+      let inst = 0;
+      try {
+        const ord = await storage.getOrder(orderId);
+        inst = Number((ord as any)?.installments || 0);
+      } catch {}
+      const instQ = inst > 0 ? `&inst=${inst}` : "";
+      path = `/orders/${encodeURIComponent(orderId)}/success?paid=tabby${instQ}`;
+    } else {
+      path = `/cart?canceled=1&via=tabby`;
+    }
     res.redirect(path);
   });
 

@@ -648,34 +648,30 @@ export default function Orders() {
     refetchInterval: 30000,
   });
 
-  // ── Handle return-from-gateway query params (?tamara=…&orderId=…)
-  // The Tamara return endpoint redirects here with one of:
-  //   tamara=success | cancelled | pending | mismatch | error | notfound
-  // We surface it as a toast and clean the URL so a refresh doesn't repeat it.
+  // ── Handle return-from-gateway non-success query params (?tamara=cancelled|pending|error|notfound)
+  // (Successful payments redirect to /orders/:id/success — handled there.)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const tamara = params.get("tamara");
     const tabby = params.get("tabby");
-    const orderId = params.get("orderId");
     if (!tamara && !tabby) return;
 
     const gateway = tamara ? "تمارا" : "تابي";
     const status = tamara || tabby || "";
 
     const messages: Record<string, { title: string; desc: string; variant?: "default" | "destructive" }> = {
-      success:   { title: `تم الدفع بنجاح عبر ${gateway} ✅`, desc: orderId ? `الطلب #${String(orderId).slice(-6)} قيد التجهيز الآن.` : "طلبك قيد التجهيز." },
       pending:   { title: `الدفع قيد المراجعة`, desc: `سنحدّث حالة الطلب فور تأكيد ${gateway}.`, variant: "default" },
       cancelled: { title: `تم إلغاء الدفع`, desc: `لم يكتمل الدفع عبر ${gateway}. يمكنك المحاولة مجدداً.`, variant: "destructive" },
       mismatch:  { title: `قيمة الدفع لا تطابق الطلب`, desc: `يرجى التواصل مع الدعم.`, variant: "destructive" },
       error:     { title: `حدث خطأ أثناء التأكيد`, desc: `حاول التحقق من الطلب بعد دقيقة.`, variant: "destructive" },
       notfound:  { title: `الطلب غير موجود`, desc: ``, variant: "destructive" },
     };
-    const m = messages[status] || { title: `حالة ${gateway}: ${status}`, desc: "" };
-    toast({ title: m.title, description: m.desc, variant: m.variant });
-
-    // Refresh the orders list so the user sees the new paid/cancelled state immediately.
-    queryClient.invalidateQueries({ queryKey: [api.orders.my.path] });
+    if (status && messages[status]) {
+      const m = messages[status];
+      toast({ title: m.title, description: m.desc, variant: m.variant });
+      queryClient.invalidateQueries({ queryKey: [api.orders.my.path] });
+    }
 
     // Strip the query params from the URL without a navigation.
     const url = new URL(window.location.href);

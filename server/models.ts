@@ -170,6 +170,8 @@ const orderSchema = new Schema<Order>(
     // back to OUR order without trusting the unsigned merchant_order_id.
     paymobOrderId: { type: String, index: true, sparse: true },
     tamaraOrderId: { type: String, index: true, sparse: true },
+    // Number of installments chosen by the customer for BNPL methods (Tamara: 2/3/4, Tabby: 4)
+    installments: { type: Number },
     shippingProvider: { type: String },
     trackingNumber: { type: String },
     deliveryDriver: {

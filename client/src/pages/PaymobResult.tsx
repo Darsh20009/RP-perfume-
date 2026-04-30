@@ -14,10 +14,16 @@ export default function PaymobResult() {
     const oid = params.get("orderId") || params.get("merchant_order_id") || "";
     setOrderId(oid);
 
+    // ✅ Successful card payment: redirect immediately to the unified order-success page.
+    if (success === "true" && oid) {
+      setLocation(`/orders/${oid}/success?paid=paymob`);
+      return;
+    }
+
     setTimeout(() => {
       setStatus(success === "true" ? "success" : "failed");
     }, 1500);
-  }, []);
+  }, [setLocation]);
 
   return (
     <div className="min-h-screen bg-[#f6f6f5] flex items-center justify-center p-4" dir="rtl">

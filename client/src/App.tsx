@@ -27,6 +27,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Employees = lazy(() => import("@/pages/Employees"));
 const Orders = lazy(() => import("@/pages/Orders"));
 const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
+const OrderSuccess = lazy(() => import("@/pages/OrderSuccess"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ActivateAccount = lazy(() => import("@/pages/ActivateAccount"));
@@ -151,6 +152,9 @@ function Router() {
       </Route>
       <Route path="/orders">
         <ProtectedRoute component={Orders} />
+      </Route>
+      <Route path="/orders/:id/success">
+        <ProtectedRoute component={OrderSuccess} />
       </Route>
       <Route path="/orders/:id">
         <ProtectedRoute component={OrderDetail} />

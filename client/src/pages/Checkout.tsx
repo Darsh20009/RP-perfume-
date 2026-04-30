@@ -41,6 +41,8 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<
     "wallet" | "bank_transfer" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara"
   >("wallet");
+  // Tamara/Tabby installments (Tamara: 2/3/4, Tabby SA: 4 split — fixed)
+  const [tamaraInstallments, setTamaraInstallments] = useState<2 | 3 | 4>(3);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isCardProcessing, setIsCardProcessing] = useState(false);
   const [applePayLoading, setApplePayLoading] = useState(false);
@@ -441,7 +443,7 @@ export default function Checkout() {
         const tamaraRes = await apiRequest("POST", "/api/payments/tamara/checkout", {
           orderId: order.id, amount: finalTotal,
           customer: { name: user?.name || "", phone: user?.phone || "", email: user?.email || "" },
-          installments: 4,
+          installments: tamaraInstallments,
         });
         const tamaraData = await tamaraRes.json();
         if (tamaraData.checkoutUrl) {
@@ -1047,40 +1049,91 @@ export default function Checkout() {
                         </label>
                       )}
 
-                      {/* Tabby */}
+                      {/* ── Tabby — Pay-In-4 (السعودية) ── */}
                       {enabledMethods.tabby !== false && (
-                        <label
-                          htmlFor="pay-tabby"
-                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            paymentMethod === "tabby" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <RadioGroupItem value="tabby" id="pay-tabby" className="shrink-0" />
-                          <TabbyLogo className="h-7 shrink-0" />
-                          <div className="flex-1">
-                            <p className="font-black text-sm">Tabby</p>
-                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">٤ دفعات بدون فوائد</p>
-                          </div>
-                          <Badge className="text-[9px] bg-green-100 text-green-700 border-0 font-black">٤ أقساط</Badge>
-                        </label>
+                        <div className={`border-2 rounded-lg transition-all ${
+                          paymentMethod === "tabby" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}>
+                          <label htmlFor="pay-tabby" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 cursor-pointer">
+                            <RadioGroupItem value="tabby" id="pay-tabby" className="shrink-0" />
+                            <TabbyLogo className="h-7 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-black text-sm">Tabby — قسّمها على 4</p>
+                              <p className="text-[10px] text-gray-700 font-bold mt-0.5">بدون فوائد · بدون رسوم خفية</p>
+                            </div>
+                            <Badge className="text-[9px] bg-[#3eb489] text-white border-0 font-black shrink-0">٤ أقساط</Badge>
+                          </label>
+                          {/* Live installment plan when Tabby is selected */}
+                          {paymentMethod === "tabby" && finalTotal > 0 && (
+                            <div className="px-3 sm:px-4 pb-3 sm:pb-4 -mt-1">
+                              <div className="bg-white rounded-lg border border-[#3eb489]/20 p-3">
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#3eb489] mb-2">خطة السداد</p>
+                                <div className="grid grid-cols-4 gap-1.5">
+                                  {[0,1,2,3].map((i) => (
+                                    <div key={i} className={`rounded-md p-2 text-center ${i===0 ? "bg-[#3eb489] text-white" : "bg-[#3eb489]/5 text-gray-800"}`}>
+                                      <p className={`text-[8px] font-black uppercase ${i===0 ? "opacity-90" : "opacity-50"}`}>{i===0 ? "الآن" : `الشهر ${i+1}`}</p>
+                                      <p className="font-black text-[11px] mt-0.5 tabular-nums">{(finalTotal/4).toFixed(0)}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
 
-                      {/* Tamara */}
+                      {/* ── Tamara — اختر 2 / 3 / 4 دفعات ── */}
                       {enabledMethods.tamara !== false && (
-                        <label
-                          htmlFor="pay-tamara"
-                          className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            paymentMethod === "tamara" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <RadioGroupItem value="tamara" id="pay-tamara" className="shrink-0" />
-                          <TamaraLogo className="h-7 shrink-0" />
-                          <div className="flex-1">
-                            <p className="font-black text-sm">Tamara</p>
-                            <p className="text-[10px] text-gray-700 font-bold mt-0.5">٣ دفعات بدون فوائد</p>
-                          </div>
-                          <Badge className="text-[9px] bg-amber-100 text-amber-700 border-0 font-black">٣ أقساط</Badge>
-                        </label>
+                        <div className={`border-2 rounded-lg transition-all ${
+                          paymentMethod === "tamara" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}>
+                          <label htmlFor="pay-tamara" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 cursor-pointer">
+                            <RadioGroupItem value="tamara" id="pay-tamara" className="shrink-0" />
+                            <TamaraLogo className="h-7 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-black text-sm">Tamara — قسّمها على {tamaraInstallments}</p>
+                              <p className="text-[10px] text-gray-700 font-bold mt-0.5">بدون فوائد · موافقة فورية</p>
+                            </div>
+                            <Badge className="text-[9px] bg-[#fff6e5] text-[#b76e00] border-0 font-black shrink-0">{tamaraInstallments} أقساط</Badge>
+                          </label>
+                          {/* Live installment selector + plan when Tamara is selected */}
+                          {paymentMethod === "tamara" && finalTotal > 0 && (
+                            <div className="px-3 sm:px-4 pb-3 sm:pb-4 -mt-1 space-y-2">
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {([2, 3, 4] as const).map((n) => {
+                                  const active = tamaraInstallments === n;
+                                  return (
+                                    <button
+                                      key={n}
+                                      type="button"
+                                      onClick={() => setTamaraInstallments(n)}
+                                      data-testid={`button-tamara-installments-${n}`}
+                                      className={`rounded-lg py-2 px-2 text-center transition-all border-2 ${
+                                        active
+                                          ? "border-[#b76e00] bg-[#fff6e5] text-[#b76e00]"
+                                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                                      }`}
+                                    >
+                                      <p className="font-black text-base tabular-nums">{n}</p>
+                                      <p className="text-[9px] font-black uppercase tracking-wider opacity-80">دفعات</p>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <div className="bg-white rounded-lg border border-[#b76e00]/15 p-3">
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#b76e00] mb-2">خطة السداد</p>
+                                <div className={`grid gap-1.5 ${tamaraInstallments === 2 ? "grid-cols-2" : tamaraInstallments === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+                                  {Array.from({ length: tamaraInstallments }).map((_, i) => (
+                                    <div key={i} className={`rounded-md p-2 text-center ${i===0 ? "bg-[#b76e00] text-white" : "bg-[#fff6e5] text-gray-800"}`}>
+                                      <p className={`text-[8px] font-black uppercase ${i===0 ? "opacity-90" : "opacity-50"}`}>{i===0 ? "الآن" : `الشهر ${i+1}`}</p>
+                                      <p className="font-black text-[11px] mt-0.5 tabular-nums">{(finalTotal/tamaraInstallments).toFixed(0)}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
 
                     </RadioGroup>
