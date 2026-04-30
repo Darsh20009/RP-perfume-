@@ -459,21 +459,21 @@ export default function Checkout() {
         return;
       }
       if (paymentMethod === "tabby") {
+        // Build a clean address object for Tabby from whatever the user picked
+        const addrSel = user?.addresses?.find((a: any) => a.id === selectedAddressId);
+        const addrCity = (addrSel?.city || newAddress.city || "الرياض").trim();
+        const addrStreet = (addrSel?.street || newAddress.street || "").trim();
         const tabbyRes = await apiRequest("POST", "/api/payments/tabby/checkout", {
           orderId: order.id,
           amount: finalTotal,
           customer: { name: user?.name || "", phone: user?.phone || "", email: user?.email || "" },
-          items: cartItems.map(it => ({
-            title: it.title || it.productName || "Perfume",
+          items: items.map((it: any) => ({
+            title: it.title || "Perfume",
             quantity: it.quantity || 1,
             price: Number(it.price) || 0,
-            sku: it.variantSku || it.productId || it._id,
+            sku: it.variantSku || it.productId,
           })),
-          shipping: {
-            city: deliveryAddress?.city || "Riyadh",
-            address: deliveryAddress?.street || deliveryAddress?.line1 || "",
-            zip: deliveryAddress?.zip || "",
-          },
+          shipping: { city: addrCity, address: addrStreet, zip: "" },
         });
         const tabbyData = await tabbyRes.json();
         console.log("[Checkout] Tabby response:", tabbyRes.status, tabbyData);
@@ -835,10 +835,10 @@ export default function Checkout() {
                 isCompleted={activeStep > 2 && (shippingMethod === "delivery" || !!pickupBranchId)}
               />
               {activeStep === 2 && (
-                <div className="px-6 pb-6 border-t border-gray-100">
-                  <div className="pt-5 space-y-4">
+                <div className="px-3 sm:px-6 pb-4 sm:pb-6 border-t border-gray-100">
+                  <div className="pt-4 sm:pt-5 space-y-3 sm:space-y-4">
                     {/* Delivery vs Pickup toggle */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button
                         type="button"
                         data-testid="button-method-delivery"
@@ -973,8 +973,8 @@ export default function Checkout() {
                 isCompleted={false}
               />
               {activeStep === 3 && (
-                <div className="px-6 pb-6 border-t border-gray-100">
-                  <div className="pt-5 space-y-5">
+                <div className="px-3 sm:px-6 pb-4 sm:pb-6 border-t border-gray-100">
+                  <div className="pt-4 sm:pt-5 space-y-4 sm:space-y-5">
                     <RadioGroup
                       value={paymentMethod}
                       onValueChange={(v) => { setPaymentMethod(v as any); setPaymentConfirmed(false); }}
