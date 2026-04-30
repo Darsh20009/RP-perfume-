@@ -3177,6 +3177,54 @@ export async function registerRoutes(
     res.json({ configured: isPaymobConfigured() });
   });
 
+  // Quick live-credentials test for Paymob (admin). Pings /v1/intention/payment-methods/
+  // and returns a clear Arabic verdict so the user can verify keys before checkout.
+  app.get("/api/admin/paymob/check", checkPermission("settings.manage"), async (_req, res) => {
+    try {
+      const sk = (process.env.PAYMOB_SECRET_KEY || "").trim();
+      const pk = (process.env.PAYMOB_PUBLIC_KEY || "").trim();
+      const integ = process.env.PAYMOB_INTEGRATION_ID || "";
+      const hmac = process.env.PAYMOB_HMAC_SECRET || "";
+
+      if (!sk) return res.json({ ok: false, error: "PAYMOB_SECRET_KEY غير موجود في الأسرار." });
+      if (!pk) return res.json({ ok: false, error: "PAYMOB_PUBLIC_KEY غير موجود في الأسرار." });
+      if (!integ) return res.json({ ok: false, error: "PAYMOB_INTEGRATION_ID غير موجود في الأسرار." });
+      if (!hmac) return res.json({ ok: false, error: "PAYMOB_HMAC_SECRET غير موجود في الأسرار." });
+
+      const base = sk.startsWith("sau_") || pk.startsWith("sau_")
+        ? "https://ksa.paymob.com"
+        : "https://accept.paymob.com";
+
+      const r = await fetch(`${base}/v1/intention/payment-methods/`, {
+        headers: { Authorization: `Token ${sk}` },
+      });
+      const text = await r.text();
+      let data: any = {}; try { data = JSON.parse(text); } catch {}
+
+      if (r.status === 401 || r.status === 403) {
+        return res.json({
+          ok: false,
+          status: r.status,
+          base,
+          error:
+            "Paymob رفض المفتاح السري. الحل: ادخل لوحة Paymob → Developers → API Keys، احذف Secret Key الحالي وولّد واحداً جديداً، " +
+            "ثم انسخ Secret + Public الجديدين وضعهم في الأسرار باسم PAYMOB_SECRET_KEY و PAYMOB_PUBLIC_KEY.",
+        });
+      }
+      if (!r.ok) {
+        return res.json({ ok: false, status: r.status, base, error: data?.detail || text.slice(0, 200) });
+      }
+      res.json({
+        ok: true,
+        base,
+        message: "المفاتيح تعمل بنجاح ✓",
+        currentIntegrationId: integ,
+      });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err?.message || "خطأ شبكة" });
+    }
+  });
+
   // ── Admin: Discover the actual Integration IDs in the merchant's Paymob account ──
   // Useful when the user keeps confusing Merchant ID (e.g. 16417) with the per-method
   // Integration IDs. This calls Paymob with the SECRET key and returns the live list,

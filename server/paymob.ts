@@ -323,6 +323,12 @@ export async function initiatePaymobIntention(params: {
   try { data = JSON.parse(text); } catch {}
   if (!res.ok) {
     console.error("[Paymob intention] HTTP", res.status, text.slice(0, 500));
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(
+        "Paymob رفض المفتاح السري (401). افتح لوحة Paymob → Developers → API Keys، " +
+        "ولّد Secret Key + Public Key جديدين، ثم حدّث PAYMOB_SECRET_KEY و PAYMOB_PUBLIC_KEY في الأسرار."
+      );
+    }
     throw new Error(`Paymob intention failed: ${res.status} ${data?.detail || data?.message || ""}`);
   }
 
