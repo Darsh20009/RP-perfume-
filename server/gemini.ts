@@ -17,6 +17,8 @@ const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_3,
 ].filter(Boolean) as string[];
 
+console.log(`[Gemini] loaded ${GEMINI_KEYS.length} key(s)`);
+
 // Gemini free-tier models — each has its OWN per-project quota bucket
 // (RPM = requests/minute, RPD = requests/day):
 //   gemini-2.5-flash       → 10 RPM,  250 RPD  (best Arabic quality)
