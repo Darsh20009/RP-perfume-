@@ -3195,8 +3195,27 @@ export async function registerRoutes(
         ? "https://ksa.paymob.com"
         : "https://accept.paymob.com";
 
-      const r = await fetch(`${base}/v1/intention/payment-methods/`, {
-        headers: { Authorization: `Token ${sk}` },
+      const integrationIds = integ.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+
+      // Create a tiny dry-run intention (1 SAR) to verify the keys work end-to-end.
+      // Paymob does not charge anything until the customer completes payment, so this
+      // is a safe way to validate Secret + Public + Integration IDs in one call.
+      const r = await fetch(`${base}/v1/intention/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Token ${sk}` },
+        body: JSON.stringify({
+          amount: 100,
+          currency: "SAR",
+          payment_methods: integrationIds,
+          items: [{ name: "health-check", amount: 100, quantity: 1 }],
+          billing_data: {
+            first_name: "HealthCheck", last_name: ".",
+            phone_number: "0500000000", email: "noreply@rfperfume.sa",
+            country: "SAU", city: "Riyadh", street: "N/A", building: "N/A",
+            floor: "N/A", apartment: "N/A", state: "Riyadh",
+          },
+          special_reference: `healthcheck-${Date.now()}`,
+        }),
       });
       const text = await r.text();
       let data: any = {}; try { data = JSON.parse(text); } catch {}
@@ -3211,14 +3230,23 @@ export async function registerRoutes(
             "ثم انسخ Secret + Public الجديدين وضعهم في الأسرار باسم PAYMOB_SECRET_KEY و PAYMOB_PUBLIC_KEY.",
         });
       }
-      if (!r.ok) {
-        return res.json({ ok: false, status: r.status, base, error: data?.detail || text.slice(0, 200) });
+      if (!r.ok || !data?.client_secret) {
+        return res.json({
+          ok: false,
+          status: r.status,
+          base,
+          error: data?.detail || data?.message || text.slice(0, 250),
+          hint: r.status === 400
+            ? "تحقق من PAYMOB_INTEGRATION_ID: لازم يكون رقم Online Card Integration المفعّل في حسابك (وليس Merchant ID)."
+            : undefined,
+        });
       }
       res.json({
         ok: true,
         base,
-        message: "المفاتيح تعمل بنجاح ✓",
+        message: "المفاتيح تعمل بنجاح ✓ تم إنشاء intention تجريبي بنجاح",
         currentIntegrationId: integ,
+        intentionId: data.id,
       });
     } catch (err: any) {
       res.status(500).json({ ok: false, error: err?.message || "خطأ شبكة" });
