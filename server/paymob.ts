@@ -275,16 +275,51 @@ export async function initiatePaymobIntention(params: {
 
   const integrationIds = integrationId.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n));
 
+  // Build items with prices in cents. Paymob enforces:
+  //   sum(item.amount * item.quantity) === amount
+  // If our order has shipping/tax/discount that aren't represented as items,
+  // the totals won't match and Paymob returns 406 "unmatched_item_prices".
+  // Fix: compute the diff and inject a balancing line item ("شحن وضرائب" or
+  // "خصم") so the sum always equals the grand total.
+  const mappedItems = (params.items || []).map(it => ({
+    name: (it.title || it.name || "منتج").slice(0, 100),
+    amount: Math.round((Number(it.price) || 0) * 100),
+    quantity: Number(it.quantity) || 1,
+    description: (it.title || it.name || "").slice(0, 100),
+  }));
+  const itemsSum = mappedItems.reduce((s, it) => s + it.amount * it.quantity, 0);
+  const diff = amountCents - itemsSum;
+  if (diff > 0) {
+    mappedItems.push({
+      name: "شحن وضرائب",
+      amount: diff,
+      quantity: 1,
+      description: "shipping/tax adjustment",
+    });
+  } else if (diff < 0) {
+    mappedItems.push({
+      name: "خصم",
+      amount: diff, // negative to subtract
+      quantity: 1,
+      description: "discount adjustment",
+    });
+  }
+  // Fallback: if we ended up with zero items (empty cart edge case), send a
+  // single line item with the full amount so Paymob accepts the intention.
+  if (mappedItems.length === 0) {
+    mappedItems.push({
+      name: "إجمالي الطلب",
+      amount: amountCents,
+      quantity: 1,
+      description: `Order ${params.merchantOrderId}`,
+    });
+  }
+
   const body = {
     amount: amountCents,
     currency: "SAR",
     payment_methods: integrationIds,
-    items: (params.items || []).map(it => ({
-      name: (it.title || it.name || "منتج").slice(0, 100),
-      amount: Math.round((Number(it.price) || 0) * 100),
-      quantity: it.quantity || 1,
-      description: (it.title || it.name || "").slice(0, 100),
-    })),
+    items: mappedItems,
     billing_data: {
       first_name: firstName,
       last_name: lastName,
