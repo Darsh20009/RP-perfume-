@@ -17,10 +17,12 @@ const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_3,
 ].filter(Boolean) as string[];
 
-// Gemini 2.0 Flash: best free model, 1M tokens/day, supports Arabic excellently.
-// Gemini 1.5 Flash: fallback if 2.0 is overloaded — same 1M/day quota.
-const PRIMARY_MODEL = "gemini-2.0-flash";
-const FALLBACK_MODEL = "gemini-1.5-flash";
+// Gemini 2.5 Flash: latest stable model, excellent Arabic support, available
+//   on the free tier. Uses ~1M tokens/day in the free quota.
+// Gemini 2.0 Flash Lite: lightweight fallback — faster, cheaper, slightly less
+//   capable but still very good for short conversational replies.
+const PRIMARY_MODEL = "gemini-2.5-flash";
+const FALLBACK_MODEL = "gemini-2.0-flash-lite";
 
 let keyIdx = 0;
 const keyCooldownUntil = new Map<string, number>();

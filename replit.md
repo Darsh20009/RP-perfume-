@@ -55,7 +55,7 @@ A full-stack Arabic luxury perfume e-commerce platform. Built with React + Expre
 - Multi-language (Arabic-first, RTL default)
 - Payment integrations (STC Pay, Tabby, Tamara, Apple Pay, Paymob card payments)
 - Map integration (Leaflet)
-- Groq AI integration (model: `llama-3.3-70b-versatile`) — UnifiedChat component with Perfume Advisor + Support tabs, admin assistant
+- AI integration with multi-provider fallback: **Google Gemini 2.5 Flash** (PRIMARY, 1M tokens/day free quota) → falls back transparently to **Groq** (`llama-3.3-70b-versatile` → `llama-3.1-8b-instant`). All callers use `groqChat`/`groqChatFor` which route through `server/groq.ts` → tries `geminiChat` from `server/gemini.ts` first if `GEMINI_API_KEY` is set, then the existing Groq key pool (CUSTOMER_KEYS / EMPLOYEE_KEYS) with round-robin + 1h cooldown on 429 + 24h cooldown on 401/403. UnifiedChat component with Perfume Advisor + Support tabs, admin assistant.
   - **Bilingual (AR/EN)**: `detectLang()` in `server/groq.ts` auto-detects user message language (Arabic vs Latin script) and switches all system prompts (perfume advisor, support, admin, size advisor, business insights, outfit suggestions) accordingly. `generateProductDescription` always returns both AR + EN copy.
 - Commercial Registration: 1010978041 | Tax Number: 312037024200003
 
