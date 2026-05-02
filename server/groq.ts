@@ -1,3 +1,5 @@
+import { isGeminiConfigured, geminiChat } from "./gemini";
+
 type Audience = "customer" | "employee";
 
 // Keys 1..7 are reserved for customers (high traffic, customer-facing AI).
@@ -57,7 +59,9 @@ function markKeyCooldown(key: string, retryAfterSec?: number) {
 }
 
 export function isGroqConfigured(): boolean {
-  return ALL_KEYS.length > 0;
+  // AI is "configured" if EITHER Gemini OR Groq has at least one usable key.
+  // Callers shouldn't care which provider answered — that's transparent.
+  return ALL_KEYS.length > 0 || isGeminiConfigured();
 }
 
 interface ChatMessage {
@@ -73,8 +77,30 @@ async function groqChat(
   maxTokens = 1024,
   audience: Audience = "customer",
 ): Promise<string> {
+  // ─── PRIMARY PROVIDER: Google Gemini (1M tokens/day free) ─────────────────
+  // Gemini's free tier is 10× more generous than Groq's, so we try it first.
+  // If Gemini fails (no key, quota exhausted, network error), we transparently
+  // fall through to the existing Groq pool.
+  if (isGeminiConfigured()) {
+    try {
+      const response = await geminiChat(messages, maxTokens);
+      if (response) return response;
+    } catch (err: any) {
+      console.warn(
+        `[AI] Gemini failed for ${audience}, falling back to Groq:`,
+        err?.message || err,
+      );
+      // fall through to Groq
+    }
+  }
+
+  // ─── FALLBACK PROVIDER: Groq (existing key pool) ──────────────────────────
   const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
-  if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
+  if (pool.length === 0) {
+    throw new Error(
+      `No AI provider available — Gemini not configured and no Groq keys for ${audience}`,
+    );
+  }
 
   let lastErr: any = null;
   let allRateLimited = true;
