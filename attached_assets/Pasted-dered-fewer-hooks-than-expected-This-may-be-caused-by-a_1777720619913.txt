@@ -1,0 +1,12 @@
+dered fewer hooks than expected. This may be caused by an accidental early return statement.
+Error: Rendered fewer hooks than expected. This may be caused by an accidental early return statement.
+    at renderWithHooks (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:11643:19)
+    at updateFunctionComponent (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:14630:28)
+    at beginWork (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:15972:22)
+    at beginWork$1 (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:19806:22)
+    at performUnitOfWork (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:19251:20)
+    at workLoopSync (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:19190:13)
+    at renderRootSync (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:19169:15)
+    at recoverFromConcurrentError (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:18786:28)
+    at performSyncWorkOnRoot (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:18932:28)
+    at flushSyncCallbacks (https://18a7099c-2b56-410b-98f9-7303ed42abdf-00-2lboyq631eap2.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPF6KSF2.js?v=f12786c8:9166:30)

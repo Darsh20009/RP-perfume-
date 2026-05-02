@@ -46,11 +46,12 @@ export default function Login() {
     ? (branches || []).find((b) => String(b.id) === String(branchParam))
     : undefined;
 
-  if (user) {
-    const destination = redirectParam ? decodeURIComponent(redirectParam) : "/";
-    return <Redirect to={destination} />;
-  }
-
+  // ALL hooks must run unconditionally — never early-return before declaring
+  // every hook. React tracks hooks by call ORDER per render; an early return
+  // here used to skip useForm/useRef/useEffect below and triggered the
+  // "Rendered fewer hooks than expected" crash whenever `user` flipped from
+  // undefined to truthy mid-session. The redirect now happens via useEffect
+  // AFTER every hook is registered.
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -108,6 +109,18 @@ export default function Login() {
       setIsStaff(false);
     }
   }, [phoneValue]);
+
+  // Redirect AFTER all hooks have been declared. Doing this in a useEffect
+  // (rather than an early `return <Redirect/>`) keeps the hook count stable
+  // across renders and avoids React's "Rendered fewer hooks" crash.
+  useEffect(() => {
+    if (user) {
+      const destination = redirectParam ? decodeURIComponent(redirectParam) : "/";
+      setLocation(destination);
+    }
+  }, [user, redirectParam, setLocation]);
+
+  if (user) return null;
 
   const isDark = false;
 
