@@ -258,39 +258,47 @@ export async function perfumeAdvisor(
   products: any[]
 ): Promise<{ response: string; products: AdvisorProductRef[] }> {
   const lang = detectLang(userMessage);
-  const productList = products.map(p => {
+  // Use simple sequential numbers (P1, P2, ...) instead of long Mongo hex IDs
+  // because LLMs (especially Gemini) often skip or mis-copy long opaque IDs.
+  // We map P# back to the real product after the response is generated.
+  const indexed = products.map((p, i) => ({ tag: `P${i + 1}`, product: p }));
+  const productList = indexed.map(({ tag, product: p }) => {
     const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
     if (lang === "ar") {
       const priceInfo = variants.length > 0
         ? variants.map((v: any) => `${v.color} (${v.size}): ${Number(v.price).toLocaleString("ar-SA")} ر.س`).join("، ")
         : `${p.price} ر.س`;
-      return `- [ID:${p.id || p._id}] ${p.name}: ${p.description || ""} | الأسعار: ${priceInfo}`;
+      return `[${tag}] ${p.name} — ${(p.description || "").slice(0, 120)} | الأسعار: ${priceInfo}`;
     } else {
       const priceInfo = variants.length > 0
         ? variants.map((v: any) => `${v.color} (${v.size}): ${v.price} SAR`).join(", ")
         : `${p.price} SAR`;
-      return `- [ID:${p.id || p._id}] ${p.nameEn || p.name}: ${p.descriptionEn || p.description || ""} | Prices: ${priceInfo}`;
+      return `[${tag}] ${p.nameEn || p.name} — ${(p.descriptionEn || p.description || "").slice(0, 120)} | Prices: ${priceInfo}`;
     }
   }).join("\n");
 
   const base = lang === "ar" ? PERFUME_SYSTEM_PROMPT_AR : PERFUME_SYSTEM_PROMPT_EN;
-  const catalogHeader = lang === "ar" ? "**المنتجات المتاحة حالياً:**" : "**Available products:**";
+  const catalogHeader = lang === "ar" ? "**المنتجات المتاحة حالياً (كل منتج له رمز [P#]):**" : "**Available products (each has a [P#] code):**";
   const noProducts = lang === "ar" ? "لا توجد منتجات متاحة حالياً" : "No products currently available";
   const extraRules = lang === "ar"
-    ? `**قواعد إضافية مهمة:**
-- عندما تقترح منتجاً محدداً، يجب أن تذكره بصيغة: [PRODUCT:معرف_المنتج]
-- مثال: "أنصحك بعطر [PRODUCT:abc123] الذي يناسب ذوقك"
+    ? `**قاعدة إلزامية لا تنساها أبداً:**
+- في كل رد تقترح فيه منتجاً، يجب أن تكتب رمزه بصيغة [PRODUCT:P#] داخل النص.
+- مثال صحيح: "أرشّح لك عطر هبنوتك سينت [PRODUCT:P1] الذي يناسب ذوقك"
+- مثال آخر: "تجد رقياً مع [PRODUCT:P5] أو جرأةً مع [PRODUCT:P12]"
+- استخدم الأرقام الموجودة في القائمة بالضبط (P1, P2, P3, ...، لا تخترع رقماً)
 - اقترح من 1 إلى 3 منتجات كحد أقصى لكل رد
 - اقترح فقط من القائمة أعلاه ولا تخترع منتجات
-- عندما يسأل العميل عن السعر أو الخيارات، اذكر جميع الخيارات المتاحة مع أسعارها بوضوح (الحجم واللون والسعر لكل خيار)
-- إذا كان المنتج له عدة خيارات (أحجام/ألوان)، وضّح ذلك للعميل حتى يختار المناسب`
-    : `**Extra rules:**
-- When you recommend a specific product you MUST tag it as: [PRODUCT:product_id]
-- Example: "I'd suggest [PRODUCT:abc123] which matches your taste"
+- عندما يسأل العميل عن السعر، اذكر جميع الخيارات (الحجم واللون والسعر)
+- بدون [PRODUCT:P#] لن تظهر بطاقة المنتج للعميل!`
+    : `**Mandatory rule, never forget:**
+- In every reply where you recommend a product, you MUST write its code as [PRODUCT:P#] inside the text.
+- Correct example: "I'd suggest Hypnotic Scent [PRODUCT:P1] which matches your taste"
+- Another: "You'll find elegance with [PRODUCT:P5] or boldness with [PRODUCT:P12]"
+- Use the exact numbers from the catalog (P1, P2, P3, ...) — never invent a number
 - Recommend 1–3 products max per reply
-- ONLY recommend from the catalog above — never invent
-- When a customer asks about price or options, clearly list ALL available variants with their sizes, colors, and prices
-- If a product has multiple options (sizes/colors), explain them so the customer can choose`;
+- ONLY recommend from the catalog above — never invent products
+- When asked about price, list ALL variants (size, color, price)
+- Without [PRODUCT:P#] the product card won't appear for the customer!`;
 
   const systemMsg = `${base}${LANG_DIRECTIVE(lang)}
 
@@ -307,26 +315,37 @@ ${extraRules}`;
 
   const raw = await groqChat(messages, 1024, "customer");
 
-  // Extract product references
+  // (debug) console.log(`[PerfumeAdvisor] catalog=${products.length} raw len=${raw.length}`);
+
+  // Extract product references — accept both [PRODUCT:P#] and [PRODUCT:<hex id>]
+  // for backward compatibility in case the model echoes a real id.
   const refs: AdvisorProductRef[] = [];
   const seen = new Set<string>();
   const refRegex = /\[PRODUCT:([^\]]+)\]/g;
   let match: RegExpExecArray | null;
   while ((match = refRegex.exec(raw)) !== null) {
-    const id = match[1].trim();
-    if (seen.has(id)) continue;
-    const product = products.find(p => String(p.id || p._id) === id);
-    if (product) {
-      seen.add(id);
-      const variants: any[] = Array.isArray(product.variants) ? product.variants.filter((v: any) => Number(v.price) > 0) : [];
-      const minVariantPrice = variants.length > 0 ? Math.min(...variants.map((v: any) => Number(v.price))) : null;
-      refs.push({
-        id: String(product.id || product._id),
-        name: product.name,
-        price: minVariantPrice ?? product.price,
-        image: Array.isArray(product.images) ? product.images[0] : undefined,
-      });
+    const token = match[1].trim();
+    let product: any = null;
+    // Try P# format first
+    const pMatch = /^P(\d+)$/i.exec(token);
+    if (pMatch) {
+      const idx = parseInt(pMatch[1], 10) - 1;
+      if (idx >= 0 && idx < indexed.length) product = indexed[idx].product;
     }
+    // Fallback to direct id match
+    if (!product) product = products.find(p => String(p.id || p._id) === token);
+    if (!product) continue;
+    const realId = String(product.id || product._id);
+    if (seen.has(realId)) continue;
+    seen.add(realId);
+    const variants: any[] = Array.isArray(product.variants) ? product.variants.filter((v: any) => Number(v.price) > 0) : [];
+    const minVariantPrice = variants.length > 0 ? Math.min(...variants.map((v: any) => Number(v.price))) : null;
+    refs.push({
+      id: realId,
+      name: product.name,
+      price: minVariantPrice ?? product.price,
+      image: Array.isArray(product.images) ? product.images[0] : undefined,
+    });
   }
   // Strip markers from text shown to user, then clean up dangling punctuation/spaces
   const response = raw

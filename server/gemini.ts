@@ -17,33 +17,33 @@ const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_3,
 ].filter(Boolean) as string[];
 
-// Gemini 2.5 Flash: latest stable model, excellent Arabic support, available
-//   on the free tier. Uses ~1M tokens/day in the free quota.
-// Gemini 2.0 Flash Lite: lightweight fallback — faster, cheaper, slightly less
-//   capable but still very good for short conversational replies.
-const PRIMARY_MODEL = "gemini-2.5-flash";
-const FALLBACK_MODEL = "gemini-2.0-flash-lite";
+// Gemini free-tier models — each has its OWN per-project quota bucket
+// (RPM = requests/minute, RPD = requests/day):
+//   gemini-2.5-flash       → 10 RPM,  250 RPD  (best Arabic quality)
+//   gemini-2.0-flash       → 15 RPM, 1500 RPD  (very good fallback)
+//   gemini-2.0-flash-lite  → 30 RPM, 1500 RPD  (lightweight final safety net)
+// Trying all three in cascade lets us survive bursts and per-minute quotas
+// because hitting 429 on one model does NOT consume the next model's quota.
+const MODEL_CASCADE = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+];
 
-let keyIdx = 0;
-const keyCooldownUntil = new Map<string, number>();
+// Cooldown is keyed by `${key}|${model}` because each (key,model) pair has
+// its own quota bucket on Google's side. Marking the whole key as cool-down
+// would needlessly block the other models that still have quota.
+const cooldownUntil = new Map<string, number>();
 
-function pickKey(): string | null {
-  if (GEMINI_KEYS.length === 0) return null;
-  const now = Date.now();
-  for (let i = 0; i < GEMINI_KEYS.length; i++) {
-    const key = GEMINI_KEYS[keyIdx % GEMINI_KEYS.length];
-    keyIdx++;
-    const until = keyCooldownUntil.get(key) || 0;
-    if (until <= now) return key;
-  }
-  // All in cooldown — return next anyway (last-resort attempt)
-  const key = GEMINI_KEYS[keyIdx % GEMINI_KEYS.length];
-  keyIdx++;
-  return key;
+function ckey(key: string, model: string) { return `${key}|${model}`; }
+
+function isAvailable(key: string, model: string): boolean {
+  const until = cooldownUntil.get(ckey(key, model)) || 0;
+  return until <= Date.now();
 }
 
-function markCooldown(key: string, seconds: number) {
-  keyCooldownUntil.set(key, Date.now() + Math.min(seconds, 24 * 3600) * 1000);
+function markCooldown(key: string, model: string, seconds: number) {
+  cooldownUntil.set(ckey(key, model), Date.now() + Math.min(seconds, 24 * 3600) * 1000);
 }
 
 export function isGeminiConfigured(): boolean {
@@ -89,7 +89,11 @@ function toGeminiPayload(messages: ChatMessage[], maxTokens: number) {
 
 /**
  * Calls Google Gemini chat API. Returns the assistant text or throws on failure.
- * Tries each available key with the primary model, then the fallback model.
+ *
+ * Strategy: cascade through (model × key) pairs. We iterate by MODEL first so
+ * that a hot per-minute quota on the primary model immediately rolls down to
+ * the next model (which has its own bucket) instead of blocking the request.
+ * For each model we walk every key that's not in cooldown.
  */
 export async function geminiChat(
   messages: ChatMessage[],
@@ -101,88 +105,55 @@ export async function geminiChat(
 
   const payload = toGeminiPayload(messages, maxTokens);
   let lastErr: any = null;
-  let allRateLimited = true;
 
-  // Try each key with the primary model
-  for (let attempt = 0; attempt < GEMINI_KEYS.length; attempt++) {
-    const key = pickKey();
-    if (!key) break;
+  for (const model of MODEL_CASCADE) {
+    for (let i = 0; i < GEMINI_KEYS.length; i++) {
+      const key = GEMINI_KEYS[i];
+      if (!isAvailable(key, model)) continue;
 
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${key}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts
-          ?.map((p: any) => p.text || "")
-          .join("") || "";
-        if (text) return text;
-        // Empty response — try next key
-        console.warn(`[Gemini] empty response from key#${attempt}`);
-        lastErr = new Error("Gemini returned empty content");
-        continue;
-      }
-
-      const errText = await res.text();
-      console.error(
-        `[Gemini] key#${attempt} HTTP ${res.status}:`,
-        errText.slice(0, 200),
-      );
-
-      if (res.status === 429) {
-        // Rate-limited (quota exhausted) — cool down 1 hour
-        markCooldown(key, 3600);
-      } else if (res.status === 401 || res.status === 403) {
-        // Invalid/revoked key — cool down 24h
-        markCooldown(key, 24 * 3600);
-        allRateLimited = false;
-      } else if (![500, 502, 503, 504].includes(res.status)) {
-        throw new Error(`Gemini API error ${res.status}`);
-      } else {
-        allRateLimited = false;
-      }
-      lastErr = new Error(`Gemini API error ${res.status}`);
-    } catch (err: any) {
-      console.error(`[Gemini] key#${attempt} threw:`, err?.message || err);
-      lastErr = err;
-      allRateLimited = false;
-    }
-  }
-
-  // Fallback model if all primary attempts failed
-  if (allRateLimited) {
-    console.warn(
-      `[Gemini] all keys rate-limited on ${PRIMARY_MODEL} — trying ${FALLBACK_MODEL}`,
-    );
-    for (let attempt = 0; attempt < GEMINI_KEYS.length; attempt++) {
-      const key = GEMINI_KEYS[attempt];
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${key}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+
         if (res.ok) {
           const data = await res.json();
           const text = data?.candidates?.[0]?.content?.parts
             ?.map((p: any) => p.text || "")
             .join("") || "";
           if (text) return text;
+          console.warn(`[Gemini] empty response key#${i} model=${model}`);
+          lastErr = new Error("Gemini returned empty content");
+          continue;
         }
-      } catch (err: any) {
+
+        const errText = await res.text();
         console.error(
-          `[Gemini][fallback] key#${attempt} threw:`,
-          err?.message || err,
+          `[Gemini] key#${i} model=${model} HTTP ${res.status}:`,
+          errText.slice(0, 160),
         );
+
+        if (res.status === 429) {
+          // Per-minute RPM is the most common cause; 60s is plenty.
+          // The day-quota will simply re-trigger and re-cool.
+          markCooldown(key, model, 60);
+        } else if (res.status === 401 || res.status === 403) {
+          // Invalid/revoked key for this model — cool down 24h.
+          markCooldown(key, model, 24 * 3600);
+        } else if (![500, 502, 503, 504].includes(res.status)) {
+          // Hard error (400 etc.) — don't keep hammering the same model.
+          markCooldown(key, model, 30);
+        }
+        lastErr = new Error(`Gemini API error ${res.status}`);
+      } catch (err: any) {
+        console.error(`[Gemini] key#${i} model=${model} threw:`, err?.message || err);
+        lastErr = err;
       }
     }
   }
 
-  throw lastErr || new Error("Gemini request failed on all keys");
+  throw lastErr || new Error("Gemini request failed on all keys/models");
 }
