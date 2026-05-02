@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useLocation, Link } from "wouter";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const logoDarkImg = "/images/logos/logo-light-nobg.png";
 
@@ -21,14 +21,9 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
 
-  if (user) {
-    const destination = "/";
-    if (window.location.pathname !== destination) {
-      setLocation(destination);
-    }
-    return null;
-  }
-
+  // ALL hooks must be declared unconditionally — never put a `return` between
+  // hooks, that's what triggers React's "Rendered fewer hooks than expected"
+  // error. Redirect happens via useEffect after all hooks are registered.
   const form = useForm<z.infer<typeof insertUserSchema>>({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
@@ -42,6 +37,15 @@ export default function Register() {
 
   const [isPrePopulated, setIsPrePopulated] = useState(false);
   const [employeeData, setEmployeeData] = useState<any>(null);
+  const lastCheckedPhoneRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (user && window.location.pathname !== "/") {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
+  if (user) return null;
 
   const onSubmit = (data: z.infer<typeof insertUserSchema>) => {
     register({
@@ -52,8 +56,6 @@ export default function Register() {
       onSuccess: () => setLocation("/login"),
     });
   };
-
-  const lastCheckedPhoneRef = useRef<string | null>(null);
 
   const checkPhone = async (phone: string) => {
     if (phone === lastCheckedPhoneRef.current) return;

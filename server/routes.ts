@@ -876,7 +876,57 @@ export async function registerRoutes(
     try {
       const user = req.user as any;
       const orders = await storage.getOrdersByUser(user.id || user._id);
-      res.json(orders);
+
+      // ────────────────────────────────────────────────────────────────────
+      // CRITICAL: Hide "ghost" orders from the customer's order history.
+      //
+      // Online payment orders (Tap, Paymob, Tabby, Tamara, Apple Pay, STC
+      // Pay) start in `status="pending_payment" / paymentStatus="pending"`.
+      // If the user closes the gateway, the network drops, or the gateway
+      // init fails, the order would otherwise sit in their list forever as
+      // a confusing "pending" entry — even though they never actually paid.
+      //
+      // Rules:
+      //   • Online-payment orders are hidden until they are EITHER paid
+      //     OR moved out of `pending_payment` (e.g. cancelled). Cancelled
+      //     orders MAY appear so the user understands what happened, BUT
+      //     not the silent ones (no statusHistory entry → never reached
+      //     the gateway → not worth showing).
+      //   • COD ("cash") and bank-transfer orders are ALWAYS visible —
+      //     they don't depend on a gateway callback to be valid.
+      //   • The auto-cancel worker (server/pending-payment-expiry.ts)
+      //     eventually cleans these up after 30 min anyway, but we filter
+      //     here for instant UX.
+      // ────────────────────────────────────────────────────────────────────
+      const ONLINE_METHODS = new Set([
+        "tap", "paymob", "tabby", "tamara", "apple_pay", "stc_pay", "stc",
+      ]);
+      const visible = (orders || []).filter((o: any) => {
+        const method = String(o?.paymentMethod || "").toLowerCase();
+        const status = String(o?.status || "").toLowerCase();
+        const payStatus = String(o?.paymentStatus || "").toLowerCase();
+        const isOnline = ONLINE_METHODS.has(method);
+        const isPaid = ["paid", "captured", "completed"].includes(payStatus);
+
+        // Hide unpaid online orders that are still sitting in pending_payment.
+        if (isOnline && status === "pending_payment" && !isPaid) return false;
+
+        // Hide silently-cancelled online orders that never reached a gateway
+        // (e.g. gateway_init_failed) — these have a statusHistory note we can
+        // detect; if the user never had a chance to confirm payment intent,
+        // don't show them. Keep cancelled orders that have OTHER history
+        // (e.g. customer-initiated cancel) so the user sees the trail.
+        if (isOnline && status === "cancelled" && !isPaid) {
+          const history = Array.isArray(o?.statusHistory) ? o.statusHistory : [];
+          const onlyGatewayInit = history.every((h: any) =>
+            String(h?.note || "").includes("gateway_init_failed")
+          );
+          if (history.length > 0 && onlyGatewayInit) return false;
+        }
+        return true;
+      });
+
+      res.json(visible);
     } catch (err: any) {
       console.error("[API] orders.my error:", err?.message);
       res.json([]);
