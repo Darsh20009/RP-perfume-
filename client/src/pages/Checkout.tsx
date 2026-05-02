@@ -1,7 +1,7 @@
 import { useCart } from "@/hooks/use-cart";
 import { useCoupon } from "@/hooks/use-coupon";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -19,6 +19,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { X, Loader2 } from "lucide-react";
 import { LocationMap } from "@/components/LocationMap";
 import { useQuery } from "@tanstack/react-query";
 import { AuthModal } from "@/components/AuthModal";
@@ -46,6 +48,17 @@ export default function Checkout() {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isCardProcessing, setIsCardProcessing] = useState(false);
   const [applePayLoading, setApplePayLoading] = useState(false);
+
+  // Paymob bottom-sheet state — keeps the user inside the app instead of
+  // redirecting to a full-screen Paymob page. Polling on the order detects
+  // when payment is confirmed and routes to /orders/:id/success.
+  const [paymobSheetOpen, setPaymobSheetOpen] = useState(false);
+  const [paymobIframeUrl, setPaymobIframeUrl] = useState<string>("");
+  const [paymobOrderIdState, setPaymobOrderIdState] = useState<string>("");
+
+  // Branded full-screen "redirecting…" overlay used for Tamara/Tabby so the
+  // wait between clicking pay and the external redirect doesn't feel laggy.
+  const [redirectingTo, setRedirectingTo] = useState<null | "tamara" | "tabby">(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -417,7 +430,13 @@ export default function Checkout() {
           console.log("[Checkout] Paymob response:", paymobRes.status, paymobData);
           if (paymobData.success && paymobData.iframeUrl) {
             clearCart();
-            window.location.href = paymobData.iframeUrl;
+            // Open Paymob inside a bottom sheet (no full-page redirect).
+            // Polling on the order will detect payment success and route us
+            // to /orders/:id/success.
+            setPaymobIframeUrl(paymobData.iframeUrl);
+            setPaymobOrderIdState(String(order.id || order._id));
+            setPaymobSheetOpen(true);
+            setIsSubmitting(false);
             return;
           } else {
             await cancelPendingOrder(paymobData.error || "paymob_no_url");
@@ -448,11 +467,20 @@ export default function Checkout() {
         const tamaraData = await tamaraRes.json();
         if (tamaraData.checkoutUrl) {
           clearCart();
-          if (/^https?:\/\//i.test(tamaraData.checkoutUrl)) {
-            window.location.href = tamaraData.checkoutUrl;
-          } else {
-            setLocation(tamaraData.checkoutUrl + `&orderId=${order.id}`);
-          }
+          // Show branded full-screen overlay BEFORE the redirect so the wait
+          // doesn't feel like a frozen lag. Double-rAF guarantees the overlay
+          // is actually painted (one frame to commit, one frame to paint)
+          // before we hand off to window.location.href.
+          setRedirectingTo("tamara");
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (/^https?:\/\//i.test(tamaraData.checkoutUrl)) {
+                window.location.href = tamaraData.checkoutUrl;
+              } else {
+                setLocation(tamaraData.checkoutUrl + `&orderId=${order.id}`);
+              }
+            });
+          });
           return;
         }
         await cancelPendingOrder(tamaraData.error || "tamara_no_url");
@@ -481,11 +509,17 @@ export default function Checkout() {
         console.log("[Checkout] Tabby response:", tabbyRes.status, tabbyData);
         if (tabbyData.checkoutUrl) {
           clearCart();
-          if (/^https?:\/\//i.test(tabbyData.checkoutUrl)) {
-            window.location.href = tabbyData.checkoutUrl;
-          } else {
-            setLocation(tabbyData.checkoutUrl + `&orderId=${order.id}`);
-          }
+          // Double-rAF: guarantees the overlay is painted before navigation.
+          setRedirectingTo("tabby");
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (/^https?:\/\//i.test(tabbyData.checkoutUrl)) {
+                window.location.href = tabbyData.checkoutUrl;
+              } else {
+                setLocation(tabbyData.checkoutUrl + `&orderId=${order.id}`);
+              }
+            });
+          });
           return;
         }
         await cancelPendingOrder(tabbyData.error || tabbyData.rejectionReason || "tabby_no_url");
@@ -597,6 +631,87 @@ export default function Checkout() {
       )}
     </button>
   );
+
+  // ── Paymob bottom-sheet polling ──
+  // While the Paymob iframe is open, poll the order every 2.5s to detect when
+  // the gateway/webhook flips paymentStatus → "paid". On success we close the
+  // sheet and route to /orders/:id/success. We also listen for postMessage
+  // hints from the iframe but ONLY use them as a "verify now" trigger — actual
+  // success is always confirmed by re-fetching the order from our backend
+  // (which is updated by the Paymob webhook). This prevents any malicious or
+  // stray postMessage from forcing a false success navigation.
+  const paymobCompletedRef = useRef(false);
+  useEffect(() => {
+    if (!paymobSheetOpen || !paymobOrderIdState) return;
+
+    paymobCompletedRef.current = false;
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const verifyOrder = async (): Promise<"paid" | "failed" | "pending"> => {
+      try {
+        const r = await fetch(`/api/orders/${paymobOrderIdState}`, { credentials: "include" });
+        if (!r.ok) return "pending";
+        const o = await r.json();
+        const ps = String(o?.paymentStatus || o?.payment_status || "").toLowerCase();
+        const st = String(o?.status || "").toLowerCase();
+        if (ps === "paid" || ps === "captured" || ps === "completed") return "paid";
+        if (st === "cancelled" || ps === "failed" || ps === "refunded") return "failed";
+        return "pending";
+      } catch {
+        return "pending";
+      }
+    };
+
+    const finish = (paid: boolean) => {
+      if (cancelled || paymobCompletedRef.current) return;
+      paymobCompletedRef.current = true;
+      cancelled = true;
+      if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      setPaymobSheetOpen(false);
+      if (paid) {
+        setLocation(`/orders/${paymobOrderIdState}/success?paid=paymob`);
+      }
+    };
+
+    // postMessage origin allow-list — Paymob unified-checkout & accept domains.
+    const ALLOWED_ORIGINS = [
+      "https://accept.paymob.com",
+      "https://ksa.paymob.com",
+      "https://uae.paymob.com",
+      "https://oman.paymob.com",
+      "https://pakistan.paymob.com",
+    ];
+    const onMessage = async (ev: MessageEvent) => {
+      // Strict trust boundary: only accept hints from known Paymob origins.
+      if (!ALLOWED_ORIGINS.includes(ev.origin)) return;
+      const d = ev?.data;
+      const looksLikeSuccessHint =
+        d &&
+        ((typeof d === "object" && (d.success === true || d?.txn_response_code === "APPROVED" || d?.type === "transactionCompleted")) ||
+          (typeof d === "string" && /success|approved|paid/i.test(d)));
+      if (!looksLikeSuccessHint) return;
+      // Even with a trusted hint, never trust the iframe's word — verify
+      // against our backend (which is webhook-driven) before navigating.
+      const status = await verifyOrder();
+      if (status === "paid") finish(true);
+    };
+    window.addEventListener("message", onMessage);
+
+    const tick = async () => {
+      const status = await verifyOrder();
+      if (status === "paid") return finish(true);
+      if (status === "failed") return finish(false);
+    };
+    intervalId = setInterval(tick, 2500);
+    tick();
+
+    return () => {
+      cancelled = true;
+      if (intervalId) clearInterval(intervalId);
+      window.removeEventListener("message", onMessage);
+    };
+  }, [paymobSheetOpen, paymobOrderIdState, setLocation]);
 
   return (
     <div className="min-h-screen bg-gray-100" dir="rtl">
@@ -1365,6 +1480,106 @@ export default function Checkout() {
 
       {/* Auth required modal */}
       {!user && <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="login" />}
+
+      {/* ── Paymob bottom-sheet (in-app hosted checkout) ── */}
+      <Sheet
+        open={paymobSheetOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPaymobSheetOpen(false);
+            // Only route to the order detail page if the user dismissed the
+            // sheet WITHOUT completing payment. If `finish(true)` already ran,
+            // it set the completedRef and is navigating to the success page;
+            // we must not overwrite that navigation here.
+            if (!paymobCompletedRef.current && paymobOrderIdState) {
+              setLocation(`/orders/${paymobOrderIdState}`);
+            }
+          }
+        }}
+      >
+        <SheetContent
+          side="bottom"
+          className="h-[92vh] sm:h-[88vh] p-0 rounded-t-3xl overflow-hidden border-t-2 border-[#DFB369] flex flex-col bg-white"
+          data-testid="sheet-paymob-checkout"
+        >
+          <SheetHeader className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white shrink-0">
+            <div className="flex items-center justify-between gap-3">
+              <SheetTitle className="text-sm sm:text-base font-black tracking-wide text-right flex items-center gap-2">
+                <Lock className="h-4 w-4 text-[#DFB369]" />
+                <span>الدفع الآمن — Paymob</span>
+              </SheetTitle>
+              <button
+                type="button"
+                aria-label="إغلاق"
+                onClick={() => {
+                  setPaymobSheetOpen(false);
+                  if (paymobOrderIdState) setLocation(`/orders/${paymobOrderIdState}`);
+                }}
+                className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
+                data-testid="button-close-paymob-sheet"
+              >
+                <X className="h-4 w-4 text-gray-700" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-700 pt-1">
+              <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+              <span>اتصال مشفّر · لا تُحفظ بيانات بطاقتك على خوادمنا</span>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 relative bg-white">
+            {paymobIframeUrl ? (
+              <iframe
+                src={paymobIframeUrl}
+                title="Paymob Checkout"
+                className="absolute inset-0 w-full h-full border-0"
+                allow="payment *"
+                data-testid="iframe-paymob"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#DFB369]" />
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Branded full-screen "redirecting…" overlay for Tamara/Tabby ── */}
+      {redirectingTo && (
+        <div
+          className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-sm flex items-center justify-center"
+          dir="rtl"
+          data-testid={`overlay-redirect-${redirectingTo}`}
+        >
+          <div className="text-center space-y-6 px-6 max-w-sm">
+            <div className="relative w-24 h-24 mx-auto">
+              <div className="absolute inset-0 rounded-full border-4 border-gray-200" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#DFB369] animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                {redirectingTo === "tamara" ? (
+                  <span className="text-xl font-black text-[#DFB369]">tamara</span>
+                ) : (
+                  <span className="text-xl font-black text-[#3BFFC2]">tabby</span>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-gray-900">
+                {redirectingTo === "tamara" ? "جاري التحويل إلى تمارا" : "جاري التحويل إلى تابي"}
+              </h3>
+              <p className="text-sm font-bold text-gray-700">
+                لحظات قليلة لإكمال الدفع بالأقساط بأمان…
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-1.5 pt-2">
+              <span className="w-2 h-2 rounded-full bg-[#DFB369] animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-2 h-2 rounded-full bg-[#DFB369] animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-2 h-2 rounded-full bg-[#DFB369] animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Phone required dialog (for OAuth users without phone) */}
       <Dialog open={phoneDialogOpen} onOpenChange={(o) => {
