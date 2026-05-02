@@ -262,52 +262,12 @@ const OrderCard = ({ order }: { order: any }) => {
     "سبب آخر",
   ];
 
-  const handlePrintInvoice = async () => {
-    // Fetch real ZATCA-compliant TLV QR from server
-    let qrUrl = "";
-    let vatNumber = "312037024200003";
-    try {
-      const r = await fetch(`/api/orders/${order.id}/zatca-qr`, { credentials: "include" });
-      if (r.ok) {
-        const d = await r.json();
-        qrUrl = d.qr;
-        if (d.vatNumber) vatNumber = d.vatNumber;
-      }
-    } catch {}
-
-    const printWindow = window.open("", "", "height=800,width=600");
-    if (!printWindow) return;
-    const itemsHtml = (order.items || []).map((item: any) =>
-      `<div class="item"><span>${item.quantity}x ${item.title}</span><span>${(item.price * item.quantity).toFixed(2)} ر.س</span></div>`
-    ).join("");
-    printWindow.document.write(`<!DOCTYPE html><html dir="rtl">
-<head><meta charset="utf-8"><title>فاتورة #${order.id.slice(-6).toUpperCase()}</title>
-<style>body{font-family:Arial,sans-serif;text-align:right;padding:40px;color:#000;line-height:1.6}
-.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:20px;margin-bottom:30px}
-.item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
-.totals{margin-right:auto;width:250px;border-top:2px solid #000;padding-top:20px;margin-top:20px}
-.total-row{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold}
-.footer{text-align:center;margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
-</style></head>
-<body>
-<div class="header"><div><img src="https://rfperfume.sa/images/logos/logo-dark-nobg.png" alt="عطور آر اف" style="height:48px;margin-bottom:6px"/><h1 style="margin:0;font-size:24px;font-weight:900">عطور آر اف</h1>
-<p style="margin:5px 0;color:#666;font-size:11px;letter-spacing:0.2em">RF PERFUME · LUXURY FRAGRANCES</p></div>
-<div style="text-align:left"><h2 style="margin:0">فاتورة ضريبية</h2>
-<p>#${order.id.slice(-6).toUpperCase()}</p>
-<p>${new Date(order.createdAt).toLocaleDateString("ar-SA")}</p></div></div>
-<div style="margin-bottom:30px"><b>العميل:</b> ${order.userId}<br>
-<b>العنوان:</b> ${order.shippingAddress?.city || ""}, ${order.shippingAddress?.street || ""}</div>
-<div style="margin-bottom:20px">${itemsHtml}</div>
-<div class="totals">
-<div class="total-row"><span>المجموع الفرعي</span><span>${Number(order.subtotal).toFixed(2)} ${RIYAL_IMG}</span></div>
-<div class="total-row"><span>ضريبة القيمة المضافة (15%)</span><span>${Number(order.vatAmount).toFixed(2)} ${RIYAL_IMG}</span></div>
-<div class="total-row" style="font-size:20px"><span>الإجمالي</span><span>${Number(order.total).toFixed(2)} ${RIYAL_IMG}</span></div>
-</div>
-<div style="text-align:center;margin-top:40px">${qrUrl ? `<img src="${qrUrl}" width="150"/><p style="font-size:9px;color:#999;margin-top:6px;letter-spacing:0.1em">ZATCA · رمز الفاتورة الإلكترونية</p>` : ""}</div>
-<div class="footer">عطور آر اف • الرقم الضريبي: ${vatNumber}</div>
-</body></html>`);
-    printWindow.document.close();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+  const handlePrintInvoice = () => {
+    // Open the server-rendered ZATCA Phase-1 tax invoice in a new tab. The
+    // server endpoint produces a fully bilingual A4 layout, embedded TLV QR,
+    // and a built-in print button — keeping the source of truth in one place
+    // (`server/invoice-html.ts`), shared with the email attachment.
+    window.open(`/api/orders/${order.id}/invoice`, "_blank", "noopener,noreferrer");
   };
 
   return (

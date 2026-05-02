@@ -84,6 +84,8 @@ import { CartSessionModel, CancellationPolicyModel, OrderModel } from "./models"
 import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } from "./cancellation";
 import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
 import { startPickupExpiryWorker } from "./pickup-expiry";
+import { startPendingPaymentExpiryWorker } from "./pending-payment-expiry";
+import { buildInvoiceHtml } from "./invoice-html";
 import { buildZatcaQrDataUrl } from "./zatca";
 import rateLimit from "express-rate-limit";
 import { enqueueJob, getQueueStats, resetQueueStats } from "./job-queue";
@@ -234,6 +236,18 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
     enqueueJob("paid-email-confirmation", async () => {
       const customer = await storage.getUser(order.userId);
       if (!customer?.email) return;
+      // Generate the official ZATCA Phase-1 tax invoice (HTML, A4, RTL+EN)
+      // and attach it to the confirmation email so the customer keeps a
+      // permanent printable copy alongside the in-body summary.
+      let invoiceHtml: string | undefined;
+      try {
+        invoiceHtml = await buildInvoiceHtml({
+          order: { ...order, paidAt: new Date() },
+          customer: { name: customer.name, email: customer.email, phone: customer.phone },
+        });
+      } catch (e: any) {
+        console.warn(`[PaidSideEffects] invoice HTML generation failed for ${orderRef}:`, e?.message);
+      }
       await sendOrderConfirmationEmail({
         to: customer.email,
         customerName: customer.name || "عزيزي العميل",
@@ -254,6 +268,7 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
         paymentMethod: order.paymentMethod || "unknown",
         deliveryAddress: order.deliveryAddress || "",
         shippingCompany: order.shippingCompany,
+        invoiceHtml,
       });
     }, { critical: true, maxAttempts: 5 });
 
@@ -5470,6 +5485,37 @@ export async function registerRoutes(
   });
 
   // ════════════════════════════════════════════════════════════════════════
+  // Tax invoice (HTML, ZATCA Phase-1 compliant) for any order
+  // ════════════════════════════════════════════════════════════════════════
+  app.get("/api/orders/:id/invoice", async (req, res) => {
+    try {
+      const order: any = await OrderModel.findById(req.params.id).lean();
+      if (!order) return res.status(404).send("الطلب غير موجود");
+
+      // Authorization: the order's owner OR an authenticated admin/cashier.
+      const u: any = (req as any).user;
+      const isOwner = req.isAuthenticated() && u && String(order.userId) === String(u._id || u.id);
+      const isStaff = req.isAuthenticated() && u && ["admin", "cashier", "owner"].includes(String(u.role));
+      if (!isOwner && !isStaff) return res.status(403).send("غير مصرح بعرض الفاتورة");
+
+      let customer: any = null;
+      if (order.userId) customer = await storage.getUser(String(order.userId)).catch(() => null);
+
+      const html = await buildInvoiceHtml({
+        order,
+        customer: customer ? { name: customer.name, email: customer.email, phone: customer.phone } : undefined,
+      });
+
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "private, no-store");
+      res.send(html);
+    } catch (err: any) {
+      console.error("[Invoice] error:", err?.message);
+      res.status(500).send("تعذر إنشاء الفاتورة");
+    }
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
   // ZATCA QR for invoice / order
   // ════════════════════════════════════════════════════════════════════════
   app.get("/api/orders/:id/zatca-qr", async (req, res) => {
@@ -5771,6 +5817,7 @@ export async function registerRoutes(
   // Boot the abandoned-cart background worker
   startAbandonedCartWorker();
   startPickupExpiryWorker();
+  startPendingPaymentExpiryWorker();
 
   return httpServer;
 }

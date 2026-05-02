@@ -34,12 +34,15 @@ async function sendEmail(params: {
   subject: string;
   html: string;
   text?: string;
+  /**
+   * Optional file attachments. SMTP2GO accepts base64-encoded blobs via the
+   * `attachments` field (each item: { filename, fileblob, mimetype }).
+   * We accept the more conventional Nodemailer-style shape and translate it.
+   */
+  attachments?: Array<{ filename: string; content: string; contentType?: string }>;
 }): Promise<{ success: boolean; error?: string }> {
   const { apiKey, sender, senderName } = getCredentials();
 
-  // Images are referenced via absolute HTTPS URLs in the HTML (see ASSET_BASE)
-  // — no attachments are sent, so nothing appears as a "file attachment" below
-  // the email body in Gmail/Outlook/Apple Mail.
   try {
     const res = await fetch(SMTP2GO_API, {
       method: "POST",
@@ -51,6 +54,15 @@ async function sendEmail(params: {
         subject: params.subject,
         html_body: params.html,
         text_body: params.text || "",
+        ...(params.attachments && params.attachments.length > 0
+          ? {
+              attachments: params.attachments.map((a) => ({
+                filename: a.filename,
+                fileblob: a.content, // already base64-encoded by caller
+                mimetype: a.contentType || "application/octet-stream",
+              })),
+            }
+          : {}),
       }),
     });
 
@@ -271,6 +283,12 @@ export async function sendOrderConfirmationEmail(params: {
   paymentMethod: string;
   deliveryAddress: string;
   shippingCompany?: string;
+  /**
+   * Optional pre-rendered tax-invoice HTML. When provided, it's attached to
+   * the email as `فاتورة-{orderRef}.html` (base64-encoded) so the customer has
+   * a permanent, printable copy alongside the in-body summary.
+   */
+  invoiceHtml?: string;
 }) {
   const paymentLabels: Record<string, string> = {
     wallet: "محفظة آر اف",
@@ -280,6 +298,7 @@ export async function sendOrderConfirmationEmail(params: {
     apple_pay: "Apple Pay",
     tamara: "تمارة — تقسيط",
     tabby: "تابي — تقسيط",
+    paymob: "بطاقة (Paymob)",
   };
 
   const TD = `padding:14px 12px;font-size:13px;font-weight:600;color:#1a1a1a;border-bottom:1px solid rgba(0,0,0,0.06);font-family:'Segoe UI',Tahoma,Arial,sans-serif;`;
@@ -347,12 +366,21 @@ export async function sendOrderConfirmationEmail(params: {
     <p style="margin:16px 0 0;font-size:12px;color:rgba(0,0,0,0.6);line-height:1.7;">Your order is being prepared and we'll be in touch shortly. Track it anytime from your account at <a href="${SITE.URL}/orders" style="color:#1a2744;font-weight:800;text-decoration:none;">${SITE.DOMAIN}/orders</a></p>
   `);
 
+  const attachments = params.invoiceHtml
+    ? [{
+        filename: `فاتورة-${params.orderRef}.html`,
+        content: Buffer.from(params.invoiceHtml, "utf8").toString("base64"),
+        contentType: "text/html; charset=utf-8",
+      }]
+    : undefined;
+
   return sendEmail({
     to: params.to,
     toName: params.customerName,
     subject: `✅ تم استلام طلبك #${params.orderRef} | Order #${params.orderRef} Received — RF Perfume`,
     html: baseTemplate(`تأكيد الطلب #${params.orderRef} / Order Confirmation`, content + enMirror),
     text: `تم استلام طلبك #${params.orderRef} بقيمة ${params.total} ر.س. شكراً لتسوقك مع عطور آر اف.\n\nYour order #${params.orderRef} (${params.total} SAR) has been received. Thank you for shopping with RF Perfume.`,
+    attachments,
   });
 }
 
