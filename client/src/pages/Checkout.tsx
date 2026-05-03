@@ -990,25 +990,83 @@ export default function Checkout() {
                           branches.map((br: any) => {
                             const id = br.id || br._id;
                             const isSelected = pickupBranchId === id;
+                            // Per-item availability at THIS specific branch
+                            const branchInv: any[] = (br as any).inventory || [];
+                            const itemsAvail = items.map((it) => {
+                              const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
+                              const stock = rec ? Number(rec.stock || 0) : null;
+                              const available = stock === null ? true : stock >= it.quantity;
+                              return { item: it, stock, available };
+                            });
+                            const allAvailable = itemsAvail.every(x => x.available);
+                            const noneAvailable = itemsAvail.every(x => !x.available);
                             return (
                               <div
                                 key={id}
                                 onClick={() => setPickupBranchId(id)}
                                 data-testid={`option-branch-${id}`}
-                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
+                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                                   isSelected ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                                }`}
+                                } ${noneAvailable ? "opacity-60" : ""}`}
                               >
-                                <div className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                                  isSelected ? "border-primary" : "border-gray-300"
-                                }`}>
-                                  {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
-                                </div>
-                                <MapPin className={`h-5 w-5 shrink-0 ${isSelected ? "text-primary" : "text-gray-700"}`} />
-                                <div className="flex-1">
-                                  <p className="font-black text-sm">{br.name}</p>
-                                  <p className="text-[11px] text-gray-700 font-bold mt-0.5">{br.address || br.city || ""}</p>
-                                  {br.workingHours && <p className="text-[10px] text-gray-700 mt-1">{br.workingHours}</p>}
+                                <div className="flex items-start gap-3">
+                                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                                    isSelected ? "border-primary" : "border-gray-300"
+                                  }`}>
+                                    {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                  </div>
+                                  <MapPin className={`h-5 w-5 shrink-0 ${isSelected ? "text-primary" : "text-gray-700"}`} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                                      <p className="font-black text-sm">{br.name}</p>
+                                      {allAvailable ? (
+                                        <span className="text-[9px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                          <CheckCircle2 className="h-3 w-3" /> متوفر بالكامل
+                                        </span>
+                                      ) : noneAvailable ? (
+                                        <span className="text-[9px] font-black bg-red-50 text-red-700 px-2 py-0.5 rounded-full">
+                                          غير متوفر
+                                        </span>
+                                      ) : (
+                                        <span className="text-[9px] font-black bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
+                                          متوفر جزئياً
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-gray-700 font-bold mt-0.5">{br.address || br.city || ""}</p>
+                                    {(br.hours || br.pickupHours) && (
+                                      <p className="text-[10px] text-gray-700 mt-1">⏰ {br.pickupHours || br.hours}</p>
+                                    )}
+                                    {br.mapUrl && (
+                                      <a
+                                        href={br.mapUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        data-testid={`link-branch-map-${id}`}
+                                        className="inline-flex items-center gap-1 text-[10px] text-primary font-black mt-1.5 hover:underline"
+                                      >
+                                        <MapPin className="h-3 w-3" /> فتح الموقع على الخريطة
+                                      </a>
+                                    )}
+                                    {/* Per-item availability list */}
+                                    <div className="mt-2.5 pt-2 border-t border-gray-100 space-y-1">
+                                      {itemsAvail.map(({ item, stock, available }) => (
+                                        <div key={item.variantSku} className="flex items-center justify-between gap-2 text-[10px]">
+                                          <span className="text-gray-700 font-bold truncate flex-1">{item.title}</span>
+                                          {available ? (
+                                            <span className="text-emerald-700 font-black flex items-center gap-1 shrink-0">
+                                              <CheckCircle2 className="h-3 w-3" /> متوفر
+                                            </span>
+                                          ) : (
+                                            <span className="text-red-700 font-black shrink-0">
+                                              {stock === 0 ? "غير متوفر" : `متبقي ${stock} فقط`}
+                                            </span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             );

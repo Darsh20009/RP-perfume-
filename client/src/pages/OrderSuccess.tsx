@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Package, ArrowLeft, ShoppingBag, Sparkles, Truck, Receipt, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, Package, ArrowLeft, ShoppingBag, Sparkles, Truck, Receipt, XCircle, RefreshCw, MapPin, Clock, Phone, Store } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -14,9 +14,23 @@ type OrderApi = {
   status: string;
   paymentStatus?: string;
   paymentMethod?: string;
+  shippingMethod?: string;
+  pickupBranch?: string;
   installments?: number;
   createdAt?: string;
   items?: Array<{ title: string; quantity: number; price: number; image?: string }>;
+};
+
+type BranchApi = {
+  id?: string;
+  _id?: string;
+  name: string;
+  address?: string;
+  city?: string;
+  phone?: string;
+  hours?: string;
+  pickupHours?: string;
+  mapUrl?: string;
 };
 
 const TERMINAL_FAIL_STATUSES = new Set(["cancelled", "failed", "rejected", "refunded"]);
@@ -70,6 +84,16 @@ export default function OrderSuccess() {
     TERMINAL_FAIL_STATUSES.has(String(order.status || "").toLowerCase()) ||
     TERMINAL_FAIL_STATUSES.has(String(order.paymentStatus || "").toLowerCase())
   );
+
+  // Pickup branch lookup — only fetched when needed
+  const isPickup = order?.shippingMethod === "pickup" && !!order?.pickupBranch;
+  const { data: branches = [] } = useQuery<BranchApi[]>({
+    queryKey: ["/api/branches"],
+    enabled: !!isPickup,
+  });
+  const pickupBranch = isPickup
+    ? branches.find((b) => (b.id || b._id) === order!.pickupBranch)
+    : null;
 
   useEffect(() => {
     if (!gateway) return;
@@ -202,22 +226,110 @@ export default function OrderSuccess() {
                   <div className="flex-1 text-xs sm:text-sm">
                     <p className="font-black mb-0.5">جاري تجهيز طلبك</p>
                     <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                      فريقنا يجهّز عطورك بعناية. ستصلك رسالة عند الشحن.
+                      {isPickup
+                        ? "فريق الفرع يجهّز طلبك. ستصلك رسالة فور الجاهزية للاستلام."
+                        : "فريقنا يجهّز عطورك بعناية. ستصلك رسالة عند الشحن."}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-black/[0.02] border border-black/5">
-                  <Truck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <div className="flex-1 text-xs sm:text-sm">
-                    <p className="font-black mb-0.5">تابع طلبك مباشرة</p>
-                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                      من صفحة "طلباتي" تشاهد الحالة لحظة بلحظة.
+                {!isPickup && (
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-black/[0.02] border border-black/5">
+                    <Truck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="font-black mb-0.5">تابع طلبك مباشرة</p>
+                      <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                        من صفحة "طلباتي" تشاهد الحالة لحظة بلحظة.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── Pickup branch details (shown after payment when pickup) ── */}
+          {!isPaymentFailed && isPickup && pickupBranch && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22, duration: 0.4 }}
+              className="mt-4 sm:mt-6 bg-white rounded-2xl border-2 border-primary/20 shadow-lg overflow-hidden"
+              data-testid="card-pickup-branch"
+            >
+              <div className="px-5 sm:px-7 py-4 sm:py-5 bg-gradient-to-l from-primary/5 to-transparent border-b border-primary/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                    <Store className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70">استلام من فرع</p>
+                    <p className="font-black text-base sm:text-lg tracking-tight" data-testid="text-pickup-branch-name">
+                      {pickupBranch.name}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+
+              <div className="px-5 sm:px-7 py-4 sm:py-5 space-y-3">
+                {(pickupBranch.address || pickupBranch.city) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-0.5">العنوان</p>
+                      <p className="font-bold text-black/80" data-testid="text-pickup-branch-address">
+                        {pickupBranch.address || pickupBranch.city}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(pickupBranch.pickupHours || pickupBranch.hours) && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-0.5">مواعيد العمل</p>
+                      <p className="font-bold text-black/80" data-testid="text-pickup-branch-hours">
+                        {pickupBranch.pickupHours || pickupBranch.hours}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {pickupBranch.phone && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-0.5">للاستفسار</p>
+                      <a
+                        href={`tel:${pickupBranch.phone}`}
+                        className="font-bold text-primary hover:underline"
+                        data-testid="link-pickup-branch-phone"
+                      >
+                        {pickupBranch.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {pickupBranch.mapUrl && (
+                  <a
+                    href={pickupBranch.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="link-pickup-branch-map"
+                    className="flex items-center justify-center gap-2 mt-2 w-full h-11 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 active:scale-95 transition-all"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    فتح الموقع على خرائط جوجل
+                  </a>
+                )}
+
+                <div className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
+                  💡 ستصلك رسالة عبر واتساب/البريد فور جاهزية طلبك للاستلام. اصطحب رقم الطلب أو رمز الاستلام عند الحضور.
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* ── Actions ── */}
           <motion.div
