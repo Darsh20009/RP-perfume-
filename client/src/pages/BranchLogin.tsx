@@ -29,6 +29,13 @@ export default function BranchLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Normalize Arabic-Indic & Persian digits → ASCII so users typing "١٢٣٤"
+  // (Arabic) or "۱۲۳۴" (Persian) get the same password as "1234".
+  const normalizeDigits = (s: string) =>
+    s
+      .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+      .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+
   const { data: branches, isLoading } = useQuery<Branch[]>({
     queryKey: ["/api/branches"],
   });
@@ -146,7 +153,7 @@ export default function BranchLogin() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value.trim())}
+                    onChange={(e) => setPassword(normalizeDigits(e.target.value).trim())}
                     placeholder="••••••••"
                     required
                     autoFocus
