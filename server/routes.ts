@@ -2319,7 +2319,7 @@ export async function registerRoutes(
       const allowed = req.isBranchAdmin || perms.includes("branch.inventory") || perms.includes("branch.manage");
       if (!allowed) return res.status(403).json({ message: "ليس لديك صلاحية تحديث المخزون" });
       const stock = Math.max(0, Number(req.body?.stock) || 0);
-      const item = await storage.updateBranchStock(req.params.id, stock);
+      const item = await storage.updateBranchStock(req.params.id, req.branchId, stock);
 
       // Real-time low-stock alert (≤ 5 units) → notify all admins + branch managers
       const LOW = 5;

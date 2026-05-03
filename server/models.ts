@@ -816,6 +816,23 @@ mailMessageSchema.index({ accountId: 1, folder: 1, date: -1 });
 mailMessageSchema.index({ accountId: 1, isRead: 1 });
 export const MailMessageModel = mongoose.model("MailMessage", mailMessageSchema);
 
+// ─── Branch Stock (per-branch inventory tracking) ─────────────────────────
+// Each branch has its own physical stock. Source of truth for pickup orders:
+// pickup deduction reads/writes here, falling back to product.variants[].stock
+// on first access (one-time bootstrap).
+const branchStockSchema = new Schema(
+  {
+    branchId:   { type: String, required: true },
+    productId:  { type: String, required: true },
+    variantSku: { type: String, required: true },
+    stock:      { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+branchStockSchema.index({ branchId: 1, productId: 1, variantSku: 1 }, { unique: true });
+branchStockSchema.index({ branchId: 1, stock: 1 });
+export const BranchStockModel = mongoose.model("BranchStock", branchStockSchema);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 🔥 PERFORMANCE INDEXES — defined together for clarity
 // Created automatically by Mongoose on model init (background: true by default).

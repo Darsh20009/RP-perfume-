@@ -86,7 +86,7 @@ export interface IStorage {
   
   // Branch Inventory
   getBranchInventory(branchId: string): Promise<BranchInventory[]>;
-  updateBranchStock(id: string, stock: number): Promise<BranchInventory>;
+  updateBranchStock(id: string, branchId: string, stock: number): Promise<BranchInventory>;
   
   // Stock Transfers
   getStockTransfers(): Promise<StockTransfer[]>;
@@ -387,6 +387,54 @@ export class MongoDBStorage implements IStorage {
         throw err;
       }
       reserved.push({ productId: item.productId, variantSku: item.variantSku, quantity: item.quantity });
+
+      // ── Per-branch stock deduction for pickup orders ───────────────────
+      // Tracks each branch's physical stock separately so the branch
+      // dashboard reflects the deduction. On first encounter, bootstrap
+      // from the global variant stock to keep numbers consistent.
+      if (insertOrder.shippingMethod === "pickup" && insertOrder.pickupBranch) {
+        try {
+          const { BranchStockModel } = await import("./models");
+          const branchId = String(insertOrder.pickupBranch);
+          // Step 1: atomic decrement if a row already exists with enough stock.
+          let dec = await BranchStockModel.findOneAndUpdate(
+            { branchId, productId: item.productId, variantSku: item.variantSku, stock: { $gte: item.quantity } },
+            { $inc: { stock: -item.quantity } },
+            { new: true }
+          );
+          if (!dec) {
+            // Step 2: bootstrap a row using the PRE-deduction global stock.
+            // Using $setOnInsert means concurrent bootstrappers don't trample
+            // each other; whichever loses the race just no-ops here.
+            const variantNow = (updated as any).variants.find((v: any) => v.sku === item.variantSku);
+            const globalAfter = Math.max(0, Number(variantNow?.stock ?? 0));
+            const bootstrapInitial = globalAfter + item.quantity; // pre-deduction global
+            await BranchStockModel.updateOne(
+              { branchId, productId: item.productId, variantSku: item.variantSku },
+              { $setOnInsert: { stock: bootstrapInitial } },
+              { upsert: true }
+            ).catch(() => {});
+            // Step 3: retry the atomic decrement now that the row exists.
+            // All concurrent orders converge here so each gets its own deduction.
+            dec = await BranchStockModel.findOneAndUpdate(
+              { branchId, productId: item.productId, variantSku: item.variantSku, stock: { $gte: item.quantity } },
+              { $inc: { stock: -item.quantity } },
+              { new: true }
+            );
+            if (!dec) {
+              // Branch stock genuinely depleted (e.g., manually set to 0). Clamp to 0
+              // so the branch UI shows zero rather than going negative.
+              await BranchStockModel.updateOne(
+                { branchId, productId: item.productId, variantSku: item.variantSku },
+                { $set: { stock: 0 } }
+              ).catch(() => {});
+            }
+          }
+        } catch (e: any) {
+          console.error("[STOCK] branch deduction failed:", e?.message);
+        }
+      }
+
       // Real-time low-stock alert when an order brings stock to ≤5 units
       try {
         const variant = (updated as any).variants.find((v: any) => v.sku === item.variantSku);
@@ -718,49 +766,64 @@ export class MongoDBStorage implements IStorage {
     return shift ? { ...shift, id: shift._id.toString() } : undefined;
   }
 
-  // Branch Inventory
+  // Branch Inventory — per-branch isolated stock with one-time bootstrap from
+  // the product's global variant stock.
   async getBranchInventory(branchId: string): Promise<BranchInventory[]> {
+    const { BranchStockModel } = await import("./models");
     const products = await this.getProducts();
+    const branchRows = await BranchStockModel.find({ branchId }).lean();
+    const branchMap = new Map<string, number>();
+    for (const r of branchRows) {
+      branchMap.set(`${r.productId}::${r.variantSku}`, Number(r.stock || 0));
+    }
     const inventory: BranchInventory[] = [];
     for (const product of products) {
       const p = product as any;
-      if (p.variants && p.variants.length > 0) {
-        for (const variant of p.variants) {
-          inventory.push({
-            id: `${product.id}-${variant.sku}`,
-            _id: `${product.id}-${variant.sku}`,
-            branchId,
-            productId: product.id,
-            variantSku: variant.sku,
-            stock: variant.stock,
-            minStockLevel: 5,
-            updatedAt: new Date()
-          });
-        }
+      const variants = (p.variants && p.variants.length > 0)
+        ? p.variants
+        : [{ sku: "default", stock: 0, size: "", color: "" }];
+      for (const variant of variants) {
+        const key = `${product.id}::${variant.sku}`;
+        const stock = branchMap.has(key) ? branchMap.get(key)! : Number(variant.stock || 0);
+        const sizeColor = [variant.size, variant.color].filter(Boolean).join(" / ");
+        inventory.push({
+          id: `${product.id}::${variant.sku}`,
+          _id: `${product.id}::${variant.sku}`,
+          branchId,
+          productId: product.id,
+          variantSku: variant.sku,
+          stock,
+          minStockLevel: 5,
+          updatedAt: new Date(),
+          // ─ extra display fields (consumed by branch UI) ─
+          ...({ productName: p.name, sku: variant.sku, size: variant.size || "", color: variant.color || "", variantLabel: sizeColor } as any),
+        } as any);
       }
     }
     return inventory;
   }
 
-  async updateBranchStock(id: string, stock: number): Promise<BranchInventory> {
-    const [productId, variantSku] = id.split("-");
-    const product = await ProductModel.findOneAndUpdate(
-      { _id: productId, "variants.sku": variantSku },
-      { $set: { "variants.$.stock": stock } },
-      { new: true }
-    ).lean();
-    if (!product) throw new Error("Product or variant not found");
-    const variant = (product as any).variants.find((v: any) => v.sku === variantSku);
+  async updateBranchStock(id: string, branchId: string, stock: number): Promise<BranchInventory> {
+    const sep = id.includes("::") ? "::" : "-";
+    const idx = id.indexOf(sep);
+    const productId = id.slice(0, idx);
+    const variantSku = id.slice(idx + sep.length);
+    const { BranchStockModel } = await import("./models");
+    await BranchStockModel.updateOne(
+      { branchId, productId, variantSku },
+      { $set: { stock: Math.max(0, stock) } },
+      { upsert: true }
+    );
     return {
-      id: `${product._id}-${variantSku}`,
-      _id: `${product._id}-${variantSku}`,
-      branchId: "main",
-      productId: product._id.toString(),
-      variantSku: variantSku,
-      stock: variant.stock,
+      id: `${productId}::${variantSku}`,
+      _id: `${productId}::${variantSku}`,
+      branchId,
+      productId,
+      variantSku,
+      stock: Math.max(0, stock),
       minStockLevel: 5,
       updatedAt: new Date()
-    };
+    } as any;
   }
 
   // Stock Transfers

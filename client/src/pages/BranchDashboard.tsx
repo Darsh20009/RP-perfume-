@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,47 @@ ${data.deliveredOrders.map((o:any)=>`<tr><td>#${o.ref}</td><td>${o.customerName|
 }
 
 const LOW_STOCK_THRESHOLD = 5;
+
+// Order status → Arabic label + color
+const STATUS_AR: Record<string, { label: string; cls: string }> = {
+  new:               { label: "جديد",            cls: "bg-blue-100 text-blue-800 border-blue-200" },
+  pending_payment:   { label: "بانتظار الدفع",   cls: "bg-amber-100 text-amber-800 border-amber-200" },
+  processing:        { label: "قيد التجهيز",     cls: "bg-purple-100 text-purple-800 border-purple-200" },
+  ready_for_pickup:  { label: "جاهز للاستلام",   cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  out_for_delivery:  { label: "خرج للتوصيل",     cls: "bg-cyan-100 text-cyan-800 border-cyan-200" },
+  shipped:           { label: "تم الشحن",        cls: "bg-cyan-100 text-cyan-800 border-cyan-200" },
+  completed:         { label: "مكتمل",           cls: "bg-green-100 text-green-800 border-green-200" },
+  cancelled:         { label: "ملغي",            cls: "bg-gray-100 text-gray-800 border-gray-200" },
+  returned:          { label: "مُرتجع",          cls: "bg-rose-100 text-rose-800 border-rose-200" },
+};
+function StatusBadge({ status }: { status: string }) {
+  const s = STATUS_AR[status] || { label: status, cls: "" };
+  return <Badge className={s.cls} data-testid={`badge-status-${status}`}>{s.label}</Badge>;
+}
+
+// Short, attention-grabbing beep for new-order alerts (encoded WAV, ~0.5s)
+// Played on first user gesture; on autoplay-blocked browsers a bell icon flashes.
+function playBeep() {
+  try {
+    const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+    const beepOnce = (when: number, freq: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
+      gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + when + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + 0.18);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + when);
+      osc.stop(ctx.currentTime + when + 0.2);
+    };
+    beepOnce(0,    880);
+    beepOnce(0.22, 1175);
+    beepOnce(0.44, 880);
+    setTimeout(() => ctx.close().catch(() => {}), 1200);
+  } catch { /* ignore */ }
+}
 
 function PrintInvoiceButton({ orderId }: { orderId: string }) {
   return (
@@ -220,9 +261,49 @@ function PickupScanner() {
 function BranchOrdersTab() {
   const { data: orders = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/branch/orders"],
-    refetchInterval: 20_000,
+    refetchInterval: 15_000,
   });
   const { toast } = useToast();
+
+  // ── New-order audio alert ────────────────────────────────────────────────
+  // Compares the latest set of order IDs to the previous snapshot. On the
+  // first poll cycle we only seed the baseline (no beep). Later polls beep
+  // whenever a brand-new order id appears.
+  const seenIdsRef = useRef<Set<string> | null>(null);
+  const audioEnabledRef = useRef(false);
+  useEffect(() => {
+    // Enable audio after first user interaction (browser autoplay policy)
+    const enable = () => { audioEnabledRef.current = true; };
+    window.addEventListener("click",   enable, { once: true });
+    window.addEventListener("keydown", enable, { once: true });
+    return () => {
+      window.removeEventListener("click", enable);
+      window.removeEventListener("keydown", enable);
+    };
+  }, []);
+  useEffect(() => {
+    if (!Array.isArray(orders)) return;
+    const ids = new Set<string>(orders.map((o: any) => String(o.id || o._id)));
+    if (seenIdsRef.current === null) {
+      seenIdsRef.current = ids;
+      return;
+    }
+    const newOnes: any[] = [];
+    for (const o of orders) {
+      const id = String(o.id || o._id);
+      if (!seenIdsRef.current.has(id)) newOnes.push(o);
+    }
+    seenIdsRef.current = ids;
+    if (newOnes.length > 0) {
+      if (audioEnabledRef.current) playBeep();
+      const ref = String(newOnes[0].id || "").slice(-6).toUpperCase();
+      toast({
+        title: `🔔 ${newOnes.length === 1 ? "طلب جديد" : `${newOnes.length} طلبات جديدة`}`,
+        description: newOnes.length === 1 ? `طلب #${ref} — ${newOnes[0].total} ر.س` : "افتح القائمة لمراجعتها",
+        duration: 8000,
+      });
+    }
+  }, [orders, toast]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pickup" | "pending" | "completed">("all");
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -523,9 +604,12 @@ function BranchOrdersTab() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-mono font-black text-sm">#{(o.id || "").slice(-6).toUpperCase()}</span>
-                        <Badge variant={o.status === "completed" ? "default" : "secondary"}>
-                          {o.status}
-                        </Badge>
+                        <StatusBadge status={o.status} />
+                        {o.paymentStatus && o.paymentStatus !== "paid" && (
+                          <Badge className="bg-amber-50 text-amber-800 border-amber-200">
+                            {o.paymentStatus === "pending" ? "بانتظار الدفع" : o.paymentStatus}
+                          </Badge>
+                        )}
                         {o.shippingMethod === "pickup" && (
                           <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                             <MapPin className="h-3 w-3 ml-1" />
@@ -616,8 +700,11 @@ function BranchInventoryTab() {
               <Card key={id} className={`p-4 ${isLow ? "border-red-300 bg-red-50/50" : ""}`}>
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
-                    <p className="font-black text-sm">{it.productName || it.name}</p>
-                    <p className="text-xs text-gray-700 font-bold">{it.sku || it.variantSku}</p>
+                    <p className="font-black text-sm">{it.productName || it.name || "—"}</p>
+                    <p className="text-xs text-gray-700 font-bold">
+                      {it.variantLabel ? <span className="ml-1">{it.variantLabel} • </span> : null}
+                      <span className="font-mono">{it.sku || it.variantSku}</span>
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -689,8 +776,8 @@ export default function BranchDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50" dir="rtl">
-        <div className="container max-w-6xl mx-auto px-4 py-8 space-y-6">
+      <div className="min-h-screen bg-gray-50 pb-32" dir="rtl">
+        <div className="container max-w-6xl mx-auto px-4 py-8 pb-24 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
