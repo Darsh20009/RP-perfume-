@@ -103,7 +103,9 @@ export default function Checkout() {
   const [orderNotes, setOrderNotes] = useState("");
   const [shipToOther, setShipToOther] = useState(false);
   const [shippingCompany, setShippingCompany] = useState<string>("");
-  const [shippingMethod, setShippingMethod] = useState<"delivery" | "pickup">("delivery");
+  // Home-delivery temporarily disabled — only pickup available right now.
+  const DELIVERY_DISABLED = true;
+  const [shippingMethod, setShippingMethod] = useState<"delivery" | "pickup">(DELIVERY_DISABLED ? "pickup" : "delivery");
   const [pickupBranchId, setPickupBranchId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -959,14 +961,24 @@ export default function Checkout() {
                       <button
                         type="button"
                         data-testid="button-method-delivery"
-                        onClick={() => setShippingMethod("delivery")}
-                        className={`p-4 border-2 rounded-lg text-right transition-all ${
-                          shippingMethod === "delivery" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        disabled={DELIVERY_DISABLED}
+                        onClick={() => !DELIVERY_DISABLED && setShippingMethod("delivery")}
+                        className={`relative p-4 border-2 rounded-lg text-right transition-all ${
+                          DELIVERY_DISABLED
+                            ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                            : shippingMethod === "delivery" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
+                        {DELIVERY_DISABLED && (
+                          <span className="absolute top-1.5 left-1.5 text-[8px] font-black bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">
+                            غير متاح
+                          </span>
+                        )}
                         <Truck className={`h-5 w-5 mb-2 ${shippingMethod === "delivery" ? "text-primary" : "text-gray-700"}`} />
                         <p className="font-black text-sm">توصيل للمنزل</p>
-                        <p className="text-[10px] text-gray-700 font-bold mt-0.5">عبر شركة شحن</p>
+                        <p className="text-[10px] text-gray-700 font-bold mt-0.5">
+                          {DELIVERY_DISABLED ? "لا يوجد توصيل حالياً" : "عبر شركة شحن"}
+                        </p>
                       </button>
                       <button
                         type="button"
