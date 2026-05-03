@@ -227,7 +227,9 @@ export default function Checkout() {
       setShippingCompany(shippingCompanies[0].id);
   }, [shippingCompanies, shippingCompany]);
 
-  if (items.length === 0) return null;
+  // NOTE: The early-return for empty cart was moved to AFTER all hooks (below)
+  // because returning before the Paymob useEffect was causing
+  // "Rendered fewer hooks than expected" when clearCart() runs mid-payment.
 
   const selectedShipping =
     shippingCompanies.find(
@@ -714,6 +716,12 @@ export default function Checkout() {
       window.removeEventListener("message", onMessage);
     };
   }, [paymobSheetOpen, paymobOrderIdState, setLocation]);
+
+  // Empty-cart early-return — placed AFTER all hooks. Important: do NOT
+  // bail out while a Paymob payment is in progress (clearCart() runs as soon
+  // as the order is created, which would otherwise unmount the iframe sheet
+  // and trip "Rendered fewer hooks than expected").
+  if (items.length === 0 && !paymobSheetOpen) return null;
 
   return (
     <div className="min-h-screen bg-gray-100" dir="rtl">
