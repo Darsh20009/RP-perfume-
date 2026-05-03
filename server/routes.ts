@@ -46,7 +46,7 @@ import {
   paymobMode, initiatePaymobIntention
 } from "./paymob";
 import {
-  perfumeAdvisor, supportAssistant, adminAssistant, isGroqConfigured
+  perfumeAdvisor, supportAssistant, adminAssistant, isGroqConfigured, smartAdvisorFallback
 } from "./groq";
 
 // Configure storage for uploaded files
@@ -4344,18 +4344,24 @@ export async function registerRoutes(
   });
 
   app.post("/api/ai/perfume-advisor", aiLimiter, async (req, res) => {
+    const { message, history } = req.body || {};
+    if (!message) return res.status(400).json({ error: "الرسالة مطلوبة" });
+    const products = await storage.getProducts().catch(() => []);
     try {
       if (!isGroqConfigured()) {
-        return res.json({ response: "المستشار غير متاح حالياً. يرجى التواصل مع فريق الدعم.", products: [] });
+        // No AI keys configured at all → still give a useful answer
+        return res.json(smartAdvisorFallback(message, products));
       }
-      const { message, history } = req.body;
-      if (!message) return res.status(400).json({ error: "الرسالة مطلوبة" });
-      const products = await storage.getProducts();
       const result = await perfumeAdvisor(message, history || [], products);
+      // If AI returned no products AND a generic-sounding error reply,
+      // upgrade to smart fallback so the customer never sees an empty answer.
+      if ((!result.products || result.products.length === 0) && /حدث خطأ|try again|عذراً/i.test(result.response || "")) {
+        return res.json(smartAdvisorFallback(message, products));
+      }
       res.json(result);
     } catch (err: any) {
-      console.error("[AI] perfume-advisor error:", err?.message);
-      res.json({ response: "عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.", products: [] });
+      console.error("[AI] perfume-advisor error, using smart fallback:", err?.message);
+      res.json(smartAdvisorFallback(message, products));
     }
   });
 

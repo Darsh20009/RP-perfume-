@@ -252,6 +252,65 @@ export interface AdvisorProductRef {
   image?: string;
 }
 
+// ─── Smart rule-based fallback when all AI providers fail ─────────────
+// Picks 2-3 products by simple keyword matching so the customer always gets
+// a useful answer even when Gemini quota is exhausted and Groq keys are dead.
+export function smartAdvisorFallback(
+  userMessage: string,
+  products: any[]
+): { response: string; products: AdvisorProductRef[] } {
+  const lang = detectLang(userMessage);
+  const text = userMessage.toLowerCase();
+  const has = (...words: string[]) => words.some(w => text.includes(w));
+
+  const score = (p: any): number => {
+    const blob = `${p.name || ""} ${p.nameEn || ""} ${p.description || ""} ${p.descriptionEn || ""} ${(p.notes || []).join(" ")} ${(p.tags || []).join(" ")}`.toLowerCase();
+    let s = 0;
+    if (has("عود", "oud")) s += blob.includes("عود") || blob.includes("oud") ? 6 : 0;
+    if (has("ورد", "rose", "زهر")) s += blob.includes("ورد") || blob.includes("rose") || blob.includes("زهر") ? 5 : 0;
+    if (has("مسك", "musk")) s += blob.includes("مسك") || blob.includes("musk") ? 5 : 0;
+    if (has("صيف", "خفيف", "summer", "light", "نهار", "day")) s += blob.includes("خفيف") || blob.includes("منعش") || blob.includes("fresh") || blob.includes("light") ? 4 : 0;
+    if (has("شتاء", "ثقيل", "قوي", "winter", "strong", "ليل", "night")) s += blob.includes("ثقيل") || blob.includes("فخم") || blob.includes("قوي") || blob.includes("strong") || blob.includes("intense") ? 4 : 0;
+    if (has("عمل", "دوام", "مكتب", "work", "office", "هادئ")) s += blob.includes("هادئ") || blob.includes("راقي") || blob.includes("elegant") ? 3 : 0;
+    if (has("مناسبة", "حفل", "زفاف", "occasion", "wedding", "event", "فاخر")) s += blob.includes("فاخر") || blob.includes("luxur") ? 4 : 0;
+    if (has("رجال", "رجل", "men", "man")) s += (p.gender === "male" || blob.includes("رجال") || blob.includes("men")) ? 5 : 0;
+    if (has("نساء", "نسائي", "women", "woman", "بنات")) s += (p.gender === "female" || blob.includes("نسائ") || blob.includes("women")) ? 5 : 0;
+    if (has("هدية", "gift")) s += (p.featured || p.bestseller) ? 4 : 0;
+    // Fallback signals
+    if (p.featured) s += 1;
+    if (p.bestseller) s += 1;
+    return s;
+  };
+
+  const ranked = products
+    .filter(p => Number(p.price) > 0 || (Array.isArray(p.variants) && p.variants.some((v: any) => Number(v.price) > 0)))
+    .map(p => ({ p, s: score(p) }))
+    .sort((a, b) => b.s - a.s);
+  const top = (ranked[0]?.s ?? 0) > 0 ? ranked.slice(0, 3) : ranked.slice(0, 3); // even if no keyword matches, return featured/bestsellers
+
+  const refs: AdvisorProductRef[] = top.map(({ p }) => {
+    const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
+    const minPrice = variants.length > 0 ? Math.min(...variants.map((v: any) => Number(v.price))) : Number(p.price) || 0;
+    return {
+      id: String(p.id || p._id),
+      name: p.name,
+      price: minPrice,
+      image: Array.isArray(p.images) ? p.images[0] : undefined,
+    };
+  });
+
+  const names = refs.map(r => r.name).join(lang === "ar" ? "، " : ", ");
+  const response = lang === "ar"
+    ? (refs.length > 0
+        ? `بناءً على ما ذكرت، أرشّح لك من تشكيلة عطور آر اف: ${names} ✨\nهذه اختيارات مثالية وتحظى بإعجاب عملائنا. اضغط على أي منها لمعرفة التفاصيل أو إضافته للسلة مباشرة.`
+        : "أهلاً بك في عطور آر اف ✨ أخبرني أكثر عن ذوقك (هل تفضل العود، الورد، المسك؟ للنهار أم الليل؟) وسأرشّح لك العطر المثالي.")
+    : (refs.length > 0
+        ? `Based on what you mentioned, I recommend from RF Perfume: ${names} ✨\nThese are excellent picks loved by our customers. Tap any to view details or add to cart.`
+        : "Welcome to RF Perfume ✨ Tell me more about your taste (do you prefer oud, rose, musk? day or night?) and I'll suggest the perfect scent.");
+
+  return { response, products: refs };
+}
+
 export async function perfumeAdvisor(
   userMessage: string,
   conversationHistory: ChatMessage[],

@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from "react";
+import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check, Mic, MicOff } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,8 +64,63 @@ export const UnifiedChat = memo(function UnifiedChat() {
   const [supportMessages, setSupportMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // ─── Web Speech API (voice input) ────────────────────────────────
+  const speechSupported = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  }, []);
+
+  const startListening = useCallback(() => {
+    if (!speechSupported || isListening) return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = "ar-SA";
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    let finalText = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t;
+        else interim += t;
+      }
+      setInput((finalText + interim).trim());
+    };
+    rec.onerror = () => setIsListening(false);
+    rec.onend = () => { setIsListening(false); recognitionRef.current = null; };
+    try {
+      rec.start();
+      recognitionRef.current = rec;
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+    }
+  }, [speechSupported, isListening]);
+
+  const stopListening = useCallback(() => {
+    try { recognitionRef.current?.stop(); } catch { /* ignore */ }
+    setIsListening(false);
+  }, []);
+
+  // Stop microphone on unmount or when chat closes — prevents "zombie" recognition
+  useEffect(() => {
+    return () => { try { recognitionRef.current?.stop(); } catch { /* ignore */ } };
+  }, []);
+  useEffect(() => {
+    if (view !== "chat" && isListening) stopListening();
+  }, [view, isListening, stopListening]);
+
+  // Strip a single leading emoji + space from a chip label to get clean send text
+  const stripEmojiPrefix = (s: string): string => {
+    return s.replace(/^\p{Extended_Pictographic}(\u200D\p{Extended_Pictographic})*[\uFE0E\uFE0F]?\s+/u, "").trim();
+  };
 
   const messages = activeTab === "advisor" ? advisorMessages : supportMessages;
   const setMessages = activeTab === "advisor" ? setAdvisorMessages : setSupportMessages;
@@ -95,9 +150,11 @@ export const UnifiedChat = memo(function UnifiedChat() {
     }
   }, [advisorMessages.length, supportMessages.length]);
 
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg = input.trim();
+  const handleSend = useCallback(async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
+    if (!text || isLoading) return;
+    if (isListening) stopListening();
+    const userMsg = text;
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMsg }]);
     setIsLoading(true);
@@ -129,7 +186,36 @@ export const UnifiedChat = memo(function UnifiedChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, activeTab, messages, user, setMessages]);
+  }, [input, isLoading, isListening, stopListening, activeTab, messages, user, setMessages]);
+
+  // ─── Dynamic quick-reply suggestions based on last assistant message ──
+  const quickReplies = useMemo<string[]>(() => {
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant" || isLoading) return [];
+    const txt = last.content.toLowerCase();
+    const hasProducts = (last.products?.length ?? 0) > 0;
+
+    if (activeTab === "advisor") {
+      // First greeting only → broad starter chips
+      if (messages.length <= 1) {
+        return ["🌹 عطر يناسب العمل", "👑 عطر للمناسبات", "🪵 عطر بالعود", "✨ عطر صيفي خفيف", "💫 أفضل عطر هدية"];
+      }
+      // After product recommendations
+      if (hasProducts) {
+        return ["💰 أرني أرخص الخيارات", "👑 أرني الأفخم", "🔄 اقترح عطوراً أخرى", "🪵 خيارات بالعود", "🌸 خيارات نسائية"];
+      }
+      // Generic follow-up
+      return ["💡 ما الفرق بينهم؟", "💰 ما الأسعار؟", "📦 هل متوفر؟", "🎁 عطر هدية للزوج", "🌸 عطر نسائي"];
+    }
+    // Support
+    if (messages.length <= 1) {
+      return ["📦 أين طلبي؟", "🔄 سياسة الاسترجاع", "💳 طرق الدفع", "🚚 مدة التوصيل", "📞 تواصل بشري"];
+    }
+    if (txt.includes("طلب") || txt.includes("شحن") || txt.includes("order")) {
+      return ["📋 أعطني رقم التتبع", "⏰ متى يصل؟", "❌ أريد الإلغاء", "📞 تواصل بشري"];
+    }
+    return ["✅ شكراً لك", "❓ سؤال آخر", "📞 تواصل بشري"];
+  }, [messages, isLoading, activeTab]);
 
   const isAdvisor = activeTab === "advisor";
   const accentColor = isAdvisor ? "#DFB369" : "#2B2B60";
@@ -427,31 +513,30 @@ export const UnifiedChat = memo(function UnifiedChat() {
                 </div>
               )}
 
-              {/* Suggestion chips for advisor */}
-              {isAdvisor && !isLoading && messages.length <= 1 && (
+              {/* Dynamic quick-reply suggestions (after every assistant message) */}
+              {quickReplies.length > 0 && (
                 <motion.div
+                  key={`chips-${messages.length}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex flex-wrap gap-2 justify-end pt-2"
+                  transition={{ delay: 0.15 }}
+                  className="flex flex-wrap gap-2 justify-end pt-1"
                 >
-                  {[
-                    "🌹 عطر يناسب العمل",
-                    "👑 عطر للمناسبات",
-                    "🪵 الفرق بين العود الكمبودي والهندي",
-                    "✨ عطر صيفي خفيف",
-                    "💫 أفضل عطر هدية",
-                  ].map((chip, idx) => (
+                  {quickReplies.map((chip, idx) => (
                     <motion.button
-                      key={chip}
+                      key={`${messages.length}-${chip}`}
                       type="button"
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={{ opacity: 0, scale: 0.85 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 + idx * 0.07 }}
+                      transition={{ delay: 0.2 + idx * 0.05 }}
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => { setInput(chip.replace(/^[^\s]+\s/, "")); setTimeout(() => inputRef.current?.focus(), 50); }}
-                      className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-white border border-[#DFB369]/30 text-[#2B2B60] hover:bg-[#DFB369]/10 hover:border-[#DFB369] transition-all shadow-sm"
+                      onClick={() => handleSend(stripEmojiPrefix(chip))}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full bg-white border transition-all shadow-sm ${
+                        isAdvisor
+                          ? "border-[#DFB369]/30 text-[#2B2B60] hover:bg-[#DFB369]/10 hover:border-[#DFB369]"
+                          : "border-[#2B2B60]/25 text-[#2B2B60] hover:bg-[#2B2B60]/8 hover:border-[#2B2B60]"
+                      }`}
                       data-testid={`chip-suggestion-${idx}`}
                     >
                       {chip}
@@ -472,22 +557,42 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={isAdvisor ? "اسألنا عن العطور… / Ask about fragrances…" : "اكتب رسالتك… / Type your message…"}
-                  className="flex-1 h-11 px-4 rounded-full bg-[#FFFFFF] border border-gray-200 text-sm font-medium focus:outline-none focus:border-[#DFB369] transition-all"
+                  placeholder={isListening ? "🎙️ أتحدث الآن…" : (isAdvisor ? "اسألنا عن العطور… / Ask…" : "اكتب رسالتك… / Type…")}
+                  className={`flex-1 h-11 px-4 rounded-full bg-[#FFFFFF] border text-sm font-medium focus:outline-none transition-all ${
+                    isListening ? "border-red-400 ring-2 ring-red-200" : "border-gray-200 focus:border-[#DFB369]"
+                  }`}
                   disabled={isLoading}
+                  data-testid="input-chat-message"
                 />
+                {speechSupported && (
+                  <button
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isLoading}
+                    aria-label={isListening ? "إيقاف الاستماع" : "تحدث بدلاً من الكتابة"}
+                    title={isListening ? "إيقاف" : "تحدث"}
+                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-md ${
+                      isListening
+                        ? "bg-red-500 text-white animate-pulse"
+                        : "bg-white border border-gray-200 text-[#2B2B60] hover:border-[#DFB369] hover:bg-[#DFB369]/5"
+                    }`}
+                    data-testid="button-voice-input"
+                  >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                )}
                 <button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}
                   aria-label="إرسال"
                   className="w-11 h-11 rounded-full text-white flex items-center justify-center transition-all disabled:opacity-40 active:scale-95 shrink-0 shadow-md"
                   style={{ background: `linear-gradient(135deg, ${accentColor}, ${isAdvisor ? "#c89853" : "#0f1a2e"})` }}
+                  data-testid="button-send-message"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
               <p className="text-[9px] text-gray-400 text-center mt-2 font-bold tracking-wide">
-                مدعوم بالذكاء الاصطناعي · عطور آر اف
+                {speechSupported ? "اكتب أو تحدث · " : ""}مدعوم بالذكاء الاصطناعي · عطور آر اف
               </p>
             </div>
           </motion.div>
