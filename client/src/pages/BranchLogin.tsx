@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Loader2, MapPin, Lock, ArrowRight, Store } from "lucide-react";
+import { Loader2, MapPin, Lock, ArrowRight, Store, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export default function BranchLogin() {
   const { refetch: refetchUser } = useAuth();
   const [selected, setSelected] = useState<Branch | null>(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const { data: branches, isLoading } = useQuery<Branch[]>({
@@ -141,16 +142,32 @@ export default function BranchLogin() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">كلمة سر الفرع</label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  autoFocus
-                  className="text-base"
-                  data-testid="input-branch-password"
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value.trim())}
+                    placeholder="••••••••"
+                    required
+                    autoFocus
+                    autoComplete="current-password"
+                    dir="ltr"
+                    className="text-base pl-12 text-left"
+                    data-testid="input-branch-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-700 transition-colors"
+                    aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                    data-testid="button-toggle-password-visibility"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1.5">
+                  حروف لاتينية فقط — تأكد من إغلاق Caps Lock وعدم وجود مسافات
+                </p>
               </div>
 
               <Button

@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { insertProductSchema, type InsertProduct, orderStatuses, employeePermissions, insertUserSchema, type InsertUser } from "@shared/schema";
 import { api } from "@shared/routes";
-import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, Building2, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin, Sparkles, FileText, Brain } from "lucide-react";
+import { Loader2, Plus, DollarSign, ShoppingCart, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Trash2, Search, Filter, ChevronDown, CheckCircle2, XCircle, Truck, PackageCheck, AlertCircle, LayoutGrid, Tag, Edit, ArrowRight, LogOut, Package, Building, Building2, User as UserIcon, History, Monitor, Clock, Settings2, Landmark, Save, CreditCard, ToggleLeft, ToggleRight, Megaphone, Send, Bike, Phone, Users, Bell, Globe, Menu, X, Star, Zap, Activity, Shield, ChevronRight, Home, RefreshCw, Eye, EyeOff, Wallet, MoreVertical, ImageIcon, Pencil, Store, RotateCcw, CalendarClock, Award, TrendingDown, Timer, MapPin, Sparkles, FileText, Brain } from "lucide-react";
 import { Link } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -3332,6 +3332,7 @@ const EmployeesManagement = () => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -3682,12 +3683,25 @@ const EmployeesManagement = () => {
           <div className="space-y-4 mt-4" dir="rtl">
             <div className="space-y-2">
               <Label className="text-right block">كلمة المرور الجديدة</Label>
-              <Input 
-                type="password" 
-                value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)} 
-                className="text-right"
-              />
+              <div className="relative">
+                <Input
+                  type={showResetPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  dir="ltr"
+                  className="text-left pl-10"
+                  data-testid="input-reset-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowResetPassword(!showResetPassword)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-700"
+                  aria-label={showResetPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                  data-testid="button-toggle-reset-password"
+                >
+                  {showResetPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button 
               className="w-full h-12 rounded-none font-black"
@@ -3970,6 +3984,7 @@ const AdminBranches = () => {
 const AdminStaff = () => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [showStaffPassword, setShowStaffPassword] = useState(false);
 
   const { data: users, isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/users"],
@@ -4097,7 +4112,25 @@ const AdminStaff = () => {
                       <FormItem className="text-right">
                         <FormLabel className="font-black text-sm text-slate-500">كلمة المرور</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" placeholder="كلمة مرور قوية" className="rounded-xl h-12 bg-slate-50 border-none px-4 font-bold" />
+                          <div className="relative">
+                            <Input
+                              {...field}
+                              type={showStaffPassword ? "text" : "password"}
+                              placeholder="كلمة مرور قوية"
+                              dir="ltr"
+                              className="rounded-xl h-12 bg-slate-50 border-none pl-12 pr-4 font-bold text-left"
+                              data-testid="input-staff-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowStaffPassword(!showStaffPassword)}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-700"
+                              aria-label={showStaffPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                              data-testid="button-toggle-staff-password"
+                            >
+                              {showStaffPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage className="font-bold" />
                       </FormItem>
