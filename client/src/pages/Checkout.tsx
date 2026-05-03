@@ -219,8 +219,13 @@ export default function Checkout() {
   };
 
   useEffect(() => {
-    if (items.length === 0) setLocation("/cart");
-  }, [items.length, setLocation]);
+    // Don't bounce to /cart while a payment flow is mid-flight:
+    // - Paymob sheet is open (iframe rendered inline; clearCart() ran already)
+    // - We're showing the redirect overlay before sending the user to Tabby/Tamara
+    if (items.length === 0 && !paymobSheetOpen && !redirectingTo) {
+      setLocation("/cart");
+    }
+  }, [items.length, paymobSheetOpen, redirectingTo, setLocation]);
 
   useEffect(() => {
     if (shippingCompany === "" && shippingCompanies.length > 0)
@@ -721,7 +726,7 @@ export default function Checkout() {
   // bail out while a Paymob payment is in progress (clearCart() runs as soon
   // as the order is created, which would otherwise unmount the iframe sheet
   // and trip "Rendered fewer hooks than expected").
-  if (items.length === 0 && !paymobSheetOpen) return null;
+  if (items.length === 0 && !paymobSheetOpen && !redirectingTo) return null;
 
   return (
     <div className="min-h-screen bg-gray-100" dir="rtl">
