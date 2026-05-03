@@ -58,7 +58,7 @@ export default function Checkout() {
 
   // Branded full-screen "redirecting…" overlay used for Tamara/Tabby so the
   // wait between clicking pay and the external redirect doesn't feel laggy.
-  const [redirectingTo, setRedirectingTo] = useState<null | "tamara" | "tabby">(null);
+  const [redirectingTo, setRedirectingTo] = useState<null | "tamara" | "tabby" | "paymob">(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -439,13 +439,16 @@ export default function Checkout() {
           console.log("[Checkout] Paymob response:", paymobRes.status, paymobData);
           if (paymobData.success && paymobData.iframeUrl) {
             clearCart();
-            // Open Paymob inside a bottom sheet (no full-page redirect).
-            // Polling on the order will detect payment success and route us
-            // to /orders/:id/success.
-            setPaymobIframeUrl(paymobData.iframeUrl);
-            setPaymobOrderIdState(String(order.id || order._id));
-            setPaymobSheetOpen(true);
-            setIsSubmitting(false);
+            // Paymob's unified checkout / iframe pages block embedding via
+            // X-Frame-Options, so an in-app iframe renders blank. We perform
+            // a full-page redirect to Paymob (same flow Tamara/Tabby use);
+            // Paymob redirects back to /api/paymob/callback → /paymob/result.
+            setRedirectingTo("paymob");
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                window.location.href = paymobData.iframeUrl;
+              });
+            });
             return;
           } else {
             await cancelPendingOrder(paymobData.error || "paymob_no_url");
@@ -1642,17 +1645,25 @@ export default function Checkout() {
               <div className="absolute inset-0 flex items-center justify-center">
                 {redirectingTo === "tamara" ? (
                   <span className="text-xl font-black text-[#DFB369]">tamara</span>
-                ) : (
+                ) : redirectingTo === "tabby" ? (
                   <span className="text-xl font-black text-[#3BFFC2]">tabby</span>
+                ) : (
+                  <span className="text-base font-black text-[#DFB369]">Paymob</span>
                 )}
               </div>
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-black text-gray-900">
-                {redirectingTo === "tamara" ? "جاري التحويل إلى تمارا" : "جاري التحويل إلى تابي"}
+                {redirectingTo === "tamara"
+                  ? "جاري التحويل إلى تمارا"
+                  : redirectingTo === "tabby"
+                  ? "جاري التحويل إلى تابي"
+                  : "جاري التحويل إلى بوابة الدفع"}
               </h3>
               <p className="text-sm font-bold text-gray-700">
-                لحظات قليلة لإكمال الدفع بالأقساط بأمان…
+                {redirectingTo === "paymob"
+                  ? "لحظات قليلة لإكمال الدفع بالبطاقة بأمان…"
+                  : "لحظات قليلة لإكمال الدفع بالأقساط بأمان…"}
               </p>
             </div>
             <div className="flex items-center justify-center gap-1.5 pt-2">

@@ -3433,7 +3433,7 @@ export async function registerRoutes(
       if (!order) {
         return res.status(404).json({ success: false, error: "الطلب غير موجود" });
       }
-      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support"].includes(String(u?.role || ""));
+      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support", "branch_manager", "branch_assistant"].includes(String(u?.role || ""));
       if (!isPrivileged && String((order as any).userId) !== String(u?.id)) {
         return res.status(403).json({ success: false, error: "غير مصرح بالدفع لهذا الطلب" });
       }
@@ -3811,7 +3811,7 @@ export async function registerRoutes(
       const u = req.user as any;
       const order = await storage.getOrder(String(orderId));
       if (!order) return res.status(404).json({ success: false, error: "الطلب غير موجود" });
-      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support"].includes(String(u?.role || ""));
+      const isPrivileged = ["admin", "assistant_manager", "cashier", "support", "tech_support", "branch_manager", "branch_assistant"].includes(String(u?.role || ""));
       if (!isPrivileged && String((order as any).userId) !== String(u?.id)) {
         return res.status(403).json({ success: false, error: "غير مصرح بالدفع لهذا الطلب" });
       }
