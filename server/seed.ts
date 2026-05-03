@@ -1,7 +1,7 @@
 import { storage } from "./storage";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
-import { CategoryModel, UserModel } from "./models";
+import { CategoryModel, UserModel, BranchModel } from "./models";
 
 const scryptAsync = promisify(scrypt);
 
@@ -172,6 +172,97 @@ export async function seed() {
           console.log(`Assigned ${p.name} to categories: ${slugs.join(", ")}`);
         }
       }
+    }
+  }
+
+  // ── Seed Riyadh branches (Al-Malqa & Al-Suwaidi) ──────────────────────
+  // Idempotent: only creates branches/managers if they don't already exist.
+  const branchesToSeed = [
+    {
+      name: "فرع الملقا",
+      nameEn: "Al-Malqa Branch",
+      city: "الرياض",
+      address: "حي الملقا، الرياض",
+      mapUrl: "https://maps.app.goo.gl/o7EzqwwuqXLWwQLD9?g_st=ic",
+      managerPhone: "9000010001",
+      managerPassword: "Rf@22334466",
+      sortOrder: 1,
+    },
+    {
+      name: "فرع السويدي",
+      nameEn: "Al-Suwaidi Branch",
+      city: "الرياض",
+      address: "حي السويدي، الرياض",
+      mapUrl: "https://maps.app.goo.gl/3FmqmVGerY1W8HjFA",
+      managerPhone: "9000010002",
+      managerPassword: "Rf@22334455",
+      sortOrder: 2,
+    },
+  ];
+
+  for (const b of branchesToSeed) {
+    let branch = await BranchModel.findOne({ name: b.name }).lean();
+    if (!branch) {
+      const created = await storage.createBranch({
+        name: b.name,
+        nameEn: b.nameEn,
+        city: b.city,
+        address: b.address,
+        addressEn: "",
+        email: "",
+        hours: "",
+        pickupHours: "",
+        image: "",
+        mapUrl: b.mapUrl,
+        latitude: null,
+        longitude: null,
+        isPickupEnabled: true,
+        sortOrder: b.sortOrder,
+        isActive: true,
+      } as any);
+      branch = created as any;
+      console.log(`[Seed] Branch created: ${b.name}`);
+    } else if ((branch as any).mapUrl !== b.mapUrl) {
+      await storage.updateBranch((branch as any)._id?.toString() || (branch as any).id, { mapUrl: b.mapUrl } as any);
+    }
+
+    const branchId = (branch as any)._id?.toString() || (branch as any).id;
+
+    // Upsert a manager user for this branch (used internally by the
+    // /branch-login endpoint — staff never type this phone).
+    const existingMgr = await UserModel.findOne({ phone: b.managerPhone }).lean();
+    if (!existingMgr) {
+      const hashed = await hashPassword(b.managerPassword);
+      await storage.createUser({
+        name: `مسؤول ${b.name}`,
+        phone: b.managerPhone,
+        username: b.managerPhone,
+        email: `${b.managerPhone}@rfperfume.sa`,
+        password: hashed,
+        role: "employee",
+        branchId,
+        loginType: "dashboard",
+        isActive: true,
+        mustChangePassword: false,
+        walletBalance: "0",
+        addresses: [],
+        permissions: [
+          "branch.orders", "branch.inventory", "branch.scan", "branch.manage",
+          "orders.view", "products.view", "customers.view",
+          "pos.access", "pos.use", "pos.close_shift",
+        ],
+        loyaltyPoints: 0,
+        loyaltyTier: "bronze",
+        totalSpent: 0,
+        phoneDiscountEligible: false,
+      } as any);
+      console.log(`[Seed] Branch manager created for ${b.name}`);
+    } else if ((existingMgr as any).branchId !== branchId) {
+      // Re-link if branch was recreated
+      await UserModel.updateOne(
+        { _id: (existingMgr as any)._id },
+        { $set: { branchId, role: "employee" } }
+      );
     }
   }
 

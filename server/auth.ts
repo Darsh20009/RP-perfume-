@@ -365,6 +365,63 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // ─── Branch login (password-only, scoped to a specific branch) ──────────
+  // Used by the public /branch-login page where staff pick a branch and
+  // enter only the branch password — no phone required.
+  app.post("/api/auth/branch-login", loginLimiter, async (req, res, next) => {
+    try {
+      const { branchId, password } = req.body || {};
+      if (!branchId) return res.status(400).send("الرجاء اختيار الفرع");
+      if (!password) return res.status(400).send("كلمة المرور مطلوبة");
+
+      // Find ALL active employees bound to this branchId — a branch may have
+      // more than one staff account, so we must try each one. We log in as
+      // the user whose stored password matches; this prevents accidentally
+      // selecting the "wrong" account just because findOne returned it first.
+      const candidates = await UserModel.find({
+        branchId: String(branchId),
+        role: "employee",
+        isActive: { $ne: false },
+      }).lean();
+
+      if (!candidates || candidates.length === 0) {
+        return res.status(401).send("لا يوجد حساب مفعّل لهذا الفرع");
+      }
+
+      let matched: any = null;
+      for (const u of candidates) {
+        const stored = (u as any).password as string;
+        if (!stored) continue;
+        const parts = stored.split(".");
+        if (parts.length === 2) {
+          const [hashed, salt] = parts;
+          try {
+            const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+            const a = Buffer.from(hashed, "hex");
+            if (a.length === buf.length && timingSafeEqual(a, buf)) {
+              matched = u;
+              break;
+            }
+          } catch {}
+        }
+      }
+      if (!matched) return res.status(401).send("كلمة المرور غير صحيحة");
+
+      const userToLogin = {
+        ...matched,
+        id: (matched as any)._id?.toString() || (matched as any).id,
+      };
+
+      req.login(userToLogin as any, (err) => {
+        if (err) return next(err);
+        const { password: _p, ...safe } = userToLogin as any;
+        return res.status(200).json({ ...safe, redirectTo: "/branch-dashboard" });
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   app.post("/api/auth/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);

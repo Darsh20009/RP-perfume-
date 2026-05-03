@@ -60,6 +60,7 @@ const AdminCancellationPolicy = lazy(() => import("@/pages/AdminCancellationPoli
 const CustomPage = lazy(() => import("@/pages/CustomPage"));
 const Branches = lazy(() => import("@/pages/Branches"));
 const BranchDashboard = lazy(() => import("@/pages/BranchDashboard"));
+const BranchLogin = lazy(() => import("@/pages/BranchLogin"));
 const Invoice = lazy(() => import("@/pages/Invoice"));
 
 function LazyFallback() {
@@ -138,6 +139,7 @@ function Router() {
       <Route path="/cart" component={Cart} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/login" component={Login} />
+      <Route path="/branch-login" component={BranchLogin} />
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/activate" component={ActivateAccount} />
