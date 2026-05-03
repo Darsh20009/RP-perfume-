@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Loader2, MapPin, Lock, ArrowRight, Store, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -23,7 +22,6 @@ type Branch = {
 export default function BranchLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { refetch: refetchUser } = useAuth();
   const [selected, setSelected] = useState<Branch | null>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -58,8 +56,10 @@ export default function BranchLogin() {
         throw new Error(txt || "فشل تسجيل الدخول");
       }
       const data = await r.json();
+      // Refresh the auth cache so the rest of the app sees the logged-in user
+      // (matches the queryKey used by useAuth: api.auth.me.path === "/api/user").
+      queryClient.setQueryData(["/api/user"], data);
       await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      await refetchUser();
       toast({ title: "تم تسجيل الدخول", description: `أهلاً بك في ${selected.name}` });
       setLocation(data.redirectTo || "/branch-dashboard");
     } catch (err: any) {
