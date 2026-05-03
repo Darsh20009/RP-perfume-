@@ -1,7 +1,7 @@
 import { useCart } from "@/hooks/use-cart";
 import { useCoupon } from "@/hooks/use-coupon";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -48,6 +48,19 @@ export default function Checkout() {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isCardProcessing, setIsCardProcessing] = useState(false);
   const [applePayLoading, setApplePayLoading] = useState(false);
+
+  // Apple Pay ("توجيه") only makes sense on Apple devices (iPhone/iPad/Mac
+  // running Safari). On Android/Windows/Linux/Chrome the Apple Pay sheet
+  // can't open, so we hide the option entirely to avoid dead-end checkouts.
+  const isAppleDevice = useMemo(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    const platform = (navigator as any).platform || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
+    const isMacSafari = /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|Edg|OPR/.test(ua);
+    const hasApplePay = typeof (window as any).ApplePaySession !== "undefined";
+    return isIOS || isMacSafari || hasApplePay;
+  }, []);
 
   // Paymob bottom-sheet state — keeps the user inside the app instead of
   // redirecting to a full-screen Paymob page. Polling on the order detects
@@ -1227,8 +1240,8 @@ export default function Checkout() {
                         </label>
                       )}
 
-                      {/* Apple Pay (visible label: "توجيه") */}
-                      {enabledMethods.apple_pay !== false && (
+                      {/* Apple Pay (visible label: "توجيه") — Apple devices only */}
+                      {enabledMethods.apple_pay !== false && isAppleDevice && (
                         <label
                           htmlFor="pay-apple"
                           className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
