@@ -29,6 +29,9 @@ const Orders = lazy(() => import("@/pages/Orders"));
 const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
 const OrderSuccess = lazy(() => import("@/pages/OrderSuccess"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const ReturnPolicy = lazy(() => import("@/pages/ReturnPolicy"));
+const ShippingPolicy = lazy(() => import("@/pages/ShippingPolicy"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ActivateAccount = lazy(() => import("@/pages/ActivateAccount"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
@@ -224,6 +227,9 @@ function Router() {
       <Route path="/payment/stc-checkout" component={STCCheckout} />
       <Route path="/paymob/result" component={PaymobResult} />
       <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/return-policy" component={ReturnPolicy} />
+      <Route path="/shipping-policy" component={ShippingPolicy} />
       <Route path="/pages/:slug" component={CustomPage} />
       <Route path="/branches" component={Branches} />
       <Route path="/branch-dashboard">
