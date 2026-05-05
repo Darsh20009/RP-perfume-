@@ -28,8 +28,24 @@ export function useAuth() {
         credentials: "include",
       });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Invalid credentials");
-        throw new Error("Login failed");
+        let serverMsg = "";
+        try {
+          const txt = await res.text();
+          try {
+            const j = JSON.parse(txt);
+            serverMsg = j?.message || j?.error || txt;
+          } catch {
+            serverMsg = txt;
+          }
+        } catch {}
+        if (!serverMsg) {
+          serverMsg = res.status === 401
+            ? "بيانات الدخول غير صحيحة"
+            : res.status === 429
+              ? "محاولات كثيرة، حاول بعد قليل"
+              : "تعذّر تسجيل الدخول، حاول مرة أخرى";
+        }
+        throw new Error(serverMsg);
       }
       const data = await res.json();
       return {
