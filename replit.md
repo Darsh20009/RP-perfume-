@@ -20,6 +20,8 @@ npm run start     # Production server
 -   `APPLE_REDIRECT_URI`
 -   `INBOX_ENC_KEY` (for employee inbox encryption, falls back to `SESSION_SECRET`)
 -   `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` (for AI integrations)
+-   `STORAGE_STATION_API_KEY` — WooCommerce consumer key for storagestation.app
+-   `STORAGE_STATION_API_SECRET` — WooCommerce consumer secret for storagestation.app
 
 ## Stack
 
@@ -66,6 +68,7 @@ npm run start     # Production server
 -   Branch management with map integration.
 -   POS system.
 -   AI perfume advisor and support chatbot with voice input and dynamic quick replies.
+-   Storage Station (storagestation.app) 3PL fulfillment integration — orders auto-pushed after payment confirmation via WooCommerce REST API v3 using SKU mapping.
 
 ## User preferences
 

@@ -93,6 +93,10 @@ import {
   cacheMiddleware, invalidateTags, getStats as getCacheStats, resetStats as resetCacheStats,
   setCacheEnabled, isCacheEnabled, setDefaultTtlMs, getDefaultTtlMs, cacheClear,
 } from "./cache";
+import {
+  pushOrderToStorageStation, updateStorageStationOrder,
+  getStorageStationOrder, isStorageStationConfigured,
+} from "./storagestation";
 
 // ─── Tiered rate limiters (in addition to global 500/15min) ─────────────────
 const cartLimiter = rateLimit({
@@ -293,6 +297,30 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
         notes: `فاتورة مرتبطة بالطلب #${shortRef}`,
       });
     }, { critical: true });
+
+    // ── Storage Station: push to 3PL fulfillment (delivery orders only) ─────
+    if (order.shippingMethod === "delivery" && isStorageStationConfigured()) {
+      enqueueJob("paid-storage-station-push", async () => {
+        try {
+          const ssResult = await pushOrderToStorageStation(order);
+          await storage.updateOrder(String(order.id || orderId), {
+            storageStationOrderId: ssResult.wcOrderId,
+            storageStationOrderNumber: ssResult.wcOrderNumber,
+            storageStationStatus: "sent",
+            storageStationSentAt: new Date(),
+            storageStationError: null,
+          } as any);
+          console.log(`[StorageStation] order ${orderId} pushed → WC#${ssResult.wcOrderId}`);
+        } catch (err: any) {
+          await storage.updateOrder(String(order.id || orderId), {
+            storageStationStatus: "failed",
+            storageStationError: err?.message || "Unknown error",
+          } as any);
+          console.error(`[StorageStation] push failed for ${orderId}:`, err?.message);
+          throw err; // re-throw so job-queue retries
+        }
+      }, { critical: true, maxAttempts: 5 });
+    }
 
     console.log(`[PaidSideEffects] order ${orderId} → notifications/email/invoice queued after payment confirmation`);
   } catch (e: any) {
@@ -4528,8 +4556,161 @@ export async function registerRoutes(
 
   // ─────────────────────────────────────────────────────────────
 
-  app.post("/api/shipping/storage-station/create-order", checkPermission("orders.edit"), async (_req, res) => {
-    res.json({ success: true, trackingNumber: "SS-" + Math.random().toString(36).substring(7).toUpperCase(), message: "Storage Station B20 stubbed" });
+  // ─── Storage Station: manual push (admin) ───────────────────────────────
+  app.post("/api/shipping/storage-station/create-order", checkPermission("orders.edit"), async (req, res) => {
+    try {
+      const { orderId } = req.body;
+      if (!orderId) return res.status(400).json({ message: "orderId مطلوب" });
+
+      if (!isStorageStationConfigured()) {
+        return res.status(503).json({ message: "لم يتم تهيئة بيانات اعتماد Storage Station" });
+      }
+
+      const order = await storage.getOrder(orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+      if ((order as any).shippingMethod !== "delivery") {
+        return res.status(400).json({ message: "يُرسل الطلب فقط لطلبات التوصيل" });
+      }
+
+      const ssResult = await pushOrderToStorageStation(order);
+      await storage.updateOrder(orderId, {
+        storageStationOrderId: ssResult.wcOrderId,
+        storageStationOrderNumber: ssResult.wcOrderNumber,
+        storageStationStatus: "sent",
+        storageStationSentAt: new Date(),
+        storageStationError: null,
+      } as any);
+
+      res.json({
+        success: true,
+        wcOrderId: ssResult.wcOrderId,
+        wcOrderNumber: ssResult.wcOrderNumber,
+        status: ssResult.status,
+      });
+    } catch (err: any) {
+      console.error("[StorageStation] manual push failed:", err?.message);
+      res.status(500).json({ success: false, message: err?.message || "فشل الإرسال" });
+    }
+  });
+
+  // ─── Storage Station: retry failed order ────────────────────────────────
+  app.post("/api/admin/storage-station/retry/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+      if ((order as any).shippingMethod !== "delivery") {
+        return res.status(400).json({ message: "يُرسل الطلب فقط لطلبات التوصيل" });
+      }
+      if (!isStorageStationConfigured()) {
+        return res.status(503).json({ message: "لم يتم تهيئة بيانات اعتماد Storage Station" });
+      }
+
+      const ssResult = await pushOrderToStorageStation(order);
+      await storage.updateOrder(req.params.orderId, {
+        storageStationOrderId: ssResult.wcOrderId,
+        storageStationOrderNumber: ssResult.wcOrderNumber,
+        storageStationStatus: "sent",
+        storageStationSentAt: new Date(),
+        storageStationError: null,
+      } as any);
+
+      res.json({ success: true, wcOrderId: ssResult.wcOrderId, wcOrderNumber: ssResult.wcOrderNumber });
+    } catch (err: any) {
+      await storage.updateOrder(req.params.orderId, {
+        storageStationStatus: "failed",
+        storageStationError: err?.message,
+      } as any);
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // ─── Storage Station: get status from WC ────────────────────────────────
+  app.get("/api/admin/storage-station/status/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const ssOrderId = (order as any).storageStationOrderId;
+      if (!ssOrderId) {
+        return res.json({
+          sent: false,
+          storageStationStatus: (order as any).storageStationStatus || "not_sent",
+          storageStationError: (order as any).storageStationError || null,
+        });
+      }
+
+      const wcOrder = await getStorageStationOrder(ssOrderId);
+      res.json({
+        sent: true,
+        wcOrderId: ssOrderId,
+        wcOrderNumber: (order as any).storageStationOrderNumber,
+        wcStatus: wcOrder?.status,
+        storageStationStatus: (order as any).storageStationStatus,
+        storageStationSentAt: (order as any).storageStationSentAt,
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message });
+    }
+  });
+
+  // ─── Storage Station: list pending/failed orders ─────────────────────────
+  app.get("/api/admin/storage-station/orders", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const { status } = req.query;
+      const filter: any = {
+        shippingMethod: "delivery",
+        paymentStatus: "paid",
+      };
+      if (status === "failed") filter.storageStationStatus = "failed";
+      else if (status === "sent") filter.storageStationStatus = "sent";
+      else if (status === "not_sent") filter.$or = [
+        { storageStationStatus: null },
+        { storageStationStatus: { $exists: false } },
+      ];
+
+      const orders = await OrderModel.find(filter)
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean();
+
+      res.json(orders.map((o: any) => ({
+        id: o._id,
+        orderRef: String(o._id).slice(-8).toUpperCase(),
+        customerName: o.customerName,
+        customerPhone: o.customerPhone,
+        total: o.total,
+        createdAt: o.createdAt,
+        storageStationOrderId: o.storageStationOrderId,
+        storageStationOrderNumber: o.storageStationOrderNumber,
+        storageStationStatus: o.storageStationStatus || "not_sent",
+        storageStationSentAt: o.storageStationSentAt,
+        storageStationError: o.storageStationError,
+        shippingMethod: o.shippingMethod,
+      })));
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message });
+    }
+  });
+
+  // ─── Storage Station: config check ──────────────────────────────────────
+  app.get("/api/admin/storage-station/config", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== "admin") return res.sendStatus(403);
+    res.json({
+      configured: isStorageStationConfigured(),
+      baseUrl: "https://storagestation.app",
+      store: "rfperfume",
+    });
   });
 
   // ─── Flash Deals ─────────────────────────────────────────────

@@ -174,6 +174,12 @@ const orderSchema = new Schema<Order>(
     installments: { type: Number },
     shippingProvider: { type: String },
     trackingNumber: { type: String },
+    // ── Storage Station (3PL fulfillment) ────────────────────────────────────
+    storageStationOrderId: { type: Number, default: null },
+    storageStationOrderNumber: { type: String, default: null },
+    storageStationStatus: { type: String, default: null },     // pending | sent | failed
+    storageStationSentAt: { type: Date, default: null },
+    storageStationError: { type: String, default: null },
     deliveryDriver: {
       name: String,
       phone: String,
