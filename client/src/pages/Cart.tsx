@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useCart } from "@/hooks/use-cart";
 import { useCoupon } from "@/hooks/use-coupon";
 import { Button } from "@/components/ui/button";
-import { Trash2, ShoppingBag, Check, AlertCircle } from "lucide-react";
+import { Trash2, ShoppingBag, Check, Tag, ChevronLeft, Shield } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/hooks/use-language";
 import { useState } from "react";
@@ -31,7 +31,6 @@ export default function Cart() {
     setLocation("/checkout");
   };
 
-  // ── Bundle offers: ask the server to compute best bundle pricing for the cart
   const bundleCalcKey = items.map(i => `${i.productId}:${i.quantity}:${i.price}`).join("|");
   const { data: bundleResult } = useQuery<{ originalTotal: number; bundleTotal: number; savings: number; applications: any[] }>({
     queryKey: ["/api/bundle-offers/calculate", bundleCalcKey],
@@ -78,30 +77,18 @@ export default function Cart() {
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
     const subtotal = total();
-    
-    // Check minimum order amount
-    if (appliedCoupon.minOrderAmount && subtotal < appliedCoupon.minOrderAmount) {
-      return 0;
-    }
-
-    if (appliedCoupon.type === "percentage") {
-      return (subtotal * appliedCoupon.value) / 100;
-    } else if (appliedCoupon.type === "cashback") {
-      // Cashback doesn't reduce the order total, it's credited after purchase
-      return 0;
-    } else {
-      return appliedCoupon.value;
-    }
+    if (appliedCoupon.minOrderAmount && subtotal < appliedCoupon.minOrderAmount) return 0;
+    if (appliedCoupon.type === "percentage") return (subtotal * appliedCoupon.value) / 100;
+    if (appliedCoupon.type === "cashback") return 0;
+    return appliedCoupon.value;
   };
 
   const calculateCashback = () => {
     if (!appliedCoupon || appliedCoupon.type !== "cashback") return 0;
     const subtotal = total();
     const cashbackAmount = (subtotal * appliedCoupon.value) / 100;
-    // Apply max cashback limit if exists
-    if (appliedCoupon.maxCashback && cashbackAmount > appliedCoupon.maxCashback) {
+    if (appliedCoupon.maxCashback && cashbackAmount > appliedCoupon.maxCashback)
       return appliedCoupon.maxCashback;
-    }
     return cashbackAmount;
   };
 
@@ -114,14 +101,16 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <Layout>
-        <div className="container py-12 sm:py-16 md:py-24 text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <ShoppingBag className="h-7 w-7 sm:h-9 sm:w-9 md:h-10 md:w-10 text-muted-foreground" />
+        <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center" dir={language === "ar" ? "rtl" : "ltr"}>
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+            <ShoppingBag className="h-9 w-9 sm:h-11 sm:w-11 text-gray-300" />
           </div>
-          <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">{t('emptyCart')}</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">{t('emptyCartDesc')}</p>
+          <h1 className="font-black text-xl sm:text-2xl mb-2 text-gray-900">{t('emptyCart')}</h1>
+          <p className="text-sm sm:text-base text-gray-400 font-medium mb-7 max-w-xs">{t('emptyCartDesc')}</p>
           <Link href="/products">
-            <Button size="lg">{t('browseProducts')}</Button>
+            <Button size="lg" className="rounded-2xl font-black h-12 sm:h-14 px-8 text-sm">
+              {t('browseProducts')}
+            </Button>
           </Link>
         </div>
       </Layout>
@@ -130,63 +119,89 @@ export default function Cart() {
 
   return (
     <Layout>
-      <div className="bg-[#fcfcfc] min-h-screen">
-        <div className="container py-5 sm:py-10 md:py-14 lg:py-20 px-3 sm:px-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 sm:mb-8 md:mb-12 lg:mb-16 gap-2 sm:gap-4 border-b border-black/5 pb-3 sm:pb-6 md:pb-8">
-            <h1 className={`font-display text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+      <div className="bg-[#f9f8f6] min-h-screen" dir={language === "ar" ? "rtl" : "ltr"}>
+        <div className="container px-3 sm:px-4 py-6 sm:py-10 md:py-14">
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-10 gap-2 pb-4 sm:pb-6 border-b border-black/5">
+            <h1 className="font-black text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight">
               {t('shoppingBag')}
             </h1>
-            <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground flex-wrap">
-              <span className="text-foreground">{t('shoppingBag')}</span>
-              <span className="opacity-20">/</span>
-              <span>{t('checkout')}</span>
-              <span className="opacity-20">/</span>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 flex-wrap">
+              <span className="text-gray-900">{t('shoppingBag')}</span>
+              <ChevronLeft className={`h-3 w-3 opacity-30 ${language === "ar" ? "rotate-180" : ""}`} />
+              <span className="text-primary">{t('checkout')}</span>
+              <ChevronLeft className={`h-3 w-3 opacity-30 ${language === "ar" ? "rotate-180" : ""}`} />
               <span>{t('payment')}</span>
             </div>
           </div>
-          
-          <div className="grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-start">
-            {/* Cart Items */}
-            <div className="lg:col-span-8 space-y-3 sm:space-y-4 md:space-y-6">
+
+          <div className="grid lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-10 items-start">
+
+            {/* ── Cart Items ── */}
+            <div className="lg:col-span-8 space-y-3 sm:space-y-4">
               {items.map((item) => (
-                <div key={`${item.productId}-${item.variantSku}`} className="group relative bg-card p-3 sm:p-4 md:p-6 shadow-sm hover:shadow-md transition-all duration-500 border border-border rounded-md">
-                  <div className="flex gap-3 sm:gap-5 md:gap-8">
-                    <div className="w-16 sm:w-24 md:w-28 lg:w-36 aspect-[3/4] bg-muted overflow-hidden shrink-0 border border-border rounded-sm">
-                      <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 " />
-                    </div>
-                    
-                    <div className={`flex-1 flex flex-col justify-between min-w-0 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className="flex justify-between items-start gap-2">
-                          <h3 className="font-black text-xs sm:text-base md:text-lg lg:text-xl uppercase tracking-tighter leading-tight line-clamp-2 break-words">{item.title}</h3>
-                          <button 
-                            onClick={() => removeItem(item.productId, item.variantSku)}
-                            className="text-muted-foreground/50 hover:text-red-500 transition-colors shrink-0"
-                            aria-label="حذف"
-                          >
-                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </button>
-                        </div>
-                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                          {item.color} <span className="mx-1.5 sm:mx-2 opacity-20">|</span> {item.size}
-                        </p>
-                        <div className="pt-2 sm:pt-3 md:pt-4">
-                          <span className="font-black text-base sm:text-lg md:text-xl tracking-tight">{(item.price * item.quantity).toLocaleString()} <RiyalSign /></span>
-                        </div>
+                <div
+                  key={`${item.productId}-${item.variantSku}`}
+                  className="group bg-white rounded-2xl p-3 sm:p-4 md:p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex gap-3 sm:gap-4">
+                    {/* Image */}
+                    <Link href={`/products/${item.productId}`}>
+                      <div className="w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 bg-gray-50 overflow-hidden shrink-0 rounded-xl border border-gray-100 cursor-pointer">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       </div>
-                      
-                      <div className={`flex items-center gap-3 sm:gap-6 mt-3 sm:mt-5 md:mt-6 ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                        <div className="flex items-center bg-muted p-0.5 sm:p-1 rounded-md">
-                          <button 
+                    </Link>
+
+                    {/* Details */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-black text-sm sm:text-base md:text-lg uppercase tracking-tight leading-tight line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                            {item.color}
+                            {item.color && item.size && <span className="mx-1.5 opacity-30">·</span>}
+                            {item.size}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.productId, item.variantSku)}
+                          className="text-gray-300 hover:text-red-500 transition-colors shrink-0 p-1"
+                          aria-label="حذف"
+                          data-testid={`button-remove-${item.productId}`}
+                        >
+                          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3 sm:mt-4 gap-3 flex-wrap">
+                        {/* Price */}
+                        <span className="font-black text-base sm:text-lg md:text-xl tracking-tight">
+                          {(item.price * item.quantity).toLocaleString()} <RiyalSign />
+                        </span>
+
+                        {/* Quantity controls */}
+                        <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
+                          <button
                             onClick={() => updateQuantity(item.productId, item.variantSku, Math.max(1, item.quantity - 1))}
-                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-background transition-all text-base sm:text-lg font-light"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg hover:bg-white transition-all text-lg font-light"
+                            data-testid={`button-decrease-${item.productId}`}
                           >
-                            -
+                            −
                           </button>
-                          <span className="text-xs sm:text-sm font-black w-8 sm:w-10 text-center">{item.quantity}</span>
-                          <button 
+                          <span className="text-xs sm:text-sm font-black w-8 sm:w-9 text-center tabular-nums">
+                            {item.quantity}
+                          </span>
+                          <button
                             onClick={() => updateQuantity(item.productId, item.variantSku, item.quantity + 1)}
-                            className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-background transition-all text-base sm:text-lg font-light"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg hover:bg-white transition-all text-lg font-light"
+                            data-testid={`button-increase-${item.productId}`}
                           >
                             +
                           </button>
@@ -198,32 +213,34 @@ export default function Cart() {
               ))}
             </div>
 
-            {/* Summary */}
+            {/* ── Summary ── */}
             <div className="lg:col-span-4">
-              <div className="lg:sticky lg:top-24 space-y-4 sm:space-y-6">
-                <div className="bg-white p-4 sm:p-6 md:p-8 border border-black/5 shadow-sm rounded-md">
-                  <h3 className={`text-xs font-black uppercase tracking-[0.3em] text-black/40 mb-8 pb-4 border-b border-black/5 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+              <div className="lg:sticky lg:top-24 space-y-3 sm:space-y-4">
+                <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-100 shadow-sm">
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-5 pb-4 border-b border-gray-100">
                     {t('bagSummary')}
                   </h3>
-                  
-                  <div className="space-y-4 text-[11px] font-bold uppercase tracking-widest">
-                    <div className={`flex justify-between ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-black">{subtotal.toLocaleString()} <RiyalSign /></span>
-                      <span className="opacity-40">{t('subtotal')}</span>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm font-bold text-gray-600">
+                      <span className="font-black text-gray-900">{subtotal.toLocaleString()} <RiyalSign /></span>
+                      <span>{t('subtotal')}</span>
                     </div>
-                    <div className={`flex justify-between ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                      <span className="text-black/50">{vatIncluded.toLocaleString()} <RiyalSign /></span>
-                      <span className="opacity-40">ضريبة ١٥٪ (مشمولة)</span>
+                    <div className="flex justify-between text-xs font-bold text-gray-400">
+                      <span>{vatIncluded.toLocaleString()} <RiyalSign /></span>
+                      <span>ضريبة ١٥٪ (مشمولة)</span>
                     </div>
-                    
+
                     {appliedCoupon && discountAmount > 0 && (
-                      <div className={`flex justify-between text-green-600 ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                        <span>-{discountAmount.toLocaleString()} <RiyalSign /></span>
+                      <div className="flex justify-between text-sm font-black text-emerald-600">
                         <div className="flex items-center gap-2">
-                          <span className="opacity-60">{t('discount')}</span>
+                          <span>-{discountAmount.toLocaleString()} <RiyalSign /></span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="opacity-80">{t('discount')}</span>
                           <button
                             onClick={() => clearCoupon()}
-                            className="opacity-40 hover:opacity-100 transition-opacity text-[9px]"
+                            className="text-gray-300 hover:text-red-400 transition-colors text-[10px]"
                           >
                             ✕
                           </button>
@@ -232,108 +249,110 @@ export default function Cart() {
                     )}
 
                     {bundleSavings > 0 && (
-                      <div
-                        className={`flex justify-between text-[#850935] ${language === 'ar' ? '' : 'flex-row-reverse'}`}
-                        data-testid="row-bundle-savings"
-                      >
-                        <span className="font-bold">-{bundleSavings.toLocaleString()} <RiyalSign /></span>
-                        <span className="opacity-80">عرض الباقة</span>
+                      <div className="flex justify-between text-sm font-black text-purple-600" data-testid="row-bundle-savings">
+                        <span>-{bundleSavings.toLocaleString()} <RiyalSign /></span>
+                        <span>عرض الباقة</span>
                       </div>
                     )}
+
                     {bundleResult?.applications && bundleResult.applications.length > 0 && (
-                      <div className="text-[10px] text-[#2B2B60] bg-[#F5F2ED] rounded p-2 leading-relaxed">
+                      <div className="bg-purple-50 border border-purple-100 rounded-xl p-2.5 space-y-1">
                         {bundleResult.applications.map((a: any, i: number) => (
-                          <div key={i}>
-                            ✓ {a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} <RiyalSign />
+                          <div key={i} className="text-[10px] text-purple-700 font-bold flex items-center gap-1">
+                            <Check className="h-3 w-3 shrink-0" />
+                            {a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} <RiyalSign />
                           </div>
                         ))}
                       </div>
                     )}
-                    
+
                     {appliedCoupon && cashbackAmount > 0 && (
-                      <div className={`flex justify-between text-blue-600 ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
-                        <span>+{cashbackAmount.toLocaleString()} <RiyalSign /></span>
-                        <div className="flex items-center gap-2">
-                          <span className="opacity-60">{t('cashback')}</span>
-                          <button
-                            onClick={() => clearCoupon()}
-                            className="opacity-40 hover:opacity-100 transition-opacity text-[9px]"
-                          >
-                            ✕
-                          </button>
+                      <div className="flex justify-between text-sm font-black text-blue-600">
+                        <div className="flex items-center gap-1.5">
+                          <span>+{cashbackAmount.toLocaleString()} <RiyalSign /></span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="opacity-80">{t('cashback')}</span>
+                          <button onClick={() => clearCoupon()} className="text-gray-300 hover:text-red-400 transition-colors text-[10px]">✕</button>
                         </div>
                       </div>
                     )}
-                    
-                    <div className={`flex justify-between pt-4 sm:pt-5 md:pt-6 mt-4 sm:mt-5 md:mt-6 border-t border-black/5 font-black text-lg sm:text-2xl md:text-3xl tracking-tighter text-black ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
+
+                    <div className="flex justify-between pt-4 mt-2 border-t border-gray-100 font-black text-xl sm:text-2xl tracking-tight">
                       <span className="text-primary">{finalTotal.toLocaleString()} <RiyalSign /></span>
                       <span>{t('total')}</span>
                     </div>
                   </div>
 
-                  <div className="mt-5 sm:mt-7 md:mt-10 space-y-3 sm:space-y-4">
-                    {!appliedCoupon && (
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-black/30 block">{t('discountCode')}</label>
-                        <div className="flex gap-2">
-                          <input 
-                            type="text" 
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && couponCode.trim()) {
-                                applyCouponMutation.mutate(couponCode.trim());
-                              }
-                            }}
-                            placeholder={t('enterCoupon')}
-                            className="flex-1 min-w-0 bg-black/5 border-none p-3 sm:p-4 text-xs focus:ring-1 focus:ring-black/10 transition-all uppercase tracking-widest disabled:opacity-50 rounded-md"
-                            disabled={loading}
-                            data-testid="input-coupon-code"
-                          />
-                          <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              if (couponCode.trim()) {
-                                applyCouponMutation.mutate(couponCode.trim());
-                              }
-                            }}
-                            disabled={loading || !couponCode.trim()}
-                            className="h-10 sm:h-12 px-3 sm:px-6 shrink-0 border-black/10 hover:bg-black hover:text-white transition-all rounded-md uppercase text-[10px] font-black tracking-widest disabled:opacity-50"
-                            data-testid="button-apply-coupon"
-                          >
-                            {loading ? '...' : t('apply')}
-                          </Button>
-                        </div>
+                  {/* Coupon */}
+                  {!appliedCoupon && (
+                    <div className="mt-5 space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-1.5">
+                        <Tag className="h-3 w-3" />
+                        {t('discountCode')}
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && couponCode.trim()) {
+                              applyCouponMutation.mutate(couponCode.trim());
+                            }
+                          }}
+                          placeholder={t('enterCoupon')}
+                          className="flex-1 min-w-0 bg-gray-50 border border-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase tracking-widest disabled:opacity-50"
+                          disabled={loading}
+                          data-testid="input-coupon-code"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => { if (couponCode.trim()) applyCouponMutation.mutate(couponCode.trim()); }}
+                          disabled={loading || !couponCode.trim()}
+                          className="h-10 px-4 shrink-0 border-gray-100 hover:bg-black hover:text-white transition-all rounded-xl text-[10px] font-black tracking-widest"
+                          data-testid="button-apply-coupon"
+                        >
+                          {loading ? '...' : t('apply')}
+                        </Button>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    <Button
-                      size="lg"
-                      onClick={handleCheckoutClick}
-                      data-testid="button-proceed-checkout"
-                      className="w-full font-black h-12 sm:h-14 md:h-16 uppercase tracking-[0.25em] sm:tracking-[0.4em] rounded-md bg-black text-white hover:bg-primary border-none transition-all text-[11px] sm:text-xs shadow-xl shadow-black/10 active:scale-95"
-                    >
-                      {t('checkout')}
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-5 sm:mt-7 md:mt-8 pt-5 sm:pt-7 md:pt-8 border-t border-black/5">
-                    <p className="text-[9px] uppercase tracking-[0.25em] sm:tracking-[0.3em] opacity-30 text-center font-black leading-relaxed">
-                      {t('freeShippingPromo')}
-                    </p>
-                  </div>
+                  {/* Applied coupon badge */}
+                  {appliedCoupon && (
+                    <div className="mt-4 flex items-center justify-between bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600" />
+                        <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">{appliedCoupon.code}</span>
+                      </div>
+                      <button onClick={() => clearCoupon()} className="text-gray-300 hover:text-red-400 text-xs font-black transition-colors">إلغاء</button>
+                    </div>
+                  )}
+
+                  {/* Checkout button */}
+                  <Button
+                    size="lg"
+                    onClick={handleCheckoutClick}
+                    data-testid="button-proceed-checkout"
+                    className="w-full font-black h-13 h-12 sm:h-14 uppercase tracking-[0.2em] rounded-2xl mt-5 shadow-lg shadow-primary/20 active:scale-95 transition-all text-xs sm:text-sm"
+                  >
+                    {t('checkout')}
+                    <ChevronLeft className={`h-4 w-4 mr-1 ${language === "ar" ? "rotate-180" : ""}`} />
+                  </Button>
                 </div>
-                
-                {/* Security Badge */}
-                <div className="bg-black/[0.02] p-4 sm:p-6 border border-black/5 flex items-center justify-center gap-3 sm:gap-4 opacity-40 rounded-md">
-                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">{t('secureShipping')}</span>
+
+                {/* Security badge */}
+                <div className="bg-white rounded-2xl p-3.5 border border-gray-100 shadow-sm flex items-center justify-center gap-2.5 text-gray-400">
+                  <Shield className="h-4 w-4 shrink-0" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('secureShipping')}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       {!user && <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="login" />}
     </Layout>
   );
