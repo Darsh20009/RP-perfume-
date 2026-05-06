@@ -48,6 +48,12 @@ import {
 import {
   perfumeAdvisor, supportAssistant, adminAssistant, isGroqConfigured, smartAdvisorFallback
 } from "./groq";
+import { kimiBudgetStatus, isKimiConfigured } from "./kimi";
+import {
+  trackAdvisorShown, trackProductClicked, trackProductOrdered,
+  getAllInsightsSummary, runNightlyLearning, startAiLearningScheduler,
+  AiInteractionModel, AiProductInsightModel,
+} from "./ai-learning";
 
 // Configure storage for uploaded files
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -321,6 +327,15 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
         }
       }, { critical: true, maxAttempts: 5 });
     }
+
+    // ── AI Self-Learning: track purchased products to improve recommendations ──
+    enqueueJob("paid-ai-track", async () => {
+      const productIds = (order.items || []).map((item: any) => String(item.productId || item.id)).filter(Boolean);
+      if (productIds.length) {
+        const sessionId = String(order.userId || orderId);
+        await trackProductOrdered(sessionId, productIds);
+      }
+    });
 
     console.log(`[PaidSideEffects] order ${orderId} → notifications/email/invoice queued after payment confirmation`);
   } catch (e: any) {
@@ -4368,23 +4383,66 @@ export async function registerRoutes(
   // ─── Groq AI Endpoints ──────────────────────────────────────
 
   app.get("/api/ai/status", (_req, res) => {
-    res.json({ configured: isGroqConfigured() });
+    res.json({
+      configured: isGroqConfigured(),
+      kimi: isKimiConfigured(),
+      kimiBudget: isKimiConfigured() ? kimiBudgetStatus() : null,
+    });
+  });
+
+  // ─── AI Learning: track product click ──────────────────────────
+  app.post("/api/ai/track-click", async (req, res) => {
+    try {
+      const { sessionId, productId } = req.body || {};
+      if (sessionId && productId) await trackProductClicked(sessionId, productId);
+      res.json({ ok: true });
+    } catch { res.json({ ok: false }); }
+  });
+
+  // ─── AI Learning: admin insights dashboard ──────────────────────
+  app.get("/api/ai/learning-insights", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const u = req.user as any;
+    if (!["admin", "employee", "support"].includes(u?.role)) return res.sendStatus(403);
+    try {
+      const insights = await getAllInsightsSummary();
+      res.json({ ok: true, insights, kimiBudget: isKimiConfigured() ? kimiBudgetStatus() : null });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+  // ─── AI Learning: trigger manual learning run (admin only) ──────
+  app.post("/api/ai/run-learning", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const u = req.user as any;
+    if (u?.role !== "admin") return res.sendStatus(403);
+    res.json({ ok: true, message: "Learning cycle started in background" });
+    runNightlyLearning().catch(e => console.error("[AI Learn manual]", e?.message));
   });
 
   app.post("/api/ai/perfume-advisor", aiLimiter, async (req, res) => {
-    const { message, history } = req.body || {};
+    const { message, history, sessionId } = req.body || {};
     if (!message) return res.status(400).json({ error: "الرسالة مطلوبة" });
     const products = await storage.getProducts().catch(() => []);
     try {
       if (!isGroqConfigured()) {
-        // No AI keys configured at all → still give a useful answer
         return res.json(smartAdvisorFallback(message, products));
       }
       const result = await perfumeAdvisor(message, history || [], products);
-      // If AI returned no products AND a generic-sounding error reply,
-      // upgrade to smart fallback so the customer never sees an empty answer.
       if ((!result.products || result.products.length === 0) && /حدث خطأ|try again|عذراً/i.test(result.response || "")) {
         return res.json(smartAdvisorFallback(message, products));
+      }
+      // Track which products were shown for AI self-learning
+      if (sessionId && result.products?.length) {
+        const { detectLang } = await import("./groq");
+        const lang = detectLang(message);
+        trackAdvisorShown(
+          sessionId,
+          result.products.map((p: any) => p.id),
+          message,
+          lang,
+        ).catch(() => {});
       }
       res.json(result);
     } catch (err: any) {
@@ -6055,6 +6113,9 @@ export async function registerRoutes(
   startAbandonedCartWorker();
   startPickupExpiryWorker();
   startPendingPaymentExpiryWorker();
+
+  // Boot AI self-learning scheduler (nightly at 03:00 UTC)
+  startAiLearningScheduler();
 
   return httpServer;
 }

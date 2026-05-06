@@ -1,4 +1,5 @@
 import { isGeminiConfigured, geminiChat } from "./gemini";
+import { isKimiConfigured, kimiChat } from "./kimi";
 
 type Audience = "customer" | "employee";
 
@@ -59,9 +60,7 @@ function markKeyCooldown(key: string, retryAfterSec?: number) {
 }
 
 export function isGroqConfigured(): boolean {
-  // AI is "configured" if EITHER Gemini OR Groq has at least one usable key.
-  // Callers shouldn't care which provider answered — that's transparent.
-  return ALL_KEYS.length > 0 || isGeminiConfigured();
+  return ALL_KEYS.length > 0 || isGeminiConfigured() || isKimiConfigured();
 }
 
 interface ChatMessage {
@@ -180,6 +179,17 @@ async function groqChat(
       }
     }
   }
+  // ─── FINAL FALLBACK: Kimi (paid, always available, budget-guarded) ──────────
+  if (isKimiConfigured()) {
+    try {
+      console.log(`[AI] All Groq keys exhausted for ${audience}, trying Kimi...`);
+      const response = await kimiChat(messages, maxTokens, audience);
+      if (response) return response;
+    } catch (err: any) {
+      console.warn(`[AI] Kimi also failed for ${audience}:`, err?.message || err);
+    }
+  }
+
   throw lastErr || new Error("Groq request failed on all keys");
 }
 
@@ -373,8 +383,6 @@ ${extraRules}`;
   ];
 
   const raw = await groqChat(messages, 1024, "customer");
-
-  // (debug) console.log(`[PerfumeAdvisor] catalog=${products.length} raw len=${raw.length}`);
 
   // Extract product references — accept both [PRODUCT:P#] and [PRODUCT:<hex id>]
   // for backward compatibility in case the model echoes a real id.
