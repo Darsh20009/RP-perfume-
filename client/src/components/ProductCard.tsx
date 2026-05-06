@@ -12,6 +12,15 @@ import { useCart } from "@/hooks/use-cart";
 import { flyToCart } from "@/lib/flyToCart";
 import { RiyalSign } from "@/components/RiyalSign";
 
+const CATEGORY_BADGE_MAP: Record<string, { labelAr: string; labelEn: string; cls: string }> = {
+  men:         { labelAr: "رجالي",    labelEn: "Men",     cls: "bg-[#2B2B60] text-white" },
+  women:       { labelAr: "نسائي",    labelEn: "Women",   cls: "bg-[#850935] text-white" },
+  unisex:      { labelAr: "للجنسين",  labelEn: "Unisex",  cls: "bg-[#4a3060] text-white" },
+  spray:       { labelAr: "بخاخ",     labelEn: "Spray",   cls: "bg-[#1a6b4a] text-white" },
+  accessories: { labelAr: "إكسسوار",  labelEn: "Accessory", cls: "bg-[#7a5c1e] text-white" },
+  oud:         { labelAr: "عود",      labelEn: "Oud",     cls: "bg-[#5c3a1e] text-white" },
+};
+
 interface ProductCardProps {
   product: Product;
 }
@@ -25,6 +34,25 @@ export function ProductCard({ product }: ProductCardProps) {
   const images = product.images && product.images.length > 0
     ? product.images
     : ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80"];
+
+  const { data: allCategories = [] } = useQuery<any[]>({
+    queryKey: ["/api/categories"],
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const categoryBadge = (() => {
+    const productCategoryIds: string[] = (product as any).categoryIds || [];
+    if (!productCategoryIds.length || !allCategories.length) return null;
+    for (const cat of allCategories) {
+      const catId = String(cat._id || cat.id || "");
+      if (productCategoryIds.includes(catId)) {
+        const slug = (cat.slug || "").toLowerCase();
+        const mapped = CATEGORY_BADGE_MAP[slug];
+        if (mapped) return { ...mapped, slug };
+      }
+    }
+    return null;
+  })();
 
   // Total stock across variants — used to badge & disable add-to-cart
   const variantsList = ((product as any).variants || []) as Array<{ stock?: number }>;
@@ -78,6 +106,19 @@ export function ProductCard({ product }: ProductCardProps) {
             />
 
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            {/* Category badge — bottom corner */}
+            {categoryBadge && !isOutOfStock && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className={`absolute bottom-3 ${language === 'ar' ? 'left-3' : 'right-3'} text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm shadow-md ${categoryBadge.cls}`}
+                data-testid={`badge-category-${product.id}`}
+              >
+                {language === 'ar' ? categoryBadge.labelAr : categoryBadge.labelEn}
+              </motion.div>
+            )}
 
             {product.isFeatured && !isOutOfStock && (
               <motion.div

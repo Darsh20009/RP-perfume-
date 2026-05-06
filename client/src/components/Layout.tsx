@@ -559,21 +559,54 @@ export function Layout({ children }: { children: ReactNode }) {
               {t('footerTagline')}
             </p>
           </div>
+
+          {/* الدعم والمساعدة */}
           <div>
-            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('categories')}</h3>
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">
+              {language === 'ar' ? 'الدعم والمساعدة' : 'Help & Support'}
+            </h3>
             <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-800">
-              <li><Link href="/products" className="hover:text-[#DFB369] transition-colors">{t('allProducts')}</Link></li>
+              <li><Link href="/pages/about" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'من نحن' : 'About Us'}</Link></li>
+              <li><Link href="/terms" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}</Link></li>
+              <li><Link href="/pages/privacy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link></li>
+              <li><Link href="/pages/loyalty" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'برنامج ولاء العملاء' : 'Loyalty Program'}</Link></li>
+              <li><Link href="/pages/shipping-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الشحن والتوصيل' : 'Shipping Policy'}</Link></li>
+              <li><Link href="/pages/return-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الاسترجاع والاستبدال' : 'Return Policy'}</Link></li>
             </ul>
           </div>
+
+          {/* تواصل معنا */}
           <div>
-            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('help')}</h3>
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">
+              {language === 'ar' ? 'تواصل معنا' : 'Contact Us'}
+            </h3>
             <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-800">
-              <li><Link href="/terms" className="hover:text-[#DFB369] transition-colors">{t('terms')}</Link></li>
-              <li><Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'فروعنا' : 'Our Branches'}</Link></li>
+              <li>
+                <Link href="/branches" data-testid="link-footer-branches" className="hover:text-[#DFB369] transition-colors">
+                  {language === 'ar' ? 'فروعنا' : 'Our Branches'}
+                </Link>
+              </li>
+              <li>
+                <a href="https://api.whatsapp.com/send?phone=966551329821" target="_blank" rel="noreferrer" className="hover:text-[#DFB369] transition-colors">
+                  {language === 'ar' ? 'خدمة العملاء' : 'Customer Service'}
+                </a>
+              </li>
+              <li>
+                <a href="mailto:complaints@rfperfume.sa" className="hover:text-[#DFB369] transition-colors">
+                  {language === 'ar' ? 'للشكاوى أو المقترحات' : 'Complaints & Suggestions'}
+                </a>
+              </li>
+              <li>
+                <a href="mailto:sales@rfperfume.sa" className="hover:text-[#DFB369] transition-colors">
+                  {language === 'ar' ? 'مبيعات الشركات والجملة' : 'Corporate & Wholesale Sales'}
+                </a>
+              </li>
             </ul>
           </div>
+
+          {/* Contact Info */}
           <div className="col-span-2 md:col-span-1">
-            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{t('contactUs')}</h3>
+            <h3 className="font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6 text-[#DFB369]">{language === 'ar' ? 'معلومات التواصل' : 'Get in Touch'}</h3>
             <div className="space-y-4 text-sm text-gray-800">
               <a 
                 href="tel:+966551329821" 
