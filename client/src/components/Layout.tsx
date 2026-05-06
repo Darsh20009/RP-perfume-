@@ -687,15 +687,15 @@ export function Layout({ children }: { children: ReactNode }) {
                 href="https://qr.saudibusiness.gov.sa/viewcr?nCrNumber=et1BNw5nU2a6R1GygbnoPA=="
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2 group transition-transform"
+                className="flex flex-row items-center gap-3 group transition-transform"
               >
                 <img 
                   src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png" 
                   loading="lazy" 
                   alt="السجل التجاري" 
-                  className="h-8 sm:h-12 w-auto object-contain flex-shrink-0" 
+                  className="h-10 sm:h-12 w-auto object-contain flex-shrink-0" 
                 />
-                <div className="text-right sm:text-center">
+                <div className="text-right">
                   <div className="text-[9px] sm:text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                     {t('commercialReg')}
                   </div>
@@ -703,14 +703,14 @@ export function Layout({ children }: { children: ReactNode }) {
                 </div>
               </a>
               {/* VAT */}
-              <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2">
+              <div className="flex flex-row items-center gap-3">
                 <img
                   src="/images/vat-logo.png"
                   alt="ضريبة القيمة المضافة VAT"
                   loading="lazy"
-                  className="h-8 sm:h-12 w-auto object-contain flex-shrink-0"
+                  className="h-10 sm:h-12 w-auto object-contain flex-shrink-0"
                 />
-                <div className="text-right sm:text-center">
+                <div className="text-right">
                   <div className="text-[9px] sm:text-[10px] text-gray-700 font-bold uppercase tracking-widest">
                     {t('taxNumber')}
                   </div>
