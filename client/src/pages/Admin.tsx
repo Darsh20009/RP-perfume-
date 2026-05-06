@@ -35,6 +35,7 @@ import AdminPages from "@/pages/admin/AdminPages";
 import AdminAiInsights from "@/pages/admin/AdminAiInsights";
 import AdminSystemHealth from "@/pages/admin/AdminSystemHealth";
 import AdminIntegrations from "@/pages/admin/AdminIntegrations";
+import AdminPixels from "@/pages/admin/AdminPixels";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 import { NotificationBell } from "@/components/notification-bell";
 const logoImg = "/images/logos/logo-light.png";
@@ -5493,6 +5494,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
       label: "التسويق",
       items: [
         { id: "marketing", label: "الحملات التسويقية", icon: Activity },
+        { id: "pixels", label: "البيكسل التسويقي", icon: Activity },
         { id: "flash-deals", label: "عروض فلاش", icon: Zap },
         { id: "bundles", label: "عروض الباقات", icon: Package },
         { id: "returns", label: "المرتجعات", icon: RotateCcw },
@@ -5834,6 +5836,7 @@ export default function Admin() {
                 {activeTab === "vendors"   && <VendorsPanel />}
                 {activeTab === "coupons"   && <CouponsTable />}
                 {activeTab === "marketing" && <MarketingManagement />}
+                {activeTab === "pixels"    && <AdminPixels />}
                 {activeTab === "broadcast" && <BroadcastPanel />}
                 {activeTab === "flash-deals" && <FlashDealsPanel />}
                 {activeTab === "bundles"     && <AdminBundles />}

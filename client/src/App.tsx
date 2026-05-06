@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 import { PWAPrompt } from "@/components/PWAPrompt";
 import { IOSInstallGuide } from "@/components/IOSInstallGuide";
 import { useBlockInspect } from "@/hooks/use-block-inspect";
+import { PixelTracker } from "@/components/PixelTracker";
 
 const ProfileInvoices = lazy(() => import("@/pages/ProfileInvoices"));
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -260,6 +261,7 @@ function AppContent() {
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language}>
       <ErrorBoundary>
+        <PixelTracker />
         <Router />
         <PWAPrompt />
         <IOSInstallGuide />

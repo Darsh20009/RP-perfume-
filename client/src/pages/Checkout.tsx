@@ -1,5 +1,6 @@
 import { useCart } from "@/hooks/use-cart";
 import { useCoupon } from "@/hooks/use-coupon";
+import { trackPixelEvent } from "@/lib/pixels";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, Link } from "wouter";
@@ -290,6 +291,15 @@ export default function Checkout() {
   const handleFinalCheckout = async () => {
     setIsSubmitting(true);
     try {
+      try {
+        trackPixelEvent("InitiateCheckout", {
+          value: finalTotal,
+          currency: "SAR",
+          numItems: items.reduce((s, i) => s + i.quantity, 0),
+          contents: items.map(i => ({ id: i.productId, quantity: i.quantity, price: i.price })),
+        });
+      } catch {}
+
       const NEEDS_GATEWAY = ["tap", "apple_pay", "tabby", "tamara"];
       const requiresGateway = NEEDS_GATEWAY.includes(paymentMethod);
 

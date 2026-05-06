@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Product } from '@shared/schema';
+import { trackPixelEvent } from '@/lib/pixels';
 
 // ─── Server sync (debounced) for abandoned-cart tracking ────────────────────
 function getOrCreateSessionId(): string {
@@ -98,6 +99,15 @@ export const useCart = create<CartStore>()(
         }
         const s = get();
         scheduleCartSync(s.items, s.total());
+        try {
+          trackPixelEvent("AddToCart", {
+            contentId: product.id,
+            contentName: product.name,
+            value: Number(variant?.price) > 0 ? Number(variant.price) : Number(product.price),
+            currency: "SAR",
+            numItems: quantity,
+          });
+        } catch {}
       },
       removeItem: (productId, variantSku) => {
         set({

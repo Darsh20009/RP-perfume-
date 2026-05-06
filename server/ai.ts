@@ -146,18 +146,18 @@ export async function generateProductDescription(product: {
   targetAudience?: string;
   lang?: "ar" | "en" | "both";
 }) {
-  const prompt = `You are a professional copywriter for a luxury perfume store. Write an engaging description for this product.
+  const prompt = `You are a professional copywriter for a Saudi luxury perfume brand called RF Perfume (رفيف العود).
+STRICT RULE: Write Arabic text ONLY in Arabic script. Write English text ONLY in English. NEVER mix languages or use Chinese, Japanese, or any other script.
 
-Product name: ${product.name} ${product.nameEn ? `(${product.nameEn})` : ""}
+Product name: ${product.name}${product.nameEn ? ` / ${product.nameEn}` : ""}
 Category: ${product.category}
 Price: ${product.price} SAR
-${product.attributes ? `Attributes: ${JSON.stringify(product.attributes)}` : ""}
 ${product.targetAudience ? `Target audience: ${product.targetAudience}` : ""}
 
-Reply in JSON only, providing BOTH Arabic and English copy:
+Reply ONLY with valid JSON — no extra text, no markdown:
 {
-  "description_ar": "وصف عربي جذاب 2-3 جمل يبرز المميزات والجودة",
-  "description_en": "Engaging English description 2-3 sentences",
+  "description_ar": "وصف عربي جذاب 2-3 جمل يبرز الفخامة والرائحة",
+  "description_en": "Engaging English description 2-3 sentences highlighting luxury",
   "highlights_ar": ["ميزة رئيسية 1", "ميزة رئيسية 2", "ميزة رئيسية 3"],
   "highlights_en": ["Key benefit 1", "Key benefit 2", "Key benefit 3"],
   "seo_tags_ar": ["كلمة مفتاحية", "كلمة أخرى"],

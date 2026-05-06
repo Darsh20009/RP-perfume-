@@ -68,6 +68,7 @@ npm run start     # Production server
 -   Multi-language support (Arabic-first, RTL).
 -   Multiple payment integrations (STC Pay, Tabby, Tamara, Apple Pay, Paymob).
 -   Abandoned cart recovery system with email notifications and admin tools.
+-   Social media pixel integration (Meta/Facebook, TikTok, Snapchat, X/Twitter, GTM) — managed via admin panel, tracks PageView/ViewContent/AddToCart/InitiateCheckout/Purchase events automatically.
 -   Order cancellation with auto-refunds and stock restoration.
 -   ZATCA-compliant QR code and emailed tax invoices for paid orders.
 -   Dynamic header navigation based on custom pages.

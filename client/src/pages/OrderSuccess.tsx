@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Package, ArrowLeft, ShoppingBag, Sparkles, Truck, Receipt, XCircle, RefreshCw, MapPin, Clock, Phone, Store } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { RiyalSign } from "@/components/RiyalSign";
+import { trackPixelEvent } from "@/lib/pixels";
 
 type OrderApi = {
   id: string;
@@ -95,6 +96,7 @@ export default function OrderSuccess() {
     ? branches.find((b) => (b.id || b._id) === order!.pickupBranch)
     : null;
 
+  const purchaseFired = useRef(false);
   useEffect(() => {
     if (!gateway) return;
     toast({
@@ -108,6 +110,20 @@ export default function OrderSuccess() {
   }, [gateway, orderId, toast]);
 
   const total = Number(order?.total || 0);
+
+  useEffect(() => {
+    if (!order || purchaseFired.current || isPaymentFailed) return;
+    purchaseFired.current = true;
+    try {
+      trackPixelEvent("Purchase", {
+        value: total,
+        currency: "SAR",
+        orderId: String(order.id),
+        numItems: (order as any).items?.reduce((s: number, i: any) => s + (i.quantity || 1), 0) || 1,
+      });
+    } catch {}
+  }, [order, total, isPaymentFailed]);
+
   const inst = installments || order?.installments || 0;
   const perInstallment = inst > 0 ? Math.round((total / inst) * 100) / 100 : 0;
   const gatewayLabel = GATEWAY_LABEL[gateway] || GATEWAY_LABEL[order?.paymentMethod || ""] || "";

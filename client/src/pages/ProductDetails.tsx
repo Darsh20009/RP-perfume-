@@ -1,6 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { useProduct } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
+import { trackPixelEvent } from "@/lib/pixels";
 import { Button } from "@/components/ui/button";
 import { useRoute, useLocation } from "wouter";
 import { useState, useEffect, useMemo } from "react";
@@ -27,6 +28,19 @@ export default function ProductDetails() {
   const qc = useQueryClient();
   const [, setLocation] = useLocation();
   const isAr = language === "ar";
+
+  useEffect(() => {
+    if (!product) return;
+    try {
+      trackPixelEvent("ViewContent", {
+        contentId: product.id,
+        contentName: product.name,
+        contentCategory: (product as any).category || "",
+        value: Number(product.price) || 0,
+        currency: "SAR",
+      });
+    } catch {}
+  }, [product?.id]);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);

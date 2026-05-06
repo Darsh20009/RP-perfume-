@@ -4764,6 +4764,23 @@ export async function registerRoutes(
     }
   });
 
+  // ── Public pixel config (only exposes pixel IDs, safe for frontend) ──────────
+  app.get("/api/pixels", async (_req, res) => {
+    try {
+      const s = await storage.getStoreSettings();
+      res.set("Cache-Control", "public, max-age=900, stale-while-revalidate=1800");
+      res.json({
+        facebookPixelId: (s as any).facebookPixelId || "",
+        tiktokPixelId:   (s as any).tiktokPixelId   || "",
+        snapchatPixelId: (s as any).snapchatPixelId  || "",
+        twitterPixelId:  (s as any).twitterPixelId   || "",
+        gtmId:           (s as any).gtmId            || "",
+      });
+    } catch {
+      res.json({});
+    }
+  });
+
   app.patch("/api/store/settings", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as any;
