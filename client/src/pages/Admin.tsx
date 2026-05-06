@@ -1894,6 +1894,7 @@ const OrdersTable = memo(() => {
       return res.json();
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       toast({ title: `↩️ تم إنشاء شحنة الإرجاع — ${data.trackingNumber}` });
     },
     onError: (e: any) => toast({ title: `❌ ${e.message}`, variant: "destructive" }),
