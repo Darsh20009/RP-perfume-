@@ -26,6 +26,15 @@ import { STCPayForm } from "@/components/payment/STCPayForm";
 import { RiyalSign } from "@/components/RiyalSign";
 import { Badge } from "@/components/ui/badge";
 
+const SAUDI_CITIES = [
+  "الرياض","جدة","مكة المكرمة","المدينة المنورة","الدمام","الخبر","الطائف","تبوك",
+  "بريدة","القطيف","خميس مشيط","حفر الباطن","الجبيل","حائل","نجران","ينبع",
+  "الأحساء","المجمعة","عرعر","سكاكا","الباحة","أبها","عنيزة","الخرج","الدوادمي",
+  "جيزان","الزلفي","رابغ","الليث","القنفذة","المذنب","الرس","الجموم","ضباء",
+  "الوجه","رفحاء","طريف","بلجرشي","القريات","دومة الجندل","شرورة","نجران",
+  "بيشة","النماص","محايل عسير","أحد رفيدة","صبيا","صامطة","بقيق","الخفجي",
+];
+
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const { appliedCoupon } = useCoupon();
@@ -80,7 +89,15 @@ export default function Checkout() {
     }
   };
 
+  const [shippingMode, setShippingMode] = useState<"pickup" | "delivery">("pickup");
   const [pickupBranchId, setPickupBranchId] = useState<string>("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [deliveryStreet, setDeliveryStreet] = useState("");
+  const [deliveryDistrict, setDeliveryDistrict] = useState("");
+  const [deliveryName, setDeliveryName] = useState("");
+  const [deliveryPhone, setDeliveryPhone] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+  const [cityDropOpen, setCityDropOpen] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -169,6 +186,26 @@ export default function Checkout() {
     bank_transfer: true, tamara: true, tabby: true,
   };
 
+  // ── Shipping rate from Storage Station ──────────────────────────────────────
+  const subtotal = total();
+  const { data: shippingRateData, isFetching: isLoadingRate } = useQuery<{
+    cost: number; zoneName: string; methodTitle: string; isFree: boolean;
+  }>({
+    queryKey: ["/api/shipping/rate", deliveryCity, subtotal],
+    queryFn: async () => {
+      if (!deliveryCity) return { cost: 0, zoneName: "", methodTitle: "", isFree: true };
+      const res = await fetch(`/api/shipping/rate?city=${encodeURIComponent(deliveryCity)}&total=${subtotal}`);
+      if (!res.ok) return { cost: 30, zoneName: "افتراضي", methodTitle: "توصيل", isFree: false };
+      return res.json();
+    },
+    enabled: shippingMode === "delivery" && !!deliveryCity,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const shippingCostValue = shippingMode === "delivery" && deliveryCity
+    ? (shippingRateData?.cost ?? 0)
+    : 0;
+
   useEffect(() => {
     if (items.length === 0 && !paymobSheetOpen && !redirectingTo) {
       setLocation("/cart");
@@ -177,7 +214,6 @@ export default function Checkout() {
 
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
-    const subtotal = total();
     if (appliedCoupon.minOrderAmount && subtotal < appliedCoupon.minOrderAmount) return 0;
     if (appliedCoupon.type === "percentage") return (subtotal * appliedCoupon.value) / 100;
     if (appliedCoupon.type === "cashback") return 0;
@@ -186,7 +222,6 @@ export default function Checkout() {
 
   const calculateCashback = () => {
     if (!appliedCoupon || appliedCoupon.type !== "cashback") return 0;
-    const subtotal = total();
     const cashbackAmount = (subtotal * appliedCoupon.value) / 100;
     if (appliedCoupon.maxCashback && cashbackAmount > appliedCoupon.maxCashback)
       return appliedCoupon.maxCashback;
@@ -195,9 +230,8 @@ export default function Checkout() {
 
   const discountAmount = calculateDiscount();
   const cashbackAmount = calculateCashback();
-  const subtotal = total();
   const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
-  const finalTotal = Math.max(0, subtotal - discountAmount - loyaltyDiscount);
+  const finalTotal = Math.max(0, subtotal - discountAmount - loyaltyDiscount + shippingCostValue);
 
   // Branch stock check
   const branchStockIssues = (() => {
@@ -218,13 +252,24 @@ export default function Checkout() {
   const handleCheckout = async () => {
     if (!user) { setAuthOpen(true); return; }
     if (userMissingPhone) { setPhoneDialogOpen(true); return; }
-    if (!pickupBranchId) {
-      toast({ title: "اختر الفرع", description: "يرجى اختيار فرع الاستلام", variant: "destructive" });
-      return;
-    }
-    if (branchStockIssues.length > 0) {
-      toast({ title: "منتج غير متوفر", description: branchStockIssues[0], variant: "destructive" });
-      return;
+    if (shippingMode === "pickup") {
+      if (!pickupBranchId) {
+        toast({ title: "اختر الفرع", description: "يرجى اختيار فرع الاستلام", variant: "destructive" });
+        return;
+      }
+      if (branchStockIssues.length > 0) {
+        toast({ title: "منتج غير متوفر", description: branchStockIssues[0], variant: "destructive" });
+        return;
+      }
+    } else {
+      if (!deliveryCity) {
+        toast({ title: "اختر المدينة", description: "يرجى اختيار مدينة التوصيل", variant: "destructive" });
+        return;
+      }
+      if (!deliveryStreet.trim()) {
+        toast({ title: "أدخل العنوان", description: "يرجى إدخال اسم الشارع", variant: "destructive" });
+        return;
+      }
     }
     if (paymentMethod === "wallet" && Number(user.walletBalance) < finalTotal) {
       toast({
@@ -257,14 +302,19 @@ export default function Checkout() {
         if (!receiptUrl) { setIsSubmitting(false); return; }
       }
 
+      const isDelivery = shippingMode === "delivery";
+      const deliveryAddrStr = isDelivery
+        ? [deliveryStreet, deliveryDistrict, deliveryCity].filter(Boolean).join("، ")
+        : `استلام من فرع: ${selectedBranch?.name || ""}`;
+
       const orderData: any = {
         userId: user!.id,
         total: finalTotal.toFixed(2),
         subtotal: subtotal.toFixed(2),
         vatAmount: vatIncluded.toFixed(2),
-        shippingCost: "0",
-        shippingCompany: "",
-        deliveryAddress: `استلام من فرع: ${selectedBranch?.name || ""}`,
+        shippingCost: shippingCostValue.toFixed(2),
+        shippingCompany: isDelivery ? (shippingRateData?.methodTitle || "توصيل") : "",
+        deliveryAddress: deliveryAddrStr,
         customerName: user?.name || "",
         customerPhone: (user as any)?.phone || "",
         notes: orderNotes || undefined,
@@ -281,8 +331,14 @@ export default function Checkout() {
           cost: item.cost || 0,
           title: item.title,
         })),
-        shippingMethod: "pickup",
-        pickupBranch: pickupBranchId,
+        shippingMethod: isDelivery ? "delivery" : "pickup",
+        pickupBranch: isDelivery ? undefined : pickupBranchId,
+        shippingAddress: isDelivery ? {
+          city: deliveryCity,
+          street: deliveryStreet,
+          district: deliveryDistrict,
+          country: "SA",
+        } : undefined,
         paymentMethod,
         bankTransferReceipt: receiptUrl || undefined,
         status: requiresGateway || paymentMethod === "bank_transfer" ? "pending_payment" : "new",
@@ -310,8 +366,8 @@ export default function Checkout() {
               orderId: order.id || order._id,
               amount: finalTotal,
               items: items.map(i => ({ title: i.title, price: i.price, quantity: i.quantity })),
-              address: `استلام من فرع: ${selectedBranch?.name || ""}`,
-              city: selectedBranch?.city || "الرياض",
+              address: isDelivery ? deliveryAddrStr : `استلام من فرع: ${selectedBranch?.name || ""}`,
+              city: isDelivery ? deliveryCity : (selectedBranch?.city || "الرياض"),
             }),
           });
           const paymobData = await paymobRes.json();
@@ -381,7 +437,7 @@ export default function Checkout() {
             price: Number(it.price) || 0,
             sku: it.variantSku || it.productId,
           })),
-          shipping: { city: selectedBranch?.city || "الرياض", address: selectedBranch?.name || "", zip: "" },
+          shipping: { city: isDelivery ? deliveryCity : (selectedBranch?.city || "الرياض"), address: isDelivery ? deliveryAddrStr : (selectedBranch?.name || ""), zip: "" },
         });
         const tabbyData = await tabbyRes.json();
         if (tabbyData.checkoutUrl) {
@@ -407,7 +463,9 @@ export default function Checkout() {
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       clearCart();
-      let toastMsg = "سيتم إشعارك عند جاهزية طلبك للاستلام";
+      let toastMsg = shippingMode === "delivery"
+        ? "سيتم التواصل معك لتأكيد موعد التوصيل"
+        : "سيتم إشعارك عند جاهزية طلبك للاستلام";
       if (cashbackAmount > 0) toastMsg = `تم إضافة ${cashbackAmount} ر.س كاش باك! ${toastMsg}`;
       toast({ title: "تم استلام طلبك بنجاح ✓", description: toastMsg });
       setLocation("/orders");
@@ -589,91 +647,230 @@ export default function Checkout() {
               </div>
             )}
 
-            {/* Branch Selection */}
+            {/* ── Shipping mode toggle ── */}
             <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
-              <h2 className="font-black text-sm mb-1">
+              <h2 className="font-black text-sm mb-3">
                 <span className="inline-flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">١</span>
-                  اختر الفرع للاستلام
+                  طريقة الاستلام
                 </span>
               </h2>
-              <p className="text-[11px] text-gray-400 font-bold mb-4 mr-8">استلام مجاني من الفرع — بدون رسوم شحن</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button
+                  type="button"
+                  data-testid="option-shipping-pickup"
+                  onClick={() => setShippingMode("pickup")}
+                  className={`flex items-center gap-2 justify-center p-3 rounded-xl border-2 font-black text-sm transition-all ${
+                    shippingMode === "pickup"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  <Store className="h-4 w-4 shrink-0" />
+                  <span>استلام من فرع</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="option-shipping-delivery"
+                  onClick={() => setShippingMode("delivery")}
+                  className={`flex items-center gap-2 justify-center p-3 rounded-xl border-2 font-black text-sm transition-all ${
+                    shippingMode === "delivery"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  <Truck className="h-4 w-4 shrink-0" />
+                  <span>توصيل للمنزل</span>
+                </button>
+              </div>
 
-              {activeBranches.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <Store className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm font-bold">لا توجد فروع متاحة حالياً</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {activeBranches.map((br: any) => {
-                    const id = br.id || br._id;
-                    const isSelected = pickupBranchId === id;
-                    const branchInv: any[] = (br as any).inventory || [];
-                    const itemsAvail = items.map((it) => {
-                      const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
-                      const stock = rec ? Number(rec.stock || 0) : null;
-                      return { item: it, stock, available: stock === null || stock >= it.quantity };
-                    });
-                    const allAvail = itemsAvail.every(x => x.available);
-                    const noneAvail = itemsAvail.every(x => !x.available);
-                    return (
-                      <div
-                        key={id}
-                        onClick={() => !noneAvail && setPickupBranchId(id)}
-                        data-testid={`option-branch-${id}`}
-                        className={`p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-gray-200 hover:border-gray-300"
-                        } ${noneAvail ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`mt-0.5 w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
-                            isSelected ? "border-primary bg-primary" : "border-gray-300"
-                          }`}>
-                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 flex-wrap">
-                              <p className="font-black text-sm">{br.name}</p>
-                              {allAvail ? (
-                                <span className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                  <CheckCircle2 className="h-3 w-3" /> متوفر
-                                </span>
-                              ) : noneAvail ? (
-                                <span className="text-[10px] font-black bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">نفد</span>
-                              ) : (
-                                <span className="text-[10px] font-black bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full shrink-0">جزئي</span>
-                              )}
+              {/* ── Pickup: branch list ── */}
+              {shippingMode === "pickup" && (
+                <>
+                  <p className="text-[11px] text-gray-400 font-bold mb-3">استلام مجاني من الفرع — بدون رسوم شحن</p>
+                  {activeBranches.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Store className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm font-bold">لا توجد فروع متاحة حالياً</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {activeBranches.map((br: any) => {
+                        const id = br.id || br._id;
+                        const isSelected = pickupBranchId === id;
+                        const branchInv: any[] = (br as any).inventory || [];
+                        const itemsAvail = items.map((it) => {
+                          const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
+                          const stock = rec ? Number(rec.stock || 0) : null;
+                          return { item: it, stock, available: stock === null || stock >= it.quantity };
+                        });
+                        const allAvail = itemsAvail.every(x => x.available);
+                        const noneAvail = itemsAvail.every(x => !x.available);
+                        return (
+                          <div
+                            key={id}
+                            onClick={() => !noneAvail && setPickupBranchId(id)}
+                            data-testid={`option-branch-${id}`}
+                            className={`p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                              isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-gray-200 hover:border-gray-300"
+                            } ${noneAvail ? "opacity-50 cursor-not-allowed" : ""}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`mt-0.5 w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
+                                isSelected ? "border-primary bg-primary" : "border-gray-300"
+                              }`}>
+                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2 flex-wrap">
+                                  <p className="font-black text-sm">{br.name}</p>
+                                  {allAvail ? (
+                                    <span className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                                      <CheckCircle2 className="h-3 w-3" /> متوفر
+                                    </span>
+                                  ) : noneAvail ? (
+                                    <span className="text-[10px] font-black bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">نفد</span>
+                                  ) : (
+                                    <span className="text-[10px] font-black bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full shrink-0">جزئي</span>
+                                  )}
+                                </div>
+                                {(br.address || br.city) && (
+                                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <MapPin className="h-3 w-3 shrink-0" /> {br.address || br.city}
+                                  </p>
+                                )}
+                                {(br.hours || br.pickupHours) && (
+                                  <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                    <Clock className="h-3 w-3 shrink-0" /> {br.pickupHours || br.hours}
+                                  </p>
+                                )}
+                                {br.phone && (
+                                  <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1" dir="ltr">
+                                    <Phone className="h-3 w-3 shrink-0" />{br.phone}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            {(br.address || br.city) && (
-                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                <MapPin className="h-3 w-3 shrink-0" /> {br.address || br.city}
-                              </p>
-                            )}
-                            {(br.hours || br.pickupHours) && (
-                              <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                                <Clock className="h-3 w-3 shrink-0" /> {br.pickupHours || br.hours}
-                              </p>
-                            )}
-                            {br.phone && (
-                              <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1" dir="ltr">
-                                <Phone className="h-3 w-3 shrink-0" />{br.phone}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {branchStockIssues.length > 0 && (
+                    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3">
+                      <p className="text-xs font-black text-red-700">⚠️ منتجات غير متوفرة في هذا الفرع:</p>
+                      <ul className="text-[11px] text-red-600 font-bold mt-1 space-y-0.5">
+                        {branchStockIssues.map((m, i) => <li key={i}>• {m}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
 
-              {branchStockIssues.length > 0 && (
-                <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3">
-                  <p className="text-xs font-black text-red-700">⚠️ منتجات غير متوفرة في هذا الفرع:</p>
-                  <ul className="text-[11px] text-red-600 font-bold mt-1 space-y-0.5">
-                    {branchStockIssues.map((m, i) => <li key={i}>• {m}</li>)}
-                  </ul>
+              {/* ── Delivery: address form ── */}
+              {shippingMode === "delivery" && (
+                <div className="space-y-3">
+                  {/* City selector */}
+                  <div className="relative">
+                    <label className="text-[11px] font-black text-gray-500 mb-1 block">المدينة *</label>
+                    <button
+                      type="button"
+                      data-testid="select-delivery-city"
+                      onClick={() => setCityDropOpen(v => !v)}
+                      className={`w-full h-11 px-3 border-2 rounded-xl text-sm font-bold text-right flex items-center justify-between transition-all ${
+                        deliveryCity ? "border-primary/40 bg-primary/5" : "border-gray-200"
+                      }`}
+                    >
+                      <span className={deliveryCity ? "text-gray-900" : "text-gray-400"}>
+                        {deliveryCity || "اختر المدينة..."}
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${cityDropOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {cityDropOpen && (
+                      <div className="absolute z-20 top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        <div className="p-2 border-b border-gray-100">
+                          <Input
+                            placeholder="ابحث عن مدينة..."
+                            value={citySearch}
+                            onChange={(e) => setCitySearch(e.target.value)}
+                            className="h-9 text-sm border-gray-200 rounded-lg"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="max-h-52 overflow-y-auto">
+                          {SAUDI_CITIES
+                            .filter(c => !citySearch || c.includes(citySearch))
+                            .map(city => (
+                              <button
+                                key={city}
+                                type="button"
+                                data-testid={`city-option-${city}`}
+                                onClick={() => {
+                                  setDeliveryCity(city);
+                                  setCityDropOpen(false);
+                                  setCitySearch("");
+                                }}
+                                className={`w-full text-right px-4 py-2.5 text-sm font-bold hover:bg-gray-50 transition-colors ${
+                                  deliveryCity === city ? "bg-primary/5 text-primary" : ""
+                                }`}
+                              >
+                                {city}
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Street */}
+                  <div>
+                    <label className="text-[11px] font-black text-gray-500 mb-1 block">الشارع *</label>
+                    <Input
+                      placeholder="اسم الشارع أو رقم المبنى..."
+                      value={deliveryStreet}
+                      onChange={(e) => setDeliveryStreet(e.target.value)}
+                      className="h-11 border-gray-200 rounded-xl focus-visible:ring-primary/30"
+                      data-testid="input-delivery-street"
+                    />
+                  </div>
+
+                  {/* District */}
+                  <div>
+                    <label className="text-[11px] font-black text-gray-500 mb-1 block">الحي (اختياري)</label>
+                    <Input
+                      placeholder="اسم الحي..."
+                      value={deliveryDistrict}
+                      onChange={(e) => setDeliveryDistrict(e.target.value)}
+                      className="h-11 border-gray-200 rounded-xl focus-visible:ring-primary/30"
+                      data-testid="input-delivery-district"
+                    />
+                  </div>
+
+                  {/* Shipping rate display */}
+                  {deliveryCity && (
+                    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                      shippingRateData?.isFree ? "border-emerald-200 bg-emerald-50" : "border-blue-100 bg-blue-50"
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <Truck className={`h-4 w-4 ${shippingRateData?.isFree ? "text-emerald-600" : "text-blue-600"}`} />
+                        <div>
+                          <p className={`text-xs font-black ${shippingRateData?.isFree ? "text-emerald-700" : "text-blue-700"}`}>
+                            {shippingRateData?.methodTitle || "التوصيل"}
+                          </p>
+                          {shippingRateData?.zoneName && (
+                            <p className="text-[10px] text-gray-400 font-bold">{shippingRateData.zoneName}</p>
+                          )}
+                        </div>
+                      </div>
+                      {isLoadingRate ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                      ) : (
+                        <span className={`font-black text-sm ${shippingRateData?.isFree ? "text-emerald-600" : "text-blue-700"}`}>
+                          {shippingRateData?.isFree ? "مجاني" : `${shippingRateData?.cost?.toLocaleString() ?? 0} ر.س`}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -945,8 +1142,18 @@ export default function Checkout() {
                   <span>ضريبة ١٥٪ (مشمولة)</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span className="text-emerald-600 font-black">مجاني</span>
-                  <span>الشحن (استلام)</span>
+                  {shippingMode === "pickup" ? (
+                    <span className="text-emerald-600 font-black">مجاني</span>
+                  ) : isLoadingRate && deliveryCity ? (
+                    <span className="flex items-center gap-1 text-gray-400"><Loader2 className="h-3 w-3 animate-spin" /> جاري الحساب...</span>
+                  ) : shippingCostValue === 0 && deliveryCity ? (
+                    <span className="text-emerald-600 font-black">مجاني</span>
+                  ) : deliveryCity ? (
+                    <span className="font-black text-gray-700">{shippingCostValue.toLocaleString()} ر.س</span>
+                  ) : (
+                    <span className="text-gray-400">اختر المدينة</span>
+                  )}
+                  <span>الشحن</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-black">

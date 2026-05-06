@@ -102,6 +102,7 @@ import {
 import {
   pushOrderToStorageStation, updateStorageStationOrder,
   getStorageStationOrder, isStorageStationConfigured,
+  getShippingRateForCity,
 } from "./storagestation";
 
 // ─── Tiered rate limiters (in addition to global 500/15min) ─────────────────
@@ -2662,6 +2663,23 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("[API] wallet.transactions error:", err?.message);
       res.json([]);
+    }
+  });
+
+  // ── Shipping rate from Storage Station ──────────────────────────────────────
+  app.get("/api/shipping/rate", async (req, res) => {
+    try {
+      const city = String(req.query.city || "").trim();
+      const orderTotal = parseFloat(String(req.query.total || "0")) || 0;
+      if (!city) return res.status(400).json({ message: "city مطلوبة" });
+
+      const settings = await storage.getStoreSettings();
+      const threshold = (settings as any)?.freeShippingThreshold || 0;
+      const rate = await getShippingRateForCity(city, orderTotal, threshold);
+      res.json(rate);
+    } catch (err: any) {
+      console.error("[API] shipping/rate error:", err?.message);
+      res.json({ cost: 30, zoneName: "افتراضي", methodTitle: "توصيل", isFree: false });
     }
   });
 
