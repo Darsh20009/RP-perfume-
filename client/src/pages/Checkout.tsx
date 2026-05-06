@@ -12,7 +12,7 @@ import {
   MapPin, Truck, CreditCard, Apple, Lock,
   Check, Wallet, Smartphone, CheckCircle2,
   ShieldCheck, ChevronDown, ChevronUp, Store, Phone, Clock, Package,
-  AlertTriangle, Trash2, ArrowLeftRight
+  AlertTriangle, Trash2, ArrowLeftRight, LocateFixed, Loader2 as Spin
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -74,6 +74,58 @@ export default function Checkout() {
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [citySearch, setCitySearch] = useState("");
   const [cityDropOpen, setCityDropOpen] = useState(false);
+  const [geoLocating, setGeoLocating] = useState(false);
+
+  const detectLocation = async () => {
+    if (!navigator.geolocation) {
+      toast({ title: "المتصفح لا يدعم تحديد الموقع", variant: "destructive" });
+      return;
+    }
+    setGeoLocating(true);
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 60000 })
+      );
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ar`,
+        { headers: { "User-Agent": "RF-Perfume/1.0" } }
+      );
+      if (!res.ok) throw new Error("geocode_fail");
+      const data = await res.json();
+      const addr = data.address || {};
+
+      const candidates = [
+        addr.city, addr.town, addr.municipality, addr.village,
+        addr.county, addr.state_district, addr.state,
+      ].filter(Boolean) as string[];
+
+      const matched = SAUDI_CITIES.find(c =>
+        candidates.some(cand => cand.includes(c) || c.includes(cand))
+      ) || candidates[0] || "";
+
+      if (matched) {
+        setDeliveryCity(matched);
+        setCityDropOpen(false);
+      }
+
+      const street = [addr.road, addr.house_number].filter(Boolean).join(" ");
+      if (street && !deliveryStreet) setDeliveryStreet(street);
+
+      const district = addr.suburb || addr.neighbourhood || addr.quarter || "";
+      if (district && !deliveryDistrict) setDeliveryDistrict(district);
+
+      toast({ title: matched ? `✅ تم تحديد موقعك — ${matched}` : "✅ تم تحديد الموقع" });
+    } catch (err: any) {
+      if (err?.code === 1) {
+        toast({ title: "يجب السماح للموقع", description: "افتح إعدادات المتصفح واسمح بالوصول للموقع الجغرافي", variant: "destructive" });
+      } else {
+        toast({ title: "تعذّر تحديد الموقع", description: "حاول مرة أخرى أو اختر المدينة يدوياً", variant: "destructive" });
+      }
+    } finally {
+      setGeoLocating(false);
+    }
+  };
   const [orderNotes, setOrderNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -848,7 +900,22 @@ export default function Checkout() {
                 <div className="space-y-3">
                   {/* City selector */}
                   <div className="relative">
-                    <label className="text-[11px] font-black text-gray-500 mb-1 block">المدينة *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-black text-gray-500">المدينة *</label>
+                      <button
+                        type="button"
+                        onClick={detectLocation}
+                        disabled={geoLocating}
+                        data-testid="button-detect-location"
+                        className="flex items-center gap-1 text-[11px] font-black text-primary hover:text-primary/80 disabled:opacity-50 transition-colors"
+                      >
+                        {geoLocating
+                          ? <Spin className="w-3 h-3 animate-spin" />
+                          : <LocateFixed className="w-3 h-3" />
+                        }
+                        {geoLocating ? "جاري تحديد موقعك..." : "تحديد موقعي تلقائياً"}
+                      </button>
+                    </div>
                     <button
                       type="button"
                       data-testid="select-delivery-city"
