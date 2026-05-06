@@ -643,11 +643,11 @@ export function Layout({ children }: { children: ReactNode }) {
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
+                    title={s.handle || meta.label}
                     data-testid={`link-social-${s.platform}-${i}`}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full  transition-transform shadow-lg ${meta.cls}`}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-transform hover:scale-110 shadow-lg ${meta.cls}`}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-bold">{s.handle || meta.label}</span>
+                    <Icon className="h-5 w-5" />
                   </a>
                 );
               });
@@ -681,32 +681,41 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Commercial Registration & Tax */}
           <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
-            <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-8">
+            <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10">
+              {/* Commercial Registration */}
               <a
                 href="https://qr.saudibusiness.gov.sa/viewcr?nCrNumber=et1BNw5nU2a6R1GygbnoPA=="
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-col items-center gap-2 text-center group  transition-transform"
+                className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2 group transition-transform"
               >
                 <img 
                   src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png" 
                   loading="lazy" 
                   alt="السجل التجاري" 
-                  className="h-12 w-auto object-contain" 
+                  className="h-8 sm:h-12 w-auto object-contain flex-shrink-0" 
                 />
-                <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
-                  {t('commercialReg')}
+                <div className="text-right sm:text-center">
+                  <div className="text-[9px] sm:text-[10px] text-gray-700 font-bold uppercase tracking-widest">
+                    {t('commercialReg')}
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-[#DFB369] font-black group-hover:underline">1010978041</div>
                 </div>
-                <div className="text-xs text-[#DFB369] font-black group-hover:underline">1010978041</div>
               </a>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-[#DFB369]/10 flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-[#DFB369]" />
+              {/* VAT */}
+              <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2">
+                <img
+                  src="/images/vat-logo.png"
+                  alt="ضريبة القيمة المضافة VAT"
+                  loading="lazy"
+                  className="h-8 sm:h-12 w-auto object-contain flex-shrink-0"
+                />
+                <div className="text-right sm:text-center">
+                  <div className="text-[9px] sm:text-[10px] text-gray-700 font-bold uppercase tracking-widest">
+                    {t('taxNumber')}
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-[#DFB369] font-black">312037024200003</div>
                 </div>
-                <div className="text-[10px] text-gray-700 font-bold uppercase tracking-widest">
-                  {t('taxNumber')}
-                </div>
-                <div className="text-xs text-[#DFB369] font-black">312037024200003</div>
               </div>
             </div>
           </div>
