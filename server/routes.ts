@@ -104,6 +104,12 @@ import {
   getStorageStationOrder, isStorageStationConfigured,
   getShippingRateForCity,
 } from "./storagestation";
+import {
+  isShipoxConfigured, createShipoxOrder, createShipoxReturn,
+  getShipoxAWBUrl, trackShipoxOrder, cancelShipoxOrder,
+  getShipoxAccount, invalidateShipoxToken, SHIPOX_SERVICE_TYPES,
+  type ShipoxServiceType,
+} from "./shipox";
 
 // ─── Tiered rate limiters (in addition to global 500/15min) ─────────────────
 const cartLimiter = rateLimit({
@@ -359,6 +365,43 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
           throw err; // re-throw so job-queue retries
         }
       }, { critical: true, maxAttempts: 5 });
+    }
+
+    // ── Shipox / 3rd Mile: create courier shipment (delivery orders only) ─────
+    if (order.shippingMethod === "delivery" && isShipoxConfigured()) {
+      enqueueJob("paid-shipox-create", async () => {
+        try {
+          const settings = await storage.getStoreSettings().catch(() => null);
+          const senderName    = (settings as any)?.storeName    || "رفيف العود";
+          const senderPhone   = (settings as any)?.storePhone   || "0500000000";
+          const senderAddress = (settings as any)?.storeAddress || "الرياض";
+
+          const shipoxResult = await createShipoxOrder(order, "STANDARD", {
+            senderName, senderPhone, senderAddress, senderCity: "Riyadh",
+          });
+
+          await storage.updateOrder(String(order.id || orderId), {
+            shipoxOrderId:       shipoxResult.orderId,
+            shipoxOrderNumber:   shipoxResult.orderNumber,
+            shipoxTrackingNumber: shipoxResult.trackingNumber,
+            shipoxStatus:        "created",
+            shipoxServiceType:   "STANDARD",
+            shipoxCreatedAt:     new Date(),
+            shipoxError:         null,
+            shippingProvider:    "Storage Station - 3rd Mile",
+            trackingNumber:      shipoxResult.trackingNumber,
+          } as any);
+
+          console.log(`[Shipox] order ${orderId} → shipment #${shipoxResult.orderNumber} (${shipoxResult.trackingNumber})`);
+        } catch (err: any) {
+          await storage.updateOrder(String(order.id || orderId), {
+            shipoxStatus: "failed",
+            shipoxError:  err?.message || "Unknown error",
+          } as any);
+          console.error(`[Shipox] create failed for ${orderId}:`, err?.message);
+          throw err;
+        }
+      }, { critical: false, maxAttempts: 3 });
     }
 
     // ── AI Self-Learning: track purchased products to improve recommendations ──
@@ -4892,6 +4935,233 @@ export async function registerRoutes(
     });
   });
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── Shipox / 3rd Mile Admin Routes ────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Config check
+  app.get("/api/admin/shipox/config", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== "admin") return res.sendStatus(403);
+    const configured = isShipoxConfigured();
+    let account: any = null;
+    if (configured) {
+      try { account = await getShipoxAccount(); } catch { /* ignore */ }
+    }
+    res.json({
+      configured,
+      baseUrl: process.env.SHIPOX_BASE_URL || "https://3rdmile.my.shipox.com",
+      serviceTypes: Object.entries(SHIPOX_SERVICE_TYPES).map(([key, val]) => ({
+        key, ...val,
+      })),
+      account,
+    });
+  });
+
+  // Create Shipox shipment for a given order
+  app.post("/api/admin/shipox/create/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      if (!isShipoxConfigured()) {
+        return res.status(503).json({ message: "Shipox غير مُعدَّن — أضف SHIPOX_USERNAME و SHIPOX_PASSWORD" });
+      }
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const serviceType: ShipoxServiceType = (req.body.serviceType || "STANDARD") as ShipoxServiceType;
+      const settings = await storage.getStoreSettings().catch(() => null);
+
+      const result = await createShipoxOrder(order, serviceType, {
+        senderName:    req.body.senderName    || (settings as any)?.storeName    || "رفيف العود",
+        senderPhone:   req.body.senderPhone   || (settings as any)?.storePhone   || "0500000000",
+        senderAddress: req.body.senderAddress || (settings as any)?.storeAddress || "الرياض",
+        senderCity:    req.body.senderCity    || "Riyadh",
+      });
+
+      await storage.updateOrder(req.params.orderId, {
+        shipoxOrderId:        result.orderId,
+        shipoxOrderNumber:    result.orderNumber,
+        shipoxTrackingNumber: result.trackingNumber,
+        shipoxStatus:         "created",
+        shipoxServiceType:    serviceType,
+        shipoxCreatedAt:      new Date(),
+        shipoxError:          null,
+        shippingProvider:     "Storage Station - 3rd Mile",
+        trackingNumber:       result.trackingNumber,
+      } as any);
+
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Shipox] create error:", err?.message);
+      await storage.updateOrder(req.params.orderId, {
+        shipoxStatus: "failed",
+        shipoxError: err?.message,
+      } as any).catch(() => {});
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // Create return / pickup shipment
+  app.post("/api/admin/shipox/return/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      if (!isShipoxConfigured()) {
+        return res.status(503).json({ message: "Shipox غير مُعدَّن" });
+      }
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const settings = await storage.getStoreSettings().catch(() => null);
+      const result = await createShipoxReturn(order, {
+        senderName:    (settings as any)?.storeName    || "رفيف العود",
+        senderPhone:   (settings as any)?.storePhone   || "0500000000",
+        senderAddress: (settings as any)?.storeAddress || "الرياض",
+        senderCity:    "Riyadh",
+      });
+
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Shipox] return error:", err?.message);
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // Get AWB label URL
+  app.get("/api/admin/shipox/awb/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const trackingNum = (order as any).shipoxTrackingNumber || (order as any).shipoxOrderNumber;
+      if (!trackingNum) return res.status(400).json({ message: "لا يوجد رقم تتبع Shipox لهذا الطلب" });
+
+      const url = await getShipoxAWBUrl([trackingNum]);
+      res.json({ success: true, url, trackingNumber: trackingNum });
+    } catch (err: any) {
+      console.error("[Shipox] AWB error:", err?.message);
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // Track shipment history (public)
+  app.get("/api/admin/shipox/track/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const trackingNum = (order as any).shipoxTrackingNumber || (order as any).shipoxOrderNumber;
+      if (!trackingNum) return res.json({ history: [], message: "لا يوجد رقم تتبع" });
+
+      const history = await trackShipoxOrder(trackingNum);
+      res.json({ success: true, history, trackingNumber: trackingNum });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // Cancel Shipox shipment
+  app.put("/api/admin/shipox/cancel/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const shipoxOrderId = (order as any).shipoxOrderId;
+      if (!shipoxOrderId) return res.status(400).json({ message: "لم يتم إنشاء شحنة Shipox لهذا الطلب" });
+
+      await cancelShipoxOrder(String(shipoxOrderId));
+      await storage.updateOrder(req.params.orderId, { shipoxStatus: "cancelled" } as any);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[Shipox] cancel error:", err?.message);
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // Change service type and re-create shipment
+  app.patch("/api/admin/shipox/service-type/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const { serviceType } = req.body;
+      if (!serviceType || !SHIPOX_SERVICE_TYPES[serviceType as ShipoxServiceType]) {
+        return res.status(400).json({ message: "نوع الخدمة غير صحيح" });
+      }
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+      const settings = await storage.getStoreSettings().catch(() => null);
+      const result = await createShipoxOrder(order, serviceType as ShipoxServiceType, {
+        senderName:    (settings as any)?.storeName    || "رفيف العود",
+        senderPhone:   (settings as any)?.storePhone   || "0500000000",
+        senderAddress: (settings as any)?.storeAddress || "الرياض",
+        senderCity:    "Riyadh",
+      });
+
+      await storage.updateOrder(req.params.orderId, {
+        shipoxOrderId:        result.orderId,
+        shipoxOrderNumber:    result.orderNumber,
+        shipoxTrackingNumber: result.trackingNumber,
+        shipoxStatus:         "created",
+        shipoxServiceType:    serviceType,
+        shipoxCreatedAt:      new Date(),
+        shipoxError:          null,
+        trackingNumber:       result.trackingNumber,
+      } as any);
+
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Shipox] service-type change error:", err?.message);
+      res.status(500).json({ success: false, message: err?.message });
+    }
+  });
+
+  // List orders with Shipox status
+  app.get("/api/admin/shipox/orders", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (!["admin", "employee"].includes(user.role)) return res.sendStatus(403);
+    try {
+      const { status } = req.query;
+      const filter: any = { shippingMethod: "delivery" };
+      if (status === "created")   filter.shipoxStatus = "created";
+      else if (status === "failed")    filter.shipoxStatus = "failed";
+      else if (status === "not_sent")  filter.$or = [{ shipoxStatus: null }, { shipoxStatus: { $exists: false } }];
+
+      const orders = await OrderModel.find(filter).sort({ createdAt: -1 }).limit(100).lean();
+      res.json(orders.map((o: any) => ({
+        id: o._id,
+        orderRef: String(o._id).slice(-8).toUpperCase(),
+        customerName: o.customerName,
+        total: o.total,
+        createdAt: o.createdAt,
+        shipoxOrderId: o.shipoxOrderId,
+        shipoxOrderNumber: o.shipoxOrderNumber,
+        shipoxTrackingNumber: o.shipoxTrackingNumber,
+        shipoxStatus: o.shipoxStatus || "not_sent",
+        shipoxServiceType: o.shipoxServiceType,
+        shipoxCreatedAt: o.shipoxCreatedAt,
+        shipoxError: o.shipoxError,
+      })));
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message });
+    }
+  });
+
   // ─── Flash Deals ─────────────────────────────────────────────
 
   // Public: get active flash deals
@@ -6425,6 +6695,7 @@ export async function registerRoutes(
         google: { clientId: !!process.env.GOOGLE_CLIENT_ID, clientSecret: !!process.env.GOOGLE_CLIENT_SECRET },
         apple: { clientId: !!process.env.APPLE_CLIENT_ID, redirectUri: !!process.env.APPLE_REDIRECT_URI },
         storageStation: { apiKey: !!process.env.STORAGE_STATION_API_KEY, apiSecret: !!process.env.STORAGE_STATION_API_SECRET },
+        shipox: { username: !!process.env.SHIPOX_USERNAME, password: !!process.env.SHIPOX_PASSWORD },
         mongo: { uri: !!process.env.MONGODB_URI },
         session: { secret: !!process.env.SESSION_SECRET },
         vapid: { publicKey: !!process.env.VAPID_PUBLIC_KEY, privateKey: !!process.env.VAPID_PRIVATE_KEY },

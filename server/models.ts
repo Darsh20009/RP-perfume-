@@ -181,6 +181,14 @@ const orderSchema = new Schema<Order>(
     storageStationStatus: { type: String, default: null },     // pending | sent | failed
     storageStationSentAt: { type: Date, default: null },
     storageStationError: { type: String, default: null },
+    // ── Shipox / 3rd Mile (direct courier API) ───────────────────────────────
+    shipoxOrderId: { type: String, default: null },
+    shipoxOrderNumber: { type: String, default: null },
+    shipoxTrackingNumber: { type: String, default: null },
+    shipoxStatus: { type: String, default: null },       // created | cancelled | failed
+    shipoxServiceType: { type: String, default: null },  // STANDARD | RETURN | EXPRESS_SMSA | EXPRESS_JT
+    shipoxCreatedAt: { type: Date, default: null },
+    shipoxError: { type: String, default: null },
     deliveryDriver: {
       name: String,
       phone: String,

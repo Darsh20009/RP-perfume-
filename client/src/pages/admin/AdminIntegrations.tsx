@@ -130,10 +130,23 @@ const INTEGRATIONS: Integration[] = [
     category: "الشحن والخدمات اللوجستية",
     logo: "📦",
     url: "https://storagestation.app",
-    description: "منصة التخزين والتوصيل",
+    description: "منصة التخزين والتوصيل — WooCommerce",
     keys: [
       { label: "API Key", key: "apiKey" },
       { label: "API Secret", key: "apiSecret" },
+    ],
+  },
+  {
+    id: "shipox",
+    name: "Shipox — 3rd Mile",
+    nameEn: "Shipox Courier",
+    category: "الشحن والخدمات اللوجستية",
+    logo: "🚚",
+    url: "https://3rdmile.my.shipox.com",
+    description: "نظام الشحن المباشر — إنشاء بوالص الشحن وتتبعها",
+    keys: [
+      { label: "SHIPOX_USERNAME", key: "username" },
+      { label: "SHIPOX_PASSWORD", key: "password" },
     ],
   },
   {

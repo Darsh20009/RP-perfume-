@@ -22,6 +22,9 @@ npm run start     # Production server
 -   `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` (for AI integrations)
 -   `STORAGE_STATION_API_KEY` — WooCommerce consumer key for storagestation.app
 -   `STORAGE_STATION_API_SECRET` — WooCommerce consumer secret for storagestation.app
+-   `SHIPOX_USERNAME` — Shipox / 3rd Mile login username (email)
+-   `SHIPOX_PASSWORD` — Shipox / 3rd Mile login password
+-   `SHIPOX_BASE_URL` — (optional) override base URL, defaults to `https://3rdmile.my.shipox.com`
 -   `PAYMOB_API_KEY`, `PAYMOB_SECRET_KEY`, `PAYMOB_PUBLIC_KEY`, `PAYMOB_HMAC_SECRET`, `PAYMOB_INTEGRATION_ID`
 -   `TABBY_SECRET_KEY`, `TABBY_PUBLIC_KEY`, `TABBY_WEBHOOK_SECRET`, `TABBY_MERCHANT_CODE`
 -   `TAMARA_API_TOKEN`, `TAMARA_NOTIFICATION_TOKEN`, `TAMARA_PUBLIC_KEY`
@@ -72,6 +75,7 @@ npm run start     # Production server
 -   POS system.
 -   AI perfume advisor and support chatbot with voice input and dynamic quick replies.
 -   Storage Station (storagestation.app) 3PL fulfillment integration — orders auto-pushed after payment confirmation via WooCommerce REST API v3 using SKU mapping.
+-   Shipox / 3rd Mile direct courier integration (`server/shipox.ts`) — auto-creates shipments on payment, supports 4 service types (STANDARD, RETURN, EXPRESS_SMSA, EXPRESS_JT), AWB label printing, live tracking, cancel, and return creation. Admin order detail panel has full Shipox controls.
 -   Dynamic shipping rates fetched from Storage Station's WooCommerce Shipping Zones API at checkout based on customer's city (`GET /api/shipping/rate?city=X&total=Y`). Zones cached 10 min. Falls back to 30 SAR if no zone configured. Supports free shipping threshold from store settings.
 
 ## User preferences
