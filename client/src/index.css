@@ -145,7 +145,6 @@ img, video, iframe { max-width: 100%; height: auto; }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    touch-action: manipulation;
     overscroll-behavior-y: none;
   }
   body {
