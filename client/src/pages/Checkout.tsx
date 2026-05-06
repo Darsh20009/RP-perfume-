@@ -180,6 +180,32 @@ export default function Checkout() {
     ? (shippingRateData?.cost ?? 0)
     : 0;
 
+  // ── Bundle offer savings ─────────────────────────────────────────────────────
+  const bundleCalcKey = items.map(i => `${i.productId}:${i.quantity}:${i.price}`).join("|");
+  const { data: bundleResult } = useQuery<{ originalTotal: number; bundleTotal: number; savings: number; applications: any[] }>({
+    queryKey: ["/api/bundle-offers/calculate", bundleCalcKey],
+    queryFn: async () => {
+      if (items.length === 0) return { originalTotal: 0, bundleTotal: 0, savings: 0, applications: [] };
+      const res = await fetch("/api/bundle-offers/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map(it => ({
+            productId: it.productId,
+            quantity: it.quantity,
+            price: it.price,
+            categoryId: (it as any).categoryId,
+          })),
+        }),
+      });
+      if (!res.ok) return { originalTotal: 0, bundleTotal: 0, savings: 0, applications: [] };
+      return res.json();
+    },
+    enabled: items.length > 0,
+    staleTime: 30_000,
+  });
+  const bundleSavings = bundleResult?.savings || 0;
+
   useEffect(() => {
     if (items.length === 0 && !paymobSheetOpen && !redirectingTo) {
       setLocation("/cart");
@@ -205,7 +231,7 @@ export default function Checkout() {
   const discountAmount = calculateDiscount();
   const cashbackAmount = calculateCashback();
   const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
-  const finalTotal = Math.max(0, subtotal - discountAmount - loyaltyDiscount + shippingCostValue);
+  const finalTotal = Math.max(0, subtotal - discountAmount - loyaltyDiscount - bundleSavings + shippingCostValue);
 
   // Branch stock check
   const branchStockIssues = (() => {
@@ -577,6 +603,12 @@ export default function Checkout() {
                 <span>{subtotal.toLocaleString()} <RiyalSign /></span>
                 <span>المجموع الفرعي</span>
               </div>
+              {bundleSavings > 0 && (
+                <div className="flex justify-between text-purple-600 font-black">
+                  <span>-{bundleSavings.toLocaleString()} <RiyalSign /></span>
+                  <span>عرض الباقة 🎁</span>
+                </div>
+              )}
               {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>-{discountAmount.toLocaleString()} <RiyalSign /></span>
@@ -1081,6 +1113,19 @@ export default function Checkout() {
                   )}
                   <span>الشحن</span>
                 </div>
+                {bundleSavings > 0 && (
+                  <div className="flex justify-between text-purple-600 font-black" data-testid="row-bundle-savings">
+                    <span>-{bundleSavings.toLocaleString()} <RiyalSign /></span>
+                    <span>عرض الباقة 🎁</span>
+                  </div>
+                )}
+                {bundleResult?.applications && bundleResult.applications.length > 0 && (
+                  <div className="bg-purple-50 rounded-lg px-2.5 py-1.5 text-[10px] text-purple-700 font-bold space-y-0.5">
+                    {bundleResult.applications.map((a: any, i: number) => (
+                      <p key={i}>{a.offerTitle || `${a.tierQuantity} قطع`} — وفّرت {a.savings?.toLocaleString()} <RiyalSign /></p>
+                    ))}
+                  </div>
+                )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-black">
                     <span>-{discountAmount.toLocaleString()} <RiyalSign /></span>

@@ -161,6 +161,7 @@ export function computeBundleSavings(
     const eligible = (u: Unit) => {
       if (offer.scope === "categories") return offer.categoryIds?.length ? offer.categoryIds.includes(u.categoryId || "") : true;
       if (offer.scope === "products") return offer.productIds?.length ? offer.productIds.includes(u.productId) : true;
+      if (offer.scope === "price") return offer.triggerItemPrice > 0 ? Math.abs(u.price - offer.triggerItemPrice) < 0.01 : true;
       return true;
     };
 

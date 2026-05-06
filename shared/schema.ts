@@ -414,10 +414,11 @@ export const insertBundleOfferSchema = z.object({
     label: z.string().default(""),
     labelEn: z.string().default(""),
   })).min(1),
-  // Which products qualify: "all", or specific categories/products
-  scope: z.enum(bundleScopeOptions).default("all"),
+  // Which products qualify: "all", specific categories/products, or items at a specific price
+  scope: z.enum([...bundleScopeOptions, "price"] as [string, ...string[]]).default("all"),
   categoryIds: z.array(z.string()).default([]),
   productIds: z.array(z.string()).default([]),
+  triggerItemPrice: z.number().min(0).default(0), // 0 = no price filter
   // Display
   bannerImage: z.string().default(""),
   badgeText: z.string().default(""),

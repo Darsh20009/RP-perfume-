@@ -22,9 +22,10 @@ type Bundle = {
   description?: string;
   descriptionEn?: string;
   tiers: Tier[];
-  scope: "all" | "categories" | "products";
+  scope: "all" | "categories" | "products" | "price";
   categoryIds?: string[];
   productIds?: string[];
+  triggerItemPrice?: number;
   badgeText?: string;
   badgeColor?: string;
   showOnHome?: boolean;
@@ -45,9 +46,10 @@ const empty: Bundle = {
   description: "",
   descriptionEn: "",
   tiers: [{ quantity: 3, price: 149, label: "" }],
-  scope: "all",
+  scope: "price",
   categoryIds: [],
   productIds: [],
+  triggerItemPrice: 99,
   badgeText: "وفّر أكثر",
   badgeColor: "#850935",
   showOnHome: true,
@@ -185,7 +187,10 @@ export default function AdminBundles() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 pt-2 border-t">
                   <span className="flex items-center gap-1"><Layers className="h-3 w-3" />
-                    {b.scope === "all" ? "كل المنتجات" : b.scope === "categories" ? `${b.categoryIds?.length || 0} فئة` : `${b.productIds?.length || 0} منتج`}
+                    {b.scope === "all" ? "كل المنتجات"
+                      : b.scope === "categories" ? `${b.categoryIds?.length || 0} فئة`
+                      : b.scope === "price" ? `سعر ${b.triggerItemPrice || 0} ر.س`
+                      : `${b.productIds?.length || 0} منتج`}
                   </span>
                   <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> {b.usageCount || 0} استخدام</span>
                   {(b.startTime || b.endTime) && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> محدد بوقت</span>}
@@ -281,6 +286,7 @@ export default function AdminBundles() {
                   <Select value={editing.scope} onValueChange={(v: any) => setEditing({ ...editing, scope: v })}>
                     <SelectTrigger data-testid="select-bundle-scope"><SelectValue /></SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="price">منتجات بسعر محدد</SelectItem>
                       <SelectItem value="all">كل المنتجات</SelectItem>
                       <SelectItem value="categories">فئات محددة</SelectItem>
                       <SelectItem value="products">منتجات محددة</SelectItem>
@@ -294,6 +300,21 @@ export default function AdminBundles() {
                 </div>
               </div>
 
+              {editing.scope === "price" && (
+                <div>
+                  <Label>سعر العنصر المؤهل (<RiyalSign />) *</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editing.triggerItemPrice ?? 99}
+                    onChange={(e) => setEditing({ ...editing, triggerItemPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="مثال: 99"
+                    data-testid="input-trigger-price"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">العرض يُطبَّق فقط على المنتجات التي سعرها بالضبط هذا المبلغ</p>
+                </div>
+              )}
               {editing.scope === "categories" && (
                 <div>
                   <Label>الفئات المؤهلة</Label>
