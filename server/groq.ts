@@ -340,16 +340,19 @@ export async function perfumeAdvisor(
   const indexed = products.map((p, i) => ({ tag: `P${i + 1}`, product: p }));
   const productList = indexed.map(({ tag, product: p }) => {
     const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
+    const aiExtra = (p.aiNotes || "").trim();
     if (lang === "ar") {
       const priceInfo = variants.length > 0
         ? variants.map((v: any) => `${v.color} (${v.size}): ${Number(v.price).toLocaleString("ar-SA")} ر.س`).join("، ")
         : `${p.price} ر.س`;
-      return `[${tag}] ${p.name} — ${(p.description || "").slice(0, 120)} | الأسعار: ${priceInfo}`;
+      const base = `[${tag}] ${p.name} — ${(p.description || "").slice(0, 120)} | الأسعار: ${priceInfo}`;
+      return aiExtra ? `${base}\n   🧠 معلومات إضافية: ${aiExtra.slice(0, 250)}` : base;
     } else {
       const priceInfo = variants.length > 0
         ? variants.map((v: any) => `${v.color} (${v.size}): ${v.price} SAR`).join(", ")
         : `${p.price} SAR`;
-      return `[${tag}] ${p.nameEn || p.name} — ${(p.descriptionEn || p.description || "").slice(0, 120)} | Prices: ${priceInfo}`;
+      const base = `[${tag}] ${p.nameEn || p.name} — ${(p.descriptionEn || p.description || "").slice(0, 120)} | Prices: ${priceInfo}`;
+      return aiExtra ? `${base}\n   🧠 AI context: ${aiExtra.slice(0, 250)}` : base;
     }
   }).join("\n");
 

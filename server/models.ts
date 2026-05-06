@@ -109,6 +109,7 @@ const productSchema = new Schema<Product>(
     isFeatured: { type: Boolean, default: false },
     isOnSale: { type: Boolean, default: false },
     salePrice: { type: String, default: "" },
+    aiNotes: { type: String, default: "" },
   },
   { timestamps: true }
 );

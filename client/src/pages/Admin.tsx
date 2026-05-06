@@ -959,6 +959,12 @@ const EditProductDialog = memo(({ product, categories, open, onOpenChange }: any
                 </div>
               </div>
 
+              <div className="space-y-2 pt-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-[#DFB369] flex items-center gap-1">🧠 علّم الذكاء الاصطناعي عن هذا المنتج</Label>
+                <p className="text-[9px] text-black/40">أضف معلومات خاصة يستخدمها المستشار الذكي عند التوصية بهذا المنتج — مثل: قصة العطر، الجمهور المستهدف، المزاج، المناسبات، النوتات السرية...</p>
+                <Textarea {...form.register("aiNotes" as any)} className="rounded-none min-h-[100px] text-right border-[#DFB369]/40 focus:border-[#DFB369]" placeholder="مثال: عطر يناسب رجل واثق في العقد الثالث، يُعطي شعور بالفخامة الهادئة، يستمر 12 ساعة على البشرة الجافة، يُشبه عطر فلاني الشهير لكن بلمسة خليجية..." data-testid="textarea-product-ai-notes" />
+              </div>
+
            <div className="space-y-4 pt-4 border-t border-black/5 text-right">
                 <div className="flex justify-between items-center">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-black/40">المتغيرات (لون / مقاس / سعر / مخزون / صورة)</Label>
@@ -1076,6 +1082,7 @@ const ProductsTable = memo(() => {
         isOnSale: (editingProduct as any).isOnSale || false,
         salePrice: (editingProduct as any).salePrice || "",
         variants: (editingProduct as any).variants || [],
+        aiNotes: (editingProduct as any).aiNotes || "",
       } as any);
       setVariants((editingProduct as any).variants || []);
       // Load existing categoryIds or fall back to single categoryId
@@ -1365,6 +1372,12 @@ const ProductsTable = memo(() => {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Description (English)</Label>
                   <Textarea {...form.register("descriptionEn" as any)} dir="ltr" className="rounded-none min-h-[140px] text-left mt-[34px]" placeholder="English description (optional)" data-testid="textarea-product-description-en-add" />
                 </div>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-[#DFB369] flex items-center gap-1">🧠 علّم الذكاء الاصطناعي عن هذا المنتج</Label>
+                <p className="text-[9px] text-black/40">أضف معلومات خاصة يستخدمها المستشار الذكي عند التوصية بهذا المنتج — مثل: قصة العطر، الجمهور المستهدف، المزاج، المناسبات، النوتات السرية...</p>
+                <Textarea {...form.register("aiNotes" as any)} className="rounded-none min-h-[100px] text-right border-[#DFB369]/40 focus:border-[#DFB369]" placeholder="مثال: عطر يناسب رجل واثق في العقد الثالث، يُعطي شعور بالفخامة الهادئة، يستمر 12 ساعة على البشرة الجافة، يُشبه عطر فلاني الشهير لكن بلمسة خليجية..." data-testid="textarea-product-ai-notes-add" />
               </div>
 
               <div className="space-y-4 pt-4 border-t border-black/5 text-right">
