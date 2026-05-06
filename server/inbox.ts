@@ -184,7 +184,15 @@ export const PROVIDER_PRESETS: Record<string, {
 
 // ─── IMAP ──────────────────────────────────────────────────────────────────────
 async function openImap(account: any) {
-  const password = decryptSecret(account.password);
+  let password: string;
+  try {
+    password = decryptSecret(account.password);
+  } catch (e: any) {
+    throw new Error(
+      `فشل فك تشفير كلمة مرور (${account.email}). ` +
+      `يرجى إعادة إضافة الحساب أو التحقق من ثبات INBOX_ENC_KEY.`
+    );
+  }
   const client = new ImapFlow({
     host: account.imapHost,
     port: account.imapPort || 993,
@@ -375,7 +383,15 @@ export async function sendFromAccount(accountId: string, params: {
 }) {
   const account = await MailAccountModel.findById(accountId);
   if (!account) throw new Error("Account not found");
-  const password = decryptSecret(account.password);
+  let password: string;
+  try {
+    password = decryptSecret(account.password);
+  } catch (e: any) {
+    throw new Error(
+      `فشل فك تشفير كلمة مرور الحساب (${account.email}). ` +
+      `يرجى حذف الحساب وإعادة إضافته، أو التأكد من ثبات INBOX_ENC_KEY. (${e?.message})`
+    );
+  }
   const transporter = nodemailer.createTransport({
     host: account.smtpHost,
     port: account.smtpPort || 465,

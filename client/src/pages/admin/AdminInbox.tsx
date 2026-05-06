@@ -104,6 +104,12 @@ export default function AdminInbox() {
   const [aiCopied, setAiCopied] = useState(false);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
 
+  // AI Message Analysis state (for message viewer)
+  const [aiMsgSummary, setAiMsgSummary] = useState("");
+  const [aiMsgReplies, setAiMsgReplies] = useState<string[]>([]);
+  const [aiMsgLoading, setAiMsgLoading] = useState(false);
+  const [aiMsgMsgId, setAiMsgMsgId] = useState(""); // tracks which message was analyzed
+
   // ─── Accounts ────────────────────────────────────────────────────────
   const { data: accounts = [], isLoading: accountsLoading } = useQuery<MailAccount[]>({
     queryKey: ["/api/admin/inbox/accounts"],
@@ -274,10 +280,65 @@ export default function AdminInbox() {
     setTimeout(() => setAiCopied(false), 2000);
   };
 
+  // ─── AI Message Summarize ─────────────────────────────────────────────
+  const runAiSummarize = async () => {
+    if (!openMessage) return;
+    setAiMsgLoading(true);
+    setAiMsgSummary("");
+    setAiMsgReplies([]);
+    setAiMsgMsgId(openMessage.id);
+    try {
+      const res = await fetch("/api/admin/inbox/ai-summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          subject: openMessage.subject,
+          fromName: openMessage.fromName,
+          fromEmail: openMessage.fromEmail,
+          body: openMessage.textBody || openMessage.htmlBody?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || "",
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setAiMsgSummary(data.summary || "");
+        setAiMsgReplies(data.replies || []);
+      } else {
+        toast({ title: "خطأ في التحليل", description: data.message, variant: "destructive" });
+      }
+    } catch (e: any) {
+      toast({ title: "خطأ في الاتصال", description: e.message, variant: "destructive" });
+    } finally {
+      setAiMsgLoading(false);
+    }
+  };
+
+  const useQuickReply = (reply: string) => {
+    if (!openMessage) return;
+    setComposeData({
+      to: openMessage.fromEmail,
+      cc: "",
+      bcc: "",
+      subject: openMessage.subject.startsWith("Re:") ? openMessage.subject : `Re: ${openMessage.subject}`,
+      body: reply,
+      inReplyTo: openMessage.messageId,
+    });
+    setAttachments([]);
+    setAiMode("improve");
+    setShowAi(true);
+    setAiPrompt("حسّن هذا الرد واجعله أكثر احترافية");
+    setComposeOpen(true);
+  };
+
   // ─── Handlers ────────────────────────────────────────────────────────
   const openMessage_ = (m: MailMessage) => {
     setOpenMessageId(m.id);
     if (!m.isRead) flagMutation.mutate({ id: m.id, isRead: true });
+    // Reset AI analysis when switching messages
+    if (m.id !== aiMsgMsgId) {
+      setAiMsgSummary("");
+      setAiMsgReplies([]);
+    }
   };
   const handleReply = () => {
     if (!openMessage) return;
@@ -614,6 +675,67 @@ export default function AdminInbox() {
                       </div>
                     </div>
                   )}
+
+                  {/* ── AI Analysis Panel ── */}
+                  <div className="mt-6 pt-4 border-t border-purple-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                          <Sparkles className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-xs font-black text-slate-700">تحليل الذكاء الاصطناعي</span>
+                      </div>
+                      <Button
+                        onClick={runAiSummarize}
+                        disabled={aiMsgLoading}
+                        size="sm"
+                        className="h-7 text-[10px] font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg gap-1 px-3"
+                        data-testid="button-ai-summarize"
+                      >
+                        {aiMsgLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {aiMsgLoading ? "جاري التحليل..." : aiMsgSummary ? "إعادة التحليل" : "تحليل الرسالة"}
+                      </Button>
+                    </div>
+
+                    {/* Summary */}
+                    {aiMsgSummary && (
+                      <div className="rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 p-3.5 mb-3">
+                        <p className="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-2">ملخص الرسالة</p>
+                        <p className="text-xs text-slate-700 leading-relaxed">{aiMsgSummary}</p>
+                      </div>
+                    )}
+
+                    {/* Quick Reply suggestions */}
+                    {aiMsgReplies.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">ردود مقترحة</p>
+                        <div className="flex flex-col gap-2">
+                          {aiMsgReplies.map((r, i) => (
+                            <button
+                              key={i}
+                              onClick={() => useQuickReply(r)}
+                              data-testid={`button-quick-reply-${i}`}
+                              className="text-right text-xs text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-[#DFB369] hover:bg-[#DFB369]/5 transition-all flex items-start gap-2 group"
+                            >
+                              <Reply className="w-3 h-3 text-slate-400 group-hover:text-[#DFB369] mt-0.5 shrink-0" />
+                              <span className="flex-1 leading-relaxed">{r}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-2 text-center">اضغط على أي رد لفتحه في نافذة التأليف مع خيار التحسين بالذكاء الاصطناعي</p>
+                      </div>
+                    )}
+
+                    {/* Empty state hint */}
+                    {!aiMsgSummary && !aiMsgLoading && (
+                      <div className="rounded-xl bg-slate-50 border border-slate-200 border-dashed p-4 text-center">
+                        <Sparkles className="w-5 h-5 mx-auto text-slate-300 mb-2" />
+                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                          اضغط "تحليل الرسالة" ليقوم الذكاء الاصطناعي بتلخيصها<br />واقتراح ردود مناسبة لك
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             ) : (

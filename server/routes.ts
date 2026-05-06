@@ -6280,6 +6280,51 @@ export async function registerRoutes(
     }
   });
 
+  // ─── AI Email Summarize (message viewer) ──────────────────────────────
+  app.post("/api/admin/inbox/ai-summarize", inboxAccess, async (req, res) => {
+    try {
+      const { subject, body, fromName, fromEmail } = req.body || {};
+      if (!body && !subject) return res.status(400).json({ ok: false, message: "body مطلوب" });
+
+      const { groqChatFor } = await import("./groq");
+
+      const systemPrompt = `أنت مساعد ذكي لصندوق بريد شركة عطور آر اف الفاخرة.
+لا تضف مقدمات أو شرحاً. أعد فقط ما طُلب منك بدقة.`;
+
+      const contextHeader = [
+        subject ? `الموضوع: ${subject}` : null,
+        (fromName || fromEmail) ? `من: ${fromName || fromEmail}` : null,
+      ].filter(Boolean).join("\n");
+
+      const [summary, repliesRaw] = await Promise.all([
+        groqChatFor(
+          [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `لخّص الرسالة التالية في جملتين أو ثلاث موجزة بالعربية:\n\n${contextHeader}\n\n${body}` },
+          ],
+          300, "employee"
+        ),
+        groqChatFor(
+          [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `اقترح 3 ردود قصيرة ومناسبة على هذه الرسالة. أعدها كقائمة، كل رد في سطر يبدأ بـ -\n\n${contextHeader}\n\n${body}` },
+          ],
+          400, "employee"
+        ),
+      ]);
+
+      const replies = (repliesRaw || "")
+        .split(/\n/)
+        .map((l: string) => l.replace(/^[-•*\d.)\s]+/, "").trim())
+        .filter((l: string) => l.length > 4 && l.length < 250)
+        .slice(0, 3);
+
+      res.json({ ok: true, summary: summary || "", replies });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, message: err.message });
+    }
+  });
+
   // ─── System Health ────────────────────────────────────────────────────────
   app.get("/api/admin/system-health", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
