@@ -16,8 +16,8 @@ interface ChatMessage {
 }
 
 const KIMI_API_KEY = (process.env.KIMI_API_KEY || "").trim();
-const KIMI_BASE    = "https://api.moonshot.cn/v1/chat/completions";
-const KIMI_MODEL   = "moonshot-v1-8k";
+const KIMI_BASE    = "https://api.moonshot.ai/v1/chat/completions";
+const KIMI_MODEL   = "kimi-k2-0905-preview";
 
 // ─── Daily token budget tracking ───────────────────────────────────────────
 // Reset every UTC midnight. We track estimate only — Kimi charges per actual
