@@ -107,13 +107,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            {/* Category badge — bottom corner */}
+            {/* Category badge — top-left */}
             {categoryBadge && !isOutOfStock && (
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: language === 'ar' ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15 }}
-                className={`absolute bottom-3 ${language === 'ar' ? 'left-3' : 'right-3'} text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm shadow-md ${categoryBadge.cls}`}
+                className={`absolute top-3 ${language === 'ar' ? 'right-3' : 'left-3'} text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm shadow-md ${categoryBadge.cls}`}
                 data-testid={`badge-category-${product.id}`}
               >
                 {language === 'ar' ? categoryBadge.labelAr : categoryBadge.labelEn}
@@ -122,10 +122,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
             {product.isFeatured && !isOutOfStock && (
               <motion.div
-                initial={{ opacity: 0, x: language === 'ar' ? 20 : -20 }}
+                initial={{ opacity: 0, x: language === 'ar' ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className={`absolute top-4 ${language === 'ar' ? 'right-4' : 'left-4'} bg-black text-white text-[10px] font-black uppercase tracking-widest px-3 py-1`}
+                className={`absolute ${categoryBadge ? 'top-11' : 'top-3'} ${language === 'ar' ? 'right-3' : 'left-3'} bg-black text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm shadow-md`}
               >
                 {t('featured')}
               </motion.div>
