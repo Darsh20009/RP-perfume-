@@ -2985,6 +2985,30 @@ const OrdersManagement = memo(() => {
                         <p className="text-xs font-bold text-yellow-300/80">{order.notes}</p>
                       </div>
                     )}
+
+                    {/* Resend Notification Button */}
+                    {["processing","ready_for_pickup","shipped","completed","out_for_delivery"].includes(order.status) && (
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs font-black border-[#DFB369]/40 text-[#DFB369] hover:bg-[#DFB369]/10 rounded-xl gap-1.5"
+                          data-testid={`button-resend-notification-${order.id}`}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await apiRequest("POST", `/api/orders/${order.id}/resend-notification`, {});
+                              toast({ title: "✅ تم إرسال الإشعار للعميل بنجاح" });
+                            } catch {
+                              toast({ title: "❌ فشل إرسال الإشعار", variant: "destructive" });
+                            }
+                          }}
+                        >
+                          <Send className="h-3 w-3" />
+                          إعادة إرسال إشعار للعميل
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

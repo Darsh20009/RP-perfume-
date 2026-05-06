@@ -10,7 +10,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   MapPin, Truck, CreditCard, Apple, Lock,
   Check, Wallet, Smartphone, CheckCircle2,
-  ShieldCheck, ChevronDown, ChevronUp, Store, Phone, Clock, Package
+  ShieldCheck, ChevronDown, ChevronUp, Store, Phone, Clock, Package,
+  AlertTriangle, Trash2, ArrowLeftRight
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -36,7 +37,7 @@ const SAUDI_CITIES = [
 ];
 
 export default function Checkout() {
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, removeItem } = useCart();
   const { appliedCoupon } = useCoupon();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -713,44 +714,58 @@ export default function Checkout() {
                             key={id}
                             onClick={() => !noneAvail && setPickupBranchId(id)}
                             data-testid={`option-branch-${id}`}
-                            className={`p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-gray-200 hover:border-gray-300"
+                            className={`border-2 rounded-xl cursor-pointer transition-all overflow-hidden ${
+                              isSelected ? "border-primary shadow-sm" : "border-gray-200 hover:border-gray-300"
                             } ${noneAvail ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
-                            <div className="flex items-start gap-3">
-                              <div className={`mt-0.5 w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
-                                isSelected ? "border-primary bg-primary" : "border-gray-300"
-                              }`}>
-                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                            {br.image && (
+                              <div className="w-full h-28 overflow-hidden">
+                                <img src={br.image} alt={br.name} className="w-full h-full object-cover" />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2 flex-wrap">
-                                  <p className="font-black text-sm">{br.name}</p>
-                                  {allAvail ? (
-                                    <span className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                      <CheckCircle2 className="h-3 w-3" /> متوفر
-                                    </span>
-                                  ) : noneAvail ? (
-                                    <span className="text-[10px] font-black bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">نفد</span>
-                                  ) : (
-                                    <span className="text-[10px] font-black bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full shrink-0">جزئي</span>
+                            )}
+                            <div className={`p-3.5 sm:p-4 ${isSelected ? "bg-primary/5" : ""}`}>
+                              <div className="flex items-start gap-3">
+                                <div className={`mt-0.5 w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
+                                  isSelected ? "border-primary bg-primary" : "border-gray-300"
+                                }`}>
+                                  {isSelected && <Check className="h-3 w-3 text-white" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                                    <p className="font-black text-sm">{br.name}</p>
+                                    {allAvail ? (
+                                      <span className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                                        <CheckCircle2 className="h-3 w-3" /> متوفر
+                                      </span>
+                                    ) : noneAvail ? (
+                                      <span className="text-[10px] font-black bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">نفد المخزون</span>
+                                    ) : (
+                                      <span className="text-[10px] font-black bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full shrink-0">⚠ متوفر جزئياً</span>
+                                    )}
+                                  </div>
+                                  {(br.address || br.city) && (
+                                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                      <MapPin className="h-3 w-3 shrink-0" /> {br.address || br.city}
+                                    </p>
+                                  )}
+                                  {(br.hours || br.pickupHours) && (
+                                    <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                      <Clock className="h-3 w-3 shrink-0" /> {br.pickupHours || br.hours}
+                                    </p>
+                                  )}
+                                  {br.phone && (
+                                    <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1" dir="ltr">
+                                      <Phone className="h-3 w-3 shrink-0" />{br.phone}
+                                    </p>
+                                  )}
+                                  {!allAvail && !noneAvail && isSelected && (
+                                    <div className="mt-2 pt-2 border-t border-amber-200 space-y-1">
+                                      {itemsAvail.filter(x => !x.available).map((x, i) => (
+                                        <p key={i} className="text-[11px] text-amber-700 font-bold">• {x.item.title} — متوفر {x.stock ?? 0} فقط</p>
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
-                                {(br.address || br.city) && (
-                                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                    <MapPin className="h-3 w-3 shrink-0" /> {br.address || br.city}
-                                  </p>
-                                )}
-                                {(br.hours || br.pickupHours) && (
-                                  <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                                    <Clock className="h-3 w-3 shrink-0" /> {br.pickupHours || br.hours}
-                                  </p>
-                                )}
-                                {br.phone && (
-                                  <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1" dir="ltr">
-                                    <Phone className="h-3 w-3 shrink-0" />{br.phone}
-                                  </p>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -759,11 +774,60 @@ export default function Checkout() {
                     </div>
                   )}
                   {branchStockIssues.length > 0 && (
-                    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3">
-                      <p className="text-xs font-black text-red-700">⚠️ منتجات غير متوفرة في هذا الفرع:</p>
-                      <ul className="text-[11px] text-red-600 font-bold mt-1 space-y-0.5">
-                        {branchStockIssues.map((m, i) => <li key={i}>• {m}</li>)}
-                      </ul>
+                    <div className="mt-3 bg-red-50 border-2 border-red-200 rounded-2xl overflow-hidden">
+                      <div className="p-3 flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-red-700 mb-1">منتجات غير متوفرة في هذا الفرع:</p>
+                          <ul className="text-[11px] text-red-600 font-bold space-y-0.5 mb-3">
+                            {branchStockIssues.map((m, i) => <li key={i}>• {m}</li>)}
+                          </ul>
+                          <p className="text-[11px] text-red-600 font-bold mb-2">اختر أحد الخيارات التالية:</p>
+                          <div className="space-y-2">
+                            <button
+                              type="button"
+                              data-testid="button-remove-unavailable"
+                              onClick={() => {
+                                const branchInv: any[] = (selectedBranch as any)?.inventory || [];
+                                items.forEach(it => {
+                                  if (!it.variantSku) return;
+                                  const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
+                                  const stock = rec ? Number(rec.stock || 0) : null;
+                                  if (stock !== null && stock < it.quantity) {
+                                    removeItem(it.productId, it.variantSku);
+                                  }
+                                });
+                                toast({ title: "تم حذف المنتجات غير المتوفرة من السلة" });
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-red-100 border border-red-300 text-red-700 text-xs font-black hover:bg-red-200 transition-colors text-right"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                              حذف المنتجات غير المتوفرة واكمال الطلب
+                            </button>
+                            <button
+                              type="button"
+                              data-testid="button-switch-to-delivery"
+                              onClick={() => {
+                                setShippingMode("delivery");
+                                setPickupBranchId("");
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-black hover:bg-blue-100 transition-colors text-right"
+                            >
+                              <Truck className="h-3.5 w-3.5 shrink-0" />
+                              التبديل إلى التوصيل للمنزل
+                            </button>
+                            <button
+                              type="button"
+                              data-testid="button-change-branch"
+                              onClick={() => setPickupBranchId("")}
+                              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-red-200 text-gray-600 text-xs font-black hover:bg-gray-50 transition-colors text-right"
+                            >
+                              <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" />
+                              اختيار فرع آخر
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>

@@ -1259,6 +1259,40 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Resend Order Status Notification (manual) ───────────────────────────
+  app.post("/api/orders/:id/resend-notification", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const user = req.user as any;
+      if (user.role !== "admin" && !user.permissions?.includes("orders.manage")) return res.sendStatus(403);
+      const order = await storage.getOrder(req.params.id);
+      if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+      const customer = await storage.getUser(order.userId);
+      if (!customer?.email) return res.status(400).json({ message: "لا يوجد بريد إلكتروني للعميل" });
+
+      const notifiableStatuses = ["processing", "ready_for_pickup", "shipped", "completed", "out_for_delivery"];
+      if (!notifiableStatuses.includes(order.status)) {
+        return res.status(400).json({ message: "لا يمكن إرسال إشعار لهذه الحالة" });
+      }
+
+      await sendOrderStatusEmail({
+        to: customer.email,
+        customerName: customer.name || "عزيزي العميل",
+        orderRef: order.id.slice(-8).toUpperCase(),
+        status: order.status as any,
+      });
+
+      await fireNotify(order.userId, "📧 تم إرسال إشعار بطلبك", `تم إعادة إرسال تحديث الطلب #${order.id.slice(-6).toUpperCase()} إلى بريدك الإلكتروني.`, {
+        type: "info", link: "/orders",
+      });
+
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[API] resend-notification error:", err?.message);
+      res.status(500).json({ message: "فشل إرسال الإشعار" });
+    }
+  });
+
   // ─── Admin Broadcast Notification to Customers ───────────────────────────
   app.post("/api/admin/broadcast", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

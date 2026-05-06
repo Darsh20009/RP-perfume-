@@ -29,15 +29,9 @@ const PAYMENT_LABELS: Record<string, string> = {
   tabby: "تابي — تقسيط",
   paymob: "بطاقة (Paymob)",
   cash: "الدفع عند الاستلام",
+  cod: "الدفع عند الاستلام",
 };
 
-/**
- * HTML-escape any user/DB-provided string before injecting into the invoice
- * template. Prevents XSS via maliciously-crafted product titles, customer
- * names, addresses, etc. The invoice is served from an authenticated endpoint
- * AND emailed as an .html attachment, so a stored-XSS payload could otherwise
- * fire in either context.
- */
 function esc(v: unknown): string {
   if (v === null || v === undefined) return "";
   return String(v)
@@ -61,13 +55,12 @@ function fmtDate(d: Date): string {
 
 export async function buildInvoiceHtml({ order, customer }: InvoiceData): Promise<string> {
   const settings: any = (await storage.getStoreSettings?.().catch(() => null)) || {};
-  // Raw values used for ZATCA TLV (must NOT be HTML-escaped — that would
-  // corrupt the signed payload). Display variants are escaped below.
   const sellerName = settings.storeNameAr || "عطور آر اف";
   const sellerNameEn = settings.storeNameEn || "RF Perfume";
   const vatNumber = settings.vatNumber || "";
   const crNumber = settings.crNumber || "0000203202";
   const sellerAddress = settings.companyAddress || settings.address || "المملكة العربية السعودية";
+  const storeLogo = settings.logo || "";
 
   const issueDate = new Date(order.paidAt || order.createdAt || Date.now());
   const orderRef = String(order._id || order.id).slice(-8).toUpperCase();
@@ -97,18 +90,19 @@ export async function buildInvoiceHtml({ order, customer }: InvoiceData): Promis
   const customerPhone = customer?.phone || order.customerPhone || "";
   const customerEmail = customer?.email || "";
   const deliveryAddress = order.deliveryAddress || "";
+  const isPickup = order.shippingMethod === "pickup";
 
   const itemRows = (order.items || []).map((item: any, idx: number) => {
     const lineSubtotal = Number(item.price) * Number(item.quantity);
     const lineVat = lineSubtotal * 0.15;
     const lineTotal = lineSubtotal + lineVat;
     const titleParts =
-      esc(item.title || "") +
+      esc(item.title || item.name || "") +
       (item.color ? ` — ${esc(item.color)}` : "") +
       (item.size ? ` / ${esc(item.size)}` : "");
     return `
       <tr>
-        <td class="cell c">${idx + 1}</td>
+        <td class="cell c num">${idx + 1}</td>
         <td class="cell r">${titleParts}</td>
         <td class="cell c">${esc(item.quantity)}</td>
         <td class="cell l">${fmtSAR(item.price)}</td>
@@ -121,6 +115,7 @@ export async function buildInvoiceHtml({ order, customer }: InvoiceData): Promis
 
   const paymentLabel = PAYMENT_LABELS[order.paymentMethod] || esc(order.paymentMethod || "غير محدد");
   const paymentStatusLabel = order.paymentStatus === "paid" ? "مدفوعة ✓" : "غير مدفوعة";
+  const isPaid = order.paymentStatus === "paid";
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -129,82 +124,264 @@ export async function buildInvoiceHtml({ order, customer }: InvoiceData): Promis
 <title>فاتورة ضريبية #${orderRef} — ${esc(sellerName)}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background:#f0f0f0; color:#1a1a1a; padding:20px 12px; }
-  .page { max-width: 820px; margin: 0 auto; background:#fff; padding: 36px 40px; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
-  .hdr { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; border-bottom: 3px solid #1a2744; margin-bottom: 28px; }
-  .hdr-left { flex:1; }
-  .hdr-right { text-align:left; min-width: 180px; }
-  h1 { font-size: 26px; font-weight: 900; color:#1a2744; letter-spacing:-0.01em; margin-bottom:4px; }
-  .subtitle { font-size: 12px; color:#666; font-weight: 700; letter-spacing:0.05em; }
-  .badge { display:inline-block; padding: 6px 14px; font-size:11px; font-weight:900; border-radius:4px; letter-spacing:0.08em; margin-top:8px; }
-  .badge-paid { background:#dcfce7; color:#166534; }
-  .badge-unpaid { background:#fef3c7; color:#92400e; }
-  .meta { display:grid; grid-template-columns: 1fr 1fr; gap: 28px 36px; margin-bottom: 28px; }
-  .meta-block h3 { font-size: 11px; font-weight:900; color:#1a2744; letter-spacing:0.12em; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px; }
-  .meta-row { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; padding: 5px 0; }
-  .meta-row .lbl { color:#666; font-weight:700; }
-  .meta-row .val { color:#1a1a1a; font-weight:700; text-align:left; }
-  table.items { width:100%; border-collapse:collapse; margin: 8px 0 16px; font-size:12.5px; }
-  table.items thead th { background:#1a2744; color:#fff; padding:10px 8px; font-size:10.5px; font-weight:900; letter-spacing:0.05em; }
-  table.items thead th.r { text-align:right; }
-  table.items thead th.c { text-align:center; }
-  table.items thead th.l { text-align:left; }
-  .cell { padding: 10px 8px; border-bottom: 1px solid #eee; font-weight:600; }
-  .cell.r { text-align:right; }
-  .cell.c { text-align:center; }
-  .cell.l { text-align:left; }
-  .cell.strong { font-weight: 900; color:#1a2744; }
-  .totals { display:flex; justify-content:flex-start; margin-top: 8px; }
-  .totals-table { min-width: 320px; font-size: 13px; }
-  .totals-table .row { display:flex; justify-content:space-between; padding: 8px 0; border-bottom:1px solid #f0f0f0; }
-  .totals-table .row .lbl { color:#666; font-weight:700; }
-  .totals-table .row .val { font-weight: 800; color:#1a1a1a; }
-  .totals-table .grand { padding-top:14px; margin-top:8px; border-top: 2px solid #1a2744; border-bottom:none; font-size: 16px; }
-  .totals-table .grand .lbl, .totals-table .grand .val { color:#1a2744; font-weight: 900; }
-  .qr-block { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-top:32px; padding-top:24px; border-top:1px solid #e5e7eb; }
-  .qr-img { width: 130px; height:130px; border:1px solid #e5e7eb; border-radius:6px; padding:6px; background:#fff; }
-  .qr-caption { font-size:10px; color:#666; font-weight:700; text-align:center; margin-top:6px; letter-spacing:0.06em; }
-  .footer-note { flex:1; font-size:11px; color:#888; line-height:1.7; }
-  .footer-note strong { color:#1a2744; }
-  .stamp { font-size:10px; color:#999; text-align:center; margin-top: 24px; padding-top:16px; border-top: 1px dashed #ddd; }
-  .print-btn { position:fixed; top:16px; left:16px; padding:10px 20px; background:#DFB369; color:#1a2744; border:none; border-radius:4px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-  .print-btn:hover { background:#c99e57; }
+  body {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #f4f1eb;
+    color: #1a1a1a;
+    padding: 24px 12px;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 840px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  }
+  /* ─── Header ─── */
+  .inv-header {
+    background: linear-gradient(135deg, #1a2744 0%, #2b3d6b 100%);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .inv-header-brand { flex: 1; }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .brand-logo img { height: 52px; width: 52px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,0.1); padding: 4px; }
+  .brand-name { font-size: 22px; font-weight: 900; color: #DFB369; letter-spacing: -0.02em; }
+  .brand-name-en { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.08em; margin-top: 1px; }
+  .brand-address { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px; line-height: 1.7; }
+  .brand-vat { font-size: 11px; color: #DFB369; font-weight: 700; margin-top: 4px; }
+  .inv-header-right { text-align: left; min-width: 180px; }
+  .inv-title { font-size: 13px; font-weight: 900; color: #DFB369; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .inv-title-ar { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .inv-num { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; margin-bottom: 2px; }
+  .inv-num span { color: #fff; font-weight: 800; }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+    margin-top: 10px;
+    letter-spacing: 0.05em;
+  }
+  .badge-paid { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-unpaid { background: rgba(251,191,36,0.2); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+
+  /* ─── Gold Separator ─── */
+  .gold-bar { height: 4px; background: linear-gradient(90deg, #DFB369, #c99e57, #DFB369); }
+
+  /* ─── Meta Section ─── */
+  .inv-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid #f0ede6;
+  }
+  .meta-block {
+    padding: 24px 36px;
+    border-left: 1px solid #f0ede6;
+  }
+  .meta-block:last-child { border-left: none; }
+  .meta-block h3 {
+    font-size: 10px;
+    font-weight: 900;
+    color: #DFB369;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0ede6;
+    margin-bottom: 12px;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12.5px;
+    padding: 5px 0;
+    border-bottom: 1px dashed #f5f2ec;
+  }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-row .lbl { color: #888; font-weight: 700; }
+  .meta-row .val { color: #1a1a1a; font-weight: 800; text-align: left; }
+
+  /* ─── Items Table ─── */
+  .items-section { padding: 0 36px 24px; }
+  .items-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: #1a2744;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 20px 0 10px;
+    border-bottom: 2px solid #1a2744;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  table.items { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.items thead th {
+    background: #1a2744;
+    color: rgba(255,255,255,0.85);
+    padding: 10px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+  }
+  table.items thead th.r { text-align: right; }
+  table.items thead th.c { text-align: center; }
+  table.items thead th.l { text-align: left; }
+  table.items tbody tr:nth-child(even) { background: #faf8f4; }
+  .cell { padding: 11px 10px; border-bottom: 1px solid #f0ede6; font-weight: 600; }
+  .cell.r { text-align: right; }
+  .cell.c { text-align: center; }
+  .cell.l { text-align: left; }
+  .cell.num { color: #888; font-size: 11px; }
+  .cell.strong { font-weight: 900; color: #1a2744; }
+
+  /* ─── Totals ─── */
+  .totals-wrap {
+    padding: 0 36px 28px;
+    display: flex;
+    justify-content: flex-start;
+  }
+  .totals-table {
+    min-width: 340px;
+    border: 1px solid #f0ede6;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .totals-table .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f5f2ec;
+    font-size: 13px;
+  }
+  .totals-table .row .lbl { color: #666; font-weight: 700; }
+  .totals-table .row .val { font-weight: 800; color: #1a1a1a; }
+  .totals-table .row.discount .val { color: #16a34a; }
+  .totals-table .grand {
+    background: linear-gradient(135deg, #1a2744, #2b3d6b);
+    border-bottom: none;
+    padding: 14px 16px;
+  }
+  .totals-table .grand .lbl { color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 900; }
+  .totals-table .grand .val { color: #DFB369; font-size: 16px; font-weight: 900; }
+
+  /* ─── QR / Footer ─── */
+  .inv-footer {
+    padding: 24px 36px 28px;
+    border-top: 1px solid #f0ede6;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+  }
+  .footer-note { flex: 1; font-size: 10.5px; color: #999; line-height: 1.8; }
+  .footer-note strong { color: #1a2744; }
+  .qr-wrap { text-align: center; }
+  .qr-img { width: 120px; height: 120px; border: 2px solid #f0ede6; border-radius: 10px; padding: 6px; background: #fff; }
+  .qr-caption { font-size: 9px; color: #bbb; font-weight: 700; text-align: center; margin-top: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ─── Thank-you strip ─── */
+  .thankyou {
+    background: #1a2744;
+    padding: 14px 36px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.04em;
+  }
+  .thankyou span { color: #DFB369; }
+
+  /* ─── Print button ─── */
+  .print-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 22px;
+    background: #DFB369;
+    color: #1a2744;
+    border: none;
+    border-radius: 8px;
+    font-weight: 900;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Cairo', sans-serif;
+  }
+  .print-btn:hover { background: #c99e57; transform: translateY(-1px); }
+
   @media print {
-    body { background:#fff; padding:0; }
-    .page { box-shadow:none; max-width:none; padding: 24px; }
-    .print-btn { display:none; }
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; }
+    .print-btn { display: none; }
   }
 </style>
 </head>
 <body>
-  <button class="print-btn" onclick="window.print()" data-testid="button-print-invoice">طباعة / حفظ PDF</button>
+  <button class="print-btn" onclick="window.print()" data-testid="button-print-invoice">
+    🖨️ طباعة / PDF
+  </button>
+
   <div class="page">
-    <div class="hdr">
-      <div class="hdr-left">
-        <h1>فاتورة ضريبية مبسطة</h1>
-        <div class="subtitle">Simplified Tax Invoice</div>
-        <div class="badge ${order.paymentStatus === "paid" ? "badge-paid" : "badge-unpaid"}">${paymentStatusLabel}</div>
+    <!-- Header -->
+    <div class="inv-header">
+      <div class="inv-header-brand">
+        <div class="brand-logo">
+          ${storeLogo ? `<img src="${esc(storeLogo)}" alt="${esc(sellerNameEn)}" />` : `<div style="width:52px;height:52px;border-radius:8px;background:rgba(223,179,105,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#DFB369;">RF</div>`}
+          <div>
+            <div class="brand-name">${esc(sellerName)}</div>
+            <div class="brand-name-en">${esc(sellerNameEn)}</div>
+          </div>
+        </div>
+        <div class="brand-address">${esc(sellerAddress)}</div>
+        ${vatNumber ? `<div class="brand-vat">الرقم الضريبي: ${esc(vatNumber)}</div>` : ""}
+        ${crNumber ? `<div class="brand-vat" style="color:rgba(255,255,255,0.4)">السجل التجاري: ${esc(crNumber)}</div>` : ""}
       </div>
-      <div class="hdr-right">
-        <div style="font-size:18px;font-weight:900;color:#1a2744;">${esc(sellerName)}</div>
-        <div style="font-size:11px;color:#666;font-weight:700;margin-top:2px;">${esc(sellerNameEn)}</div>
-        <div style="font-size:11px;color:#666;font-weight:600;margin-top:8px;line-height:1.6;">${esc(sellerAddress)}</div>
-        ${vatNumber ? `<div style="font-size:11px;color:#1a2744;font-weight:800;margin-top:6px;">الرقم الضريبي: ${esc(vatNumber)}</div>` : ""}
-        ${crNumber ? `<div style="font-size:11px;color:#666;font-weight:700;">السجل التجاري: ${esc(crNumber)}</div>` : ""}
+      <div class="inv-header-right">
+        <div class="inv-title">Tax Invoice</div>
+        <div class="inv-title-ar">فاتورة ضريبية مبسطة</div>
+        <div class="inv-num">رقم الفاتورة: <span>${esc(invoiceNumber)}</span></div>
+        <div class="inv-num">رقم الطلب: <span>#${esc(orderRef)}</span></div>
+        <div class="inv-num">التاريخ: <span>${esc(fmtDate(issueDate))}</span></div>
+        <div class="status-badge ${isPaid ? "badge-paid" : "badge-unpaid"}">
+          ${isPaid ? "✓ مدفوعة" : "⏳ غير مدفوعة"}
+        </div>
       </div>
     </div>
+    <div class="gold-bar"></div>
 
-    <div class="meta">
+    <!-- Meta -->
+    <div class="inv-meta">
       <div class="meta-block">
-        <h3>تفاصيل الفاتورة</h3>
-        <div class="meta-row"><span class="lbl">رقم الفاتورة</span><span class="val">${esc(invoiceNumber)}</span></div>
-        <div class="meta-row"><span class="lbl">رقم الطلب</span><span class="val">#${esc(orderRef)}</span></div>
-        <div class="meta-row"><span class="lbl">تاريخ الإصدار</span><span class="val">${esc(fmtDate(issueDate))}</span></div>
+        <h3>تفاصيل الفاتورة · Invoice Details</h3>
         <div class="meta-row"><span class="lbl">طريقة الدفع</span><span class="val">${paymentLabel}</span></div>
+        <div class="meta-row"><span class="lbl">حالة الدفع</span><span class="val">${paymentStatusLabel}</span></div>
+        <div class="meta-row"><span class="lbl">نوع التسليم</span><span class="val">${isPickup ? "⬆️ استلام من الفرع" : "🚚 توصيل للمنزل"}</span></div>
       </div>
       <div class="meta-block">
-        <h3>بيانات العميل</h3>
+        <h3>بيانات العميل · Customer</h3>
         <div class="meta-row"><span class="lbl">الاسم</span><span class="val">${esc(customerName)}</span></div>
         ${customerPhone ? `<div class="meta-row"><span class="lbl">الجوال</span><span class="val" dir="ltr">${esc(customerPhone)}</span></div>` : ""}
         ${customerEmail ? `<div class="meta-row"><span class="lbl">البريد</span><span class="val" dir="ltr">${esc(customerEmail)}</span></div>` : ""}
@@ -212,45 +389,55 @@ export async function buildInvoiceHtml({ order, customer }: InvoiceData): Promis
       </div>
     </div>
 
-    <table class="items">
-      <thead>
-        <tr>
-          <th class="c">#</th>
-          <th class="r">المنتج / Description</th>
-          <th class="c">الكمية</th>
-          <th class="l">السعر</th>
-          <th class="l">الإجمالي قبل الضريبة</th>
-          <th class="l">الضريبة (15%)</th>
-          <th class="l">الإجمالي شامل الضريبة</th>
-        </tr>
-      </thead>
-      <tbody>${itemRows}</tbody>
-    </table>
+    <!-- Items -->
+    <div class="items-section">
+      <div class="items-label">
+        <span>🛒</span>
+        <span>تفاصيل المنتجات · Items</span>
+      </div>
+      <table class="items">
+        <thead>
+          <tr>
+            <th class="c">#</th>
+            <th class="r">المنتج / Description</th>
+            <th class="c">الكمية</th>
+            <th class="l">السعر</th>
+            <th class="l">قبل الضريبة</th>
+            <th class="l">الضريبة 15%</th>
+            <th class="l">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </div>
 
-    <div class="totals">
+    <!-- Totals -->
+    <div class="totals-wrap">
       <div class="totals-table">
         <div class="row"><span class="lbl">المجموع قبل الضريبة</span><span class="val">${fmtSAR(subtotal)} ر.س</span></div>
         ${shipping > 0 ? `<div class="row"><span class="lbl">رسوم الشحن</span><span class="val">${fmtSAR(shipping)} ر.س</span></div>` : ""}
-        ${discount > 0 ? `<div class="row"><span class="lbl">الخصم</span><span class="val" style="color:#16a34a">- ${fmtSAR(discount)} ر.س</span></div>` : ""}
+        ${discount > 0 ? `<div class="row discount"><span class="lbl">الخصم</span><span class="val">- ${fmtSAR(discount)} ر.س</span></div>` : ""}
         <div class="row"><span class="lbl">ضريبة القيمة المضافة (15%)</span><span class="val">${fmtSAR(vatAmount)} ر.س</span></div>
         <div class="row grand"><span class="lbl">الإجمالي شامل الضريبة</span><span class="val">${fmtSAR(total)} ر.س</span></div>
       </div>
     </div>
 
-    <div class="qr-block">
+    <!-- Footer: ZATCA note + QR -->
+    <div class="inv-footer">
       <div class="footer-note">
         <strong>${esc(sellerName)}</strong> — هذه فاتورة ضريبية مبسطة صادرة إلكترونياً ومتوافقة مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA — المرحلة الأولى).<br/>
-        QR code يحتوي على بيانات البائع، رقم الضريبة، التاريخ، الإجمالي، وقيمة الضريبة وفق الترميز TLV المعتمد.<br/>
-        <strong>This is a simplified tax invoice issued electronically and compliant with ZATCA Phase-1 e-invoicing requirements.</strong>
+        QR code يحتوي على بيانات البائع، رقم الضريبة، التاريخ، الإجمالي، وقيمة الضريبة وفق الترميز TLV المعتمد.<br/><br/>
+        <strong>This is a simplified tax invoice issued electronically, compliant with ZATCA Phase-1 e-invoicing.</strong>
       </div>
       ${qrDataUrl ? `
-        <div style="text-align:center;">
+        <div class="qr-wrap">
           <img src="${qrDataUrl}" alt="ZATCA QR" class="qr-img" />
-          <div class="qr-caption">امسح للتحقق · ZATCA QR</div>
+          <div class="qr-caption">ZATCA QR · امسح للتحقق</div>
         </div>` : ""}
     </div>
 
-    <div class="stamp">شكراً لاختياركم ${esc(sellerName)} — Thank you for choosing ${esc(sellerNameEn)}</div>
+    <!-- Thank-you strip -->
+    <div class="thankyou">شكراً لاختياركم <span>${esc(sellerName)}</span> — Thank you for choosing <span>${esc(sellerNameEn)}</span></div>
   </div>
 </body>
 </html>`;
