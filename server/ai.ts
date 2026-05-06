@@ -1,13 +1,9 @@
-import { isGroqConfigured, detectLang, groqChatFor } from "./groq";
+import { kimiChat } from "./kimi";
+import { detectLang } from "./groq";
 
-async function groqJSON(prompt: string, maxTokens = 500, _temperature = 0.4): Promise<any> {
-  if (!isGroqConfigured()) {
-    throw new Error("AI service not configured");
-  }
-  // ai.ts powers customer-facing helpers (size advisor, product descriptions, outfit etc.)
-  const raw = await groqChatFor("customer", [{ role: "user", content: prompt }], maxTokens);
+async function kimiJSON(prompt: string, maxTokens = 500): Promise<any> {
   try {
-    // Try to find a JSON object in the response (some models wrap it in prose).
+    const raw = await kimiChat([{ role: "user", content: prompt }], maxTokens, "customer");
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     return JSON.parse(jsonMatch ? jsonMatch[0] : raw);
   } catch {
@@ -85,7 +81,7 @@ Reply in JSON only, in English:
   "alternativeSize": "alternative size if the customer prefers comfort or tightness"
 }`;
 
-  return groqJSON(prompt, 400, 0.3);
+  return kimiJSON(prompt, 400);
 }
 
 export async function getBusinessInsights(data: {
@@ -138,7 +134,7 @@ Reply in JSON only, in English:
   "trend": "up|down|stable"
 }`;
 
-  return groqJSON(prompt, 500, 0.4);
+  return kimiJSON(prompt, 500);
 }
 
 export async function generateProductDescription(product: {
@@ -150,8 +146,6 @@ export async function generateProductDescription(product: {
   targetAudience?: string;
   lang?: "ar" | "en" | "both";
 }) {
-  // generate-description always returns BOTH languages by default since the
-  // store is bilingual — preserved behaviour.
   const prompt = `You are a professional copywriter for a luxury perfume store. Write an engaging description for this product.
 
 Product name: ${product.name} ${product.nameEn ? `(${product.nameEn})` : ""}
@@ -172,7 +166,7 @@ Reply in JSON only, providing BOTH Arabic and English copy:
   "care_instructions_en": "Product care instructions"
 }`;
 
-  return groqJSON(prompt, 700, 0.6);
+  return kimiJSON(prompt, 700);
 }
 
 export async function getOutfitSuggestions(params: {
@@ -213,7 +207,7 @@ Reply in JSON only, in English:
   "avoid": "what to avoid"
 }`;
 
-  return groqJSON(prompt, 400, 0.6);
+  return kimiJSON(prompt, 400);
 }
 
 /** Generate AI insights from product reviews — scent profile, longevity, occasions, summary. */
@@ -232,7 +226,6 @@ export async function generateProductInsights(params: {
   cons: string[];
   sentiment: number;
 }> {
-  if (!isGroqConfigured()) throw new Error("AI service not configured");
   const reviewsText = params.reviews.slice(0, 30).map((r, i) => `${i + 1}. (${r.rating}★) ${r.comment}`).join("\n");
   const prompt = `أنت خبير عطور محترف. حلّل تقييمات العملاء لهذا العطر واستخرج الملف العطري بدقّة.
 
@@ -254,7 +247,7 @@ ${reviewsText}
   "sentiment": 0.85
 }
 `;
-  return groqJSON(prompt, 700, 0.3);
+  return kimiJSON(prompt, 700);
 }
 
 /** Generate inventory insights — restock suggestions, slow movers, anomalies. */
@@ -268,7 +261,6 @@ export async function generateInventoryInsights(params: {
   overallHealth: string;
   recommendations: string[];
 }> {
-  if (!isGroqConfigured()) throw new Error("AI service not configured");
   const productsList = params.products.slice(0, 40).map((p, i) =>
     `${i + 1}. ${p.name} | المخزون: ${p.stock} | مبيعات ٣٠ يوم: ${p.sold30d} | إيراد: ${p.revenue30d} ر.س | السعر: ${p.price}`
   ).join("\n");
@@ -290,5 +282,5 @@ ${productsList}
   "recommendations": ["3-5 توصيات استراتيجية قصيرة وعملية"]
 }
 `;
-  return groqJSON(prompt, 1000, 0.4);
+  return kimiJSON(prompt, 1000);
 }

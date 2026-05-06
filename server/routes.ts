@@ -6706,13 +6706,32 @@ export async function registerRoutes(
     }
   });
 
-  // Background sync (every 2 minutes)
+  // Background sync (every 2 minutes) — skip accounts that failed decryption to avoid log spam.
+  // Decryption-failed accounts are retried after 1 hour (in case key is restored).
+  const _inboxDecryptFailed = new Map<string, number>(); // accountId → timestamp of first failure
   setInterval(async () => {
     try {
       const accounts = await MailAccountModel.find({ isActive: true });
+      const now = Date.now();
       for (const acc of accounts) {
-        try { await syncInboxAccount(acc._id.toString(), { limit: 20 }); }
-        catch (e: any) { console.warn("[Inbox] auto-sync failed for", acc.email, "-", e?.message); }
+        const id = String(acc._id);
+        const failedAt = _inboxDecryptFailed.get(id);
+        // Skip for 1 hour after a decryption failure (don't spam logs)
+        if (failedAt && now - failedAt < 60 * 60_000) continue;
+        try {
+          await syncInboxAccount(id, { limit: 20 });
+          _inboxDecryptFailed.delete(id); // clear on success
+        } catch (e: any) {
+          const msg = e?.message || "";
+          if (msg.includes("فشل فك تشفير") || msg.includes("decryptSecret") || msg.includes("cipher")) {
+            if (!failedAt) {
+              console.warn("[Inbox] decryption failed for", (acc as any).email, "— will retry in 1h. Re-add account to fix.");
+              _inboxDecryptFailed.set(id, now);
+            }
+          } else {
+            console.warn("[Inbox] auto-sync failed for", (acc as any).email, "-", msg);
+          }
+        }
       }
     } catch (e: any) { console.warn("[Inbox] auto-sync loop:", e?.message); }
   }, 2 * 60_000);

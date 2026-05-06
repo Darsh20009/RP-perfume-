@@ -84,6 +84,12 @@ export function kimiBudgetStatus() {
  * Call Kimi chat API. Returns text or throws.
  * audience controls which budget pool is debited.
  */
+// Language guard injected before every call to prevent Chinese leaking into Arabic/English replies.
+const LANG_GUARD: ChatMessage = {
+  role: "system",
+  content: "CRITICAL RULE: You MUST reply ONLY in Arabic or English as instructed. NEVER use Chinese, Japanese, Korean, or any other language. If the prompt is in Arabic, reply in Arabic only. If in English, reply in English only. No Chinese characters under any circumstances.",
+};
+
 export async function kimiChat(
   messages: ChatMessage[],
   maxTokens = 1024,
@@ -92,7 +98,9 @@ export async function kimiChat(
   if (!KIMI_API_KEY) throw new Error("KIMI_API_KEY not configured");
 
   checkAndResetBudget();
-  const estimated = estimateTokens(messages, maxTokens);
+  // Prepend the language guard to every call
+  const messagesWithGuard = [LANG_GUARD, ...messages];
+  const estimated = estimateTokens(messagesWithGuard, maxTokens);
   if (estimated > kimiRemainingBudget(audience)) {
     throw new Error(`[Kimi] Daily ${audience} budget exhausted (${usedTokens[audience].toLocaleString()} / ${DAILY_BUDGET[audience].toLocaleString()} tokens used)`);
   }
@@ -105,9 +113,9 @@ export async function kimiChat(
     },
     body: JSON.stringify({
       model: KIMI_MODEL,
-      messages,
+      messages: messagesWithGuard,
       max_tokens: maxTokens,
-      temperature: 0.7,
+      temperature: 0.4,
     }),
   });
 

@@ -19,7 +19,8 @@ npm run start     # Production server
 -   `APPLE_CLIENT_ID`
 -   `APPLE_REDIRECT_URI`
 -   `INBOX_ENC_KEY` (for employee inbox encryption, falls back to `SESSION_SECRET`)
--   `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` (for AI integrations)
+-   `KIMI_API_KEY` — Moonshot/Kimi AI (sole AI provider for all chat, advisor, support)
+-   `GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` (optional, unused — Kimi is sole AI)
 -   `STORAGE_STATION_API_KEY` — WooCommerce consumer key for storagestation.app
 -   `STORAGE_STATION_API_SECRET` — WooCommerce consumer secret for storagestation.app
 -   `SHIPOX_USERNAME` — Shipox / 3rd Mile login username (email)
@@ -51,7 +52,7 @@ npm run start     # Production server
 
 ## Architecture decisions
 
--   **AI Integration with Cascading Fallback:** Employs Google Gemini as primary with Groq as fallback, using a multi-key, multi-model strategy with intelligent cooldowns and smart rule-based fallback for robust AI responses even during API failures.
+-   **AI Integration — Kimi Only:** All AI calls (perfume advisor, support chat, admin assistant, size advisor, business/inventory insights, product descriptions) route exclusively through Kimi (Moonshot `moonshot-v1-8k`). Groq and Gemini are no longer used. Smart rule-based fallback activates if Kimi is unavailable. Employee assistant uses `moonshot-v1-32k` for tool-calling context.
 -   **Bilingual Content Strategy:** All user-facing and admin-facing content supports Arabic and English, with RTL default for Arabic and auto-detection of user message language for AI interactions.
 -   **Atomic Operations for Critical Flows:** Stock mutations, order status updates, and worker claims utilize atomic MongoDB operations (`$inc`, `findOneAndUpdate`) to prevent race conditions and ensure data integrity.
 -   **PWA First Approach:** Designed with Progressive Web App capabilities including manifest, icons, and offline support for enhanced user experience.

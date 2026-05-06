@@ -10,19 +10,10 @@ import { ProductModel, OrderModel, UserModel, CategoryModel } from "./models";
 import { sendEmail } from "./email";
 import { sendPushToUser, pushToUser } from "./notifications";
 import { detectLang } from "./groq";
+import { isKimiConfigured, kimiChat } from "./kimi";
 
-// Employee assistant has its OWN dedicated keys, separate from customer pool.
-// This guarantees staff AI keeps working even if customers exhaust their share.
-const GROQ_KEYS = Array.from(new Set([
-  process.env.GROQ_API_KEY_EMPLOYEE,
-  process.env.GROQ_API_KEY_8,
-  process.env.GROQ_API_KEY_9,
-  process.env.GROQ_API_KEY_10,
-  process.env.GROQ_API_KEY_11,
-].filter(Boolean) as string[]));
-
-let keyIndex = 0;
-const badKeys = new Set<number>(); // Permanently-bad (401/403) keys we won't retry
+const KIMI_BASE = "https://api.moonshot.ai/v1/chat/completions";
+const KIMI_MODEL_TOOLS = "moonshot-v1-32k"; // larger context for multi-turn tool calling
 
 // ─── Tool Definitions ───────────────────────────────────────────────────────
 
@@ -719,63 +710,39 @@ When done: a concise English reply summarising what you did — no excessive tab
 
 // ─── Assistant Loop ─────────────────────────────────────────────────────────
 
-async function callGroq(allMessages: any[]): Promise<{ ok: boolean; status?: number; data?: any; errText?: string }> {
-  // Try every available key (skipping known-bad ones); rotate on 401/403/429/5xx.
-  // The previous version broke on the FIRST 401, which made the whole assistant
-  // appear dead if any key was revoked or had a typo.
-  const triedKeys = new Set<number>();
-  let lastStatus = 0;
-  let lastText = "";
-  const total = Math.max(GROQ_KEYS.length, 1);
-  // Try fallback model when all keys hit rate-limit on the primary
-  const models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
-  for (const model of models) {
-    triedKeys.clear();
-    for (let attempt = 0; attempt < total; attempt++) {
-      const idx = (keyIndex + attempt) % total;
-      if (triedKeys.has(idx)) continue;
-      if (badKeys.has(idx)) continue;
-      triedKeys.add(idx);
-      const key = GROQ_KEYS[idx];
-      if (!key) continue;
-      try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-          body: JSON.stringify({
-            model,
-            messages: allMessages,
-            tools: TOOLS,
-            tool_choice: "auto",
-            temperature: 0.72,
-            max_tokens: 2400,
-          }),
-        });
-        if (res.ok) {
-          keyIndex = (idx + 1) % total;
-          const data = await res.json();
-          return { ok: true, data };
-        }
-        lastStatus = res.status;
-        lastText = (await res.text()).slice(0, 300);
-        console.error(`[Assistant Groq] key#${idx} model=${model} HTTP ${res.status}: ${lastText}`);
-        // 401/403 → permanently bad key, mark and try next
-        if (res.status === 401 || res.status === 403) {
-          badKeys.add(idx);
-          continue;
-        }
-        // 429 or 5xx → try next key
-        if (res.status === 429 || res.status >= 500) continue;
-        // Real client error (400/404/422) → break out, retrying won't help
-        return { ok: false, status: res.status, errText: lastText };
-      } catch (e: any) {
-        lastText = e?.message || String(e);
-        console.error(`[Assistant Groq] key#${idx} network: ${lastText}`);
-      }
-    }
-    // All keys failed for this model — try the smaller model with all keys
+async function callKimi(allMessages: any[]): Promise<{ ok: boolean; status?: number; data?: any; errText?: string }> {
+  const apiKey = (process.env.KIMI_API_KEY || "").trim();
+  if (!apiKey) {
+    return { ok: false, status: 0, errText: "KIMI_API_KEY not configured" };
   }
-  return { ok: false, status: lastStatus, errText: lastText };
+  try {
+    const res = await fetch(KIMI_BASE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: KIMI_MODEL_TOOLS,
+        messages: allMessages,
+        tools: TOOLS,
+        tool_choice: "auto",
+        temperature: 0.72,
+        max_tokens: 2400,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, data };
+    }
+    const errText = (await res.text()).slice(0, 300);
+    console.error(`[Assistant Kimi] HTTP ${res.status}: ${errText}`);
+    return { ok: false, status: res.status, errText };
+  } catch (e: any) {
+    const errText = e?.message || String(e);
+    console.error(`[Assistant Kimi] network: ${errText}`);
+    return { ok: false, status: 0, errText };
+  }
 }
 
 const GRACEFUL_FALLBACK = (lang: "ar" | "en", reason: string) => lang === "ar"
@@ -787,7 +754,7 @@ async function groqWithTools(messages: any[], lang: "ar" | "en" = "ar", maxItera
   const actions: Array<{ tool: string; args: any; result: any }> = [];
 
   for (let i = 0; i < maxIterations; i++) {
-    const result = await callGroq(allMessages);
+    const result = await callKimi(allMessages);
 
     if (!result.ok) {
       const reason = lang === "ar"
@@ -864,11 +831,11 @@ export function registerEmployeeAssistant(app: Express) {
       const lastUserMsg = [...userMessages].reverse().find((m: any) => m.role === "user");
       const lang: "ar" | "en" = lastUserMsg?.content ? detectLang(String(lastUserMsg.content)) : "ar";
 
-      if (GROQ_KEYS.length === 0) {
+      if (!isKimiConfigured()) {
         return res.json({
           reply: lang === "ar"
-            ? "خدمة الذكاء الاصطناعي غير مفعّلة على الخادم حالياً. تواصل مع المسؤول التقني لتفعيل مفاتيح Groq API."
-            : "The AI service is not enabled on the server right now. Please contact the technical admin to set up the Groq API keys.",
+            ? "خدمة الذكاء الاصطناعي غير مفعّلة على الخادم حالياً. تواصل مع المسؤول التقني لتفعيل KIMI_API_KEY."
+            : "The AI service is not enabled on the server right now. Please contact the technical admin to set up KIMI_API_KEY.",
           actions: [],
         });
       }

@@ -1,66 +1,18 @@
-import { isGeminiConfigured, geminiChat } from "./gemini";
+/**
+ * AI dispatcher — routes all chat requests through Kimi (Moonshot) as the sole provider.
+ * Gemini and Groq have been removed; Kimi is the only AI backend.
+ *
+ * Exports kept stable so dependent files don't need import changes:
+ *   isGroqConfigured(), detectLang(), groqChatFor(),
+ *   perfumeAdvisor(), supportAssistant(), adminAssistant(), smartAdvisorFallback()
+ */
+
 import { isKimiConfigured, kimiChat } from "./kimi";
 
 type Audience = "customer" | "employee";
 
-// Keys 1..7 are reserved for customers (high traffic, customer-facing AI).
-// Keys 8..11 + EMPLOYEE are reserved for staff so internal ops never starve.
-const CUSTOMER_POOL = [
-  process.env.GROQ_API_KEY_1,
-  process.env.GROQ_API_KEY_2,
-  process.env.GROQ_API_KEY_3,
-  process.env.GROQ_API_KEY_4,
-  process.env.GROQ_API_KEY_5,
-  process.env.GROQ_API_KEY_6,
-  process.env.GROQ_API_KEY_7,
-].filter(Boolean) as string[];
-
-const EMPLOYEE_POOL = [
-  process.env.GROQ_API_KEY_EMPLOYEE,
-  process.env.GROQ_API_KEY_8,
-  process.env.GROQ_API_KEY_9,
-  process.env.GROQ_API_KEY_10,
-  process.env.GROQ_API_KEY_11,
-].filter(Boolean) as string[];
-
-const CUSTOMER_KEYS = Array.from(new Set([
-  process.env.GROQ_API_KEY_CUSTOMER,
-  ...CUSTOMER_POOL,
-].filter(Boolean) as string[]));
-
-const EMPLOYEE_KEYS = Array.from(new Set(EMPLOYEE_POOL));
-
-const ALL_KEYS = Array.from(new Set([...CUSTOMER_KEYS, ...EMPLOYEE_KEYS]));
-
-// Per-audience round-robin index + per-key cooldown after 429
-const idx: Record<Audience, number> = { customer: 0, employee: 0 };
-const keyCooldownUntil = new Map<string, number>();
-
-function getNextKey(audience: Audience): string {
-  const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
-  if (pool.length === 0) throw new Error(`No Groq API keys configured for ${audience}`);
-  const now = Date.now();
-  // Try up to pool.length times to find a key NOT in cooldown
-  for (let i = 0; i < pool.length; i++) {
-    const key = pool[idx[audience] % pool.length];
-    idx[audience]++;
-    const until = keyCooldownUntil.get(key) || 0;
-    if (until <= now) return key;
-  }
-  // All in cooldown — return next anyway (will retry sooner than waiting)
-  const key = pool[idx[audience] % pool.length];
-  idx[audience]++;
-  return key;
-}
-
-function markKeyCooldown(key: string, retryAfterSec?: number) {
-  // Default: cool down for 60s if Groq didn't tell us; 24h max for daily-quota errors
-  const ms = (retryAfterSec ? Math.min(retryAfterSec, 24 * 3600) : 60) * 1000;
-  keyCooldownUntil.set(key, Date.now() + ms);
-}
-
 export function isGroqConfigured(): boolean {
-  return ALL_KEYS.length > 0 || isGeminiConfigured() || isKimiConfigured();
+  return isKimiConfigured();
 }
 
 interface ChatMessage {
@@ -68,129 +20,15 @@ interface ChatMessage {
   content: string;
 }
 
-const PRIMARY_MODEL = "llama-3.3-70b-versatile";
-const FALLBACK_MODEL = "llama-3.1-8b-instant";
-
 async function groqChat(
   messages: ChatMessage[],
   maxTokens = 1024,
   audience: Audience = "customer",
 ): Promise<string> {
-  // ─── PRIMARY PROVIDER: Google Gemini (1M tokens/day free) ─────────────────
-  // Gemini's free tier is 10× more generous than Groq's, so we try it first.
-  // If Gemini fails (no key, quota exhausted, network error), we transparently
-  // fall through to the existing Groq pool.
-  if (isGeminiConfigured()) {
-    try {
-      const response = await geminiChat(messages, maxTokens);
-      if (response) return response;
-    } catch (err: any) {
-      console.warn(
-        `[AI] Gemini failed for ${audience}, falling back to Groq:`,
-        err?.message || err,
-      );
-      // fall through to Groq
-    }
+  if (!isKimiConfigured()) {
+    throw new Error("AI service not configured — KIMI_API_KEY is missing");
   }
-
-  // ─── FALLBACK PROVIDER: Groq (existing key pool) ──────────────────────────
-  const pool = audience === "employee" ? EMPLOYEE_KEYS : CUSTOMER_KEYS;
-  if (pool.length === 0) {
-    throw new Error(
-      `No AI provider available — Gemini not configured and no Groq keys for ${audience}`,
-    );
-  }
-
-  let lastErr: any = null;
-  let allRateLimited = true;
-  // Try each key in the pool once with the primary model.
-  for (let attempt = 0; attempt < pool.length; attempt++) {
-    const key = getNextKey(audience);
-    try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${key}`,
-        },
-        body: JSON.stringify({
-          model: PRIMARY_MODEL,
-          messages,
-          max_tokens: maxTokens,
-          temperature: 0.7,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        return data.choices?.[0]?.message?.content || "";
-      }
-
-      const text = await res.text();
-      console.error(`[Groq] ${audience} key#${attempt} HTTP ${res.status}:`, text.slice(0, 200));
-      if (res.status === 429) {
-        // Daily TPD usually resets in <24h — cool down this key for 1 hour
-        markKeyCooldown(key, 3600);
-      } else if (res.status === 401 || res.status === 403) {
-        // Bad/revoked key — cool down for the day
-        markKeyCooldown(key, 24 * 3600);
-        allRateLimited = false;
-      } else if (![500, 502, 503, 504].includes(res.status)) {
-        // Hard error — fail fast
-        throw new Error(`Groq API error ${res.status}`);
-      } else {
-        allRateLimited = false;
-      }
-      lastErr = new Error(`Groq API error ${res.status}`);
-    } catch (err: any) {
-      console.error(`[Groq] ${audience} key#${attempt} threw:`, err?.message || err);
-      lastErr = err;
-      allRateLimited = false;
-    }
-  }
-
-  // ─── Fallback: try the lighter model with the same key pool ──────────────
-  if (allRateLimited) {
-    console.warn(`[Groq] all ${audience} keys rate-limited on ${PRIMARY_MODEL} — falling back to ${FALLBACK_MODEL}`);
-    for (let attempt = 0; attempt < pool.length; attempt++) {
-      const key = pool[attempt];
-      try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${key}`,
-          },
-          body: JSON.stringify({
-            model: FALLBACK_MODEL,
-            messages,
-            max_tokens: maxTokens,
-            temperature: 0.7,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          return data.choices?.[0]?.message?.content || "";
-        }
-        const text = await res.text();
-        console.error(`[Groq][fallback] ${audience} key#${attempt} HTTP ${res.status}:`, text.slice(0, 150));
-      } catch (err: any) {
-        console.error(`[Groq][fallback] ${audience} key#${attempt} threw:`, err?.message || err);
-      }
-    }
-  }
-  // ─── FINAL FALLBACK: Kimi (paid, always available, budget-guarded) ──────────
-  if (isKimiConfigured()) {
-    try {
-      console.log(`[AI] All Groq keys exhausted for ${audience}, trying Kimi...`);
-      const response = await kimiChat(messages, maxTokens, audience);
-      if (response) return response;
-    } catch (err: any) {
-      console.warn(`[AI] Kimi also failed for ${audience}:`, err?.message || err);
-    }
-  }
-
-  throw lastErr || new Error("Groq request failed on all keys");
+  return kimiChat(messages, maxTokens, audience);
 }
 
 /** Heuristic: detects whether the latest user message is mostly Arabic or Latin script */
@@ -201,8 +39,8 @@ export function detectLang(text: string): "ar" | "en" {
   let ar = 0, en = 0;
   for (const ch of s) {
     const c = ch.charCodeAt(0);
-    if (c >= 0x0600 && c <= 0x06ff) ar++;          // Arabic block
-    else if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a)) en++; // Latin
+    if (c >= 0x0600 && c <= 0x06ff) ar++;
+    else if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a)) en++;
   }
   return ar >= en ? "ar" : "en";
 }
@@ -269,9 +107,7 @@ export interface AdvisorProductRef {
   image?: string;
 }
 
-// ─── Smart rule-based fallback when all AI providers fail ─────────────
-// Picks 2-3 products by simple keyword matching so the customer always gets
-// a useful answer even when Gemini quota is exhausted and Groq keys are dead.
+// ─── Smart rule-based fallback when Kimi is unavailable ───────────────────────
 export function smartAdvisorFallback(
   userMessage: string,
   products: any[]
@@ -293,7 +129,6 @@ export function smartAdvisorFallback(
     if (has("رجال", "رجل", "men", "man")) s += (p.gender === "male" || blob.includes("رجال") || blob.includes("men")) ? 5 : 0;
     if (has("نساء", "نسائي", "women", "woman", "بنات")) s += (p.gender === "female" || blob.includes("نسائ") || blob.includes("women")) ? 5 : 0;
     if (has("هدية", "gift")) s += (p.featured || p.bestseller) ? 4 : 0;
-    // Fallback signals
     if (p.featured) s += 1;
     if (p.bestseller) s += 1;
     return s;
@@ -303,7 +138,7 @@ export function smartAdvisorFallback(
     .filter(p => Number(p.price) > 0 || (Array.isArray(p.variants) && p.variants.some((v: any) => Number(v.price) > 0)))
     .map(p => ({ p, s: score(p) }))
     .sort((a, b) => b.s - a.s);
-  const top = (ranked[0]?.s ?? 0) > 0 ? ranked.slice(0, 3) : ranked.slice(0, 3); // even if no keyword matches, return featured/bestsellers
+  const top = ranked.slice(0, 3);
 
   const refs: AdvisorProductRef[] = top.map(({ p }) => {
     const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
@@ -334,9 +169,6 @@ export async function perfumeAdvisor(
   products: any[]
 ): Promise<{ response: string; products: AdvisorProductRef[] }> {
   const lang = detectLang(userMessage);
-  // Use simple sequential numbers (P1, P2, ...) instead of long Mongo hex IDs
-  // because LLMs (especially Gemini) often skip or mis-copy long opaque IDs.
-  // We map P# back to the real product after the response is generated.
   const indexed = products.map((p, i) => ({ tag: `P${i + 1}`, product: p }));
   const productList = indexed.map(({ tag, product: p }) => {
     const variants: any[] = Array.isArray(p.variants) ? p.variants.filter((v: any) => Number(v.price) > 0) : [];
@@ -392,10 +224,15 @@ ${extraRules}`;
     { role: "user", content: userMessage },
   ];
 
-  const raw = await groqChat(messages, 1024, "customer");
+  // Try Kimi first, fall back to smart fallback if unavailable
+  let raw: string;
+  try {
+    raw = await groqChat(messages, 1024, "customer");
+  } catch (err: any) {
+    console.warn("[AI] Kimi unavailable for perfumeAdvisor, using smartFallback:", err?.message);
+    return smartAdvisorFallback(userMessage, products);
+  }
 
-  // Extract product references — accept both [PRODUCT:P#] and [PRODUCT:<hex id>]
-  // for backward compatibility in case the model echoes a real id.
   const refs: AdvisorProductRef[] = [];
   const seen = new Set<string>();
   const refRegex = /\[PRODUCT:([^\]]+)\]/g;
@@ -403,13 +240,11 @@ ${extraRules}`;
   while ((match = refRegex.exec(raw)) !== null) {
     const token = match[1].trim();
     let product: any = null;
-    // Try P# format first
     const pMatch = /^P(\d+)$/i.exec(token);
     if (pMatch) {
       const idx = parseInt(pMatch[1], 10) - 1;
       if (idx >= 0 && idx < indexed.length) product = indexed[idx].product;
     }
-    // Fallback to direct id match
     if (!product) product = products.find(p => String(p.id || p._id) === token);
     if (!product) continue;
     const realId = String(product.id || product._id);
@@ -424,7 +259,6 @@ ${extraRules}`;
       image: Array.isArray(product.images) ? product.images[0] : undefined,
     });
   }
-  // Strip markers from text shown to user, then clean up dangling punctuation/spaces
   const response = raw
     .replace(refRegex, "")
     .replace(/\s*[,،]\s*([،,.!؟?])/g, "$1")
@@ -538,8 +372,7 @@ ${context?.role ? `\n**User role:** ${context.role}` : ""}`;
   return groqChat(messages, 1024, "employee");
 }
 
-// Exported for other server modules (e.g. employee-assistant, ai.ts) that
-// need raw access to a chat call routed to the right audience pool.
+// Exported for other server modules that need raw access to a chat call.
 export async function groqChatFor(
   audience: Audience,
   messages: ChatMessage[],
