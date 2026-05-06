@@ -89,7 +89,7 @@ const productSchema = new Schema<Product>(
   {
     name: { type: String, required: true },
     nameEn: { type: String, default: "" },
-    description: { type: String, required: true },
+    description: { type: String, default: "" },
     descriptionEn: { type: String, default: "" },
     price: { type: String, required: true },
     cost: { type: String, required: true },

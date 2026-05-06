@@ -884,8 +884,12 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const parsed = insertProductSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json(parsed.error);
+      if (!parsed.success) {
+        const firstError = parsed.error.errors[0];
+        return res.status(400).json({ message: firstError?.message || "بيانات غير صحيحة", details: parsed.error.errors });
+      }
       const product = await storage.createProduct(parsed.data);
+      invalidateTags("products");
       res.status(201).json(product);
     } catch (err: any) {
       console.error("[API] products.create error:", err?.message);

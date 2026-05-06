@@ -1463,7 +1463,17 @@ const ProductsTable = memo(() => {
           <div className="text-right">الإجراءات</div>
         </div>
         <div className="divide-y divide-black/5">
-          {products?.map(product => {
+          {[...(products || [])].sort((a, b) => {
+            const getCatName = (p: any) => {
+              const ids: string[] = p.categoryIds?.length ? p.categoryIds : p.categoryId ? [p.categoryId] : [];
+              const cat = ids.map((id: string) => categories?.find((c: any) => c.id === id)).filter(Boolean)[0] as any;
+              return cat ? (cat.nameAr || cat.name || "") : "";
+            };
+            const catA = getCatName(a);
+            const catB = getCatName(b);
+            if (catA !== catB) return catA.localeCompare(catB, "ar");
+            return (a.name || "").localeCompare(b.name || "", "ar");
+          }).map(product => {
             const totalStock = (product as any).variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0;
             const productCatIds: string[] = (product as any).categoryIds?.length
               ? (product as any).categoryIds

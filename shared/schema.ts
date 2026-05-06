@@ -139,7 +139,7 @@ export type Coupon = InsertCoupon & { _id: string; id: string; usageCount: numbe
 export const insertProductSchema = z.object({
   name: z.string().min(1),
   nameEn: z.string().optional().default(""),
-  description: z.string().min(1),
+  description: z.string().optional().default(""),
   descriptionEn: z.string().optional().default(""),
   price: z.string(),
   cost: z.string(),
