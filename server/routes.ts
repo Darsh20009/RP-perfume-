@@ -776,14 +776,15 @@ export async function registerRoutes(
 
   // Marketing (active banners/popups)
   app.get("/api/marketing/active", async (_req, res) => {
+    res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
     res.json([]);
   });
 
   // Products
-  app.get(api.products.list.path, cacheMiddleware({ ttlMs: 60_000, tags: ["products"] }), async (_req, res) => {
+  app.get(api.products.list.path, cacheMiddleware({ ttlMs: 5 * 60_000, tags: ["products"] }), async (_req, res) => {
     try {
       const products = await storage.getProducts();
-      res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+      res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
       res.json(products);
     } catch (err: any) {
       console.error("[API] products.list error:", err?.message);
@@ -795,7 +796,7 @@ export async function registerRoutes(
     try {
       const product = await storage.getProduct(req.params.id);
       if (!product) return res.status(404).json({ message: "Product not found" });
-      res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
       res.json(product);
     } catch (err: any) {
       console.error("[API] products.get error:", err?.message);
@@ -2808,6 +2809,7 @@ export async function registerRoutes(
     try {
       const limit = Math.min(24, parseInt((req.query.limit as string) || "12", 10));
       const items = await storage.getFeaturedReviews(limit);
+      res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
       res.json(items);
     } catch (err: any) { res.json([]); }
   });
@@ -2934,6 +2936,7 @@ export async function registerRoutes(
     try {
       const navOnly = req.query.nav === "1" || req.query.nav === "true";
       const items = await storage.getCustomPages({ activeOnly: true, navOnly });
+      res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
       res.json(items);
     } catch (err: any) { res.json([]); }
   });
@@ -4594,6 +4597,7 @@ export async function registerRoutes(
   app.get("/api/store/settings", async (_req, res) => {
     try {
       const settings = await storage.getStoreSettings();
+      res.set("Cache-Control", "public, max-age=600, stale-while-revalidate=1200");
       res.json(settings);
     } catch (err: any) {
       res.status(500).json({ message: err.message });

@@ -1,102 +1,139 @@
-const CACHE_NAME = 'rf-perfume-v1';
-const STATIC_ASSETS_CACHE = 'rf-perfume-static-v1';
+const CACHE_VERSION = 'v7';
+const STATIC_CACHE  = `rf-perfume-static-${CACHE_VERSION}`;
+const API_CACHE     = `rf-perfume-api-${CACHE_VERSION}`;
+const IMAGE_CACHE   = `rf-perfume-images-${CACHE_VERSION}`;
 
-// Only cache static assets with hashed filenames
-const STATIC_EXTENSIONS = ['.js', '.css', '.woff2', '.woff', '.ttf', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.webp'];
+// Static file extensions to cache
+const STATIC_EXTENSIONS = ['.js', '.css', '.woff2', '.woff', '.ttf', '.ico', '.webp', '.svg'];
+
+// API endpoints cached with stale-while-revalidate (serve instantly, refresh in background)
+const CACHED_API_PATHS = [
+  '/api/products',
+  '/api/marketing/active',
+  '/api/store/settings',
+  '/api/pages',
+  '/api/categories',
+  '/api/reviews/featured',
+];
 
 function isStaticAsset(url) {
-  const urlObj = new URL(url);
-  return STATIC_EXTENSIONS.some(ext => urlObj.pathname.endsWith(ext)) && 
-         (urlObj.pathname.includes('/assets/') || urlObj.pathname.includes('/icons/') || urlObj.pathname.includes('/uploads/'));
+  const p = new URL(url).pathname;
+  return STATIC_EXTENSIONS.some(ext => p.endsWith(ext)) &&
+         (p.includes('/assets/') || p.includes('/icons/'));
 }
 
-function isApiRequest(url) {
-  return new URL(url).pathname.startsWith('/api/');
+function isUploadImage(url) {
+  const p = new URL(url).pathname;
+  return p.startsWith('/uploads/') || p.startsWith('/images/') ||
+         p.startsWith('/banners/') || p.startsWith('/logos/');
 }
 
-function isNavigationRequest(request) {
-  return request.mode === 'navigate' || 
-         (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
+function isCachedApi(url) {
+  const p = new URL(url).pathname;
+  return CACHED_API_PATHS.some(api => p === api || p.startsWith(api + '?'));
 }
 
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
+function isNavigationRequest(req) {
+  return req.mode === 'navigate' ||
+         (req.method === 'GET' && req.headers.get('accept')?.includes('text/html'));
+}
 
-self.addEventListener('activate', (event) => {
+// ── Install: skip waiting immediately ──────────────────────────────────────────
+self.addEventListener('install', () => self.skipWaiting());
+
+// ── Activate: clean old caches ─────────────────────────────────────────────────
+self.addEventListener('activate', event => {
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      // Clear ALL old caches on activation
-      caches.keys().then((cacheNames) =>
-        Promise.all(
-          cacheNames.map((name) => {
-            if (name !== CACHE_NAME && name !== STATIC_ASSETS_CACHE) {
-              return caches.delete(name);
-            }
-          })
-        )
-      ),
-    ])
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== STATIC_CACHE && k !== API_CACHE && k !== IMAGE_CACHE)
+          .map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (event) => {
+// ── Fetch: route by type ───────────────────────────────────────────────────────
+self.addEventListener('fetch', event => {
   const { request } = event;
-  
-  // Ignore non-GET requests
   if (request.method !== 'GET') return;
-  
-  // Ignore API requests - always go to network
-  if (isApiRequest(request.url)) return;
-  
-  // For navigation (HTML page) requests: Network-first strategy
-  // This ensures fresh HTML is always loaded, preventing stale chunk reference issues
+
+  const url = request.url;
+
+  // 1. Navigation → network-first (always fresh HTML)
   if (isNavigationRequest(request)) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Don't cache HTML responses - always fetch fresh
-          return response;
-        })
-        .catch(() => {
-          // Only fall back to cache if offline
-          return caches.match('/') || caches.match('/index.html');
-        })
+      fetch(request).catch(() => caches.match('/') || caches.match('/index.html'))
     );
     return;
   }
-  
-  // For static assets with hashed filenames: Cache-first strategy
-  if (isStaticAsset(request.url)) {
+
+  // 2. Upload images & public image folders → cache-first, 1-year TTL
+  if (isUploadImage(url)) {
     event.respondWith(
-      caches.open(STATIC_ASSETS_CACHE).then((cache) =>
-        cache.match(request).then((cached) => {
+      caches.open(IMAGE_CACHE).then(cache =>
+        cache.match(request).then(cached => {
           if (cached) return cached;
-          return fetch(request).then((response) => {
-            if (response.ok) cache.put(request, response.clone());
-            return response;
+          return fetch(request).then(res => {
+            if (res.ok) cache.put(request, res.clone());
+            return res;
+          }).catch(() => cached);
+        })
+      )
+    );
+    return;
+  }
+
+  // 3. Key API endpoints → stale-while-revalidate
+  //    Serve from cache instantly, update cache in background
+  if (isCachedApi(url)) {
+    event.respondWith(
+      caches.open(API_CACHE).then(cache =>
+        cache.match(request).then(cached => {
+          const networkFetch = fetch(request).then(res => {
+            if (res.ok) cache.put(request, res.clone());
+            return res;
+          }).catch(() => cached);
+
+          // Return cached immediately if available, otherwise wait for network
+          return cached || networkFetch;
+        })
+      )
+    );
+    return;
+  }
+
+  // 4. Hashed static assets (JS/CSS/fonts) → cache-first
+  if (isStaticAsset(url)) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then(cache =>
+        cache.match(request).then(cached => {
+          if (cached) return cached;
+          return fetch(request).then(res => {
+            if (res.ok) cache.put(request, res.clone());
+            return res;
           });
         })
       )
     );
     return;
   }
-  
-  // For everything else: Network-first
+
+  // 5. Everything else → network with cache fallback
   event.respondWith(
     fetch(request).catch(() => caches.match(request))
   );
 });
 
-// ─── Web Push ─────────────────────────────────────────────────────────────────
-self.addEventListener('push', (event) => {
+// ── Web Push ───────────────────────────────────────────────────────────────────
+self.addEventListener('push', event => {
   if (!event.data) return;
   let data = {};
   try { data = event.data.json(); } catch { data = { title: 'رفيف العود', body: event.data.text() }; }
 
   const title = data.title || 'رفيف العود';
-  const options = {
+  event.waitUntil(self.registration.showNotification(title, {
     body: data.body || '',
     icon: data.icon || '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
@@ -104,27 +141,18 @@ self.addEventListener('push', (event) => {
     renotify: true,
     data: data.data || {},
     vibrate: [200, 100, 200],
-    actions: [
-      { action: 'open', title: 'فتح' },
-      { action: 'close', title: 'إغلاق' },
-    ],
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
+    actions: [{ action: 'open', title: 'فتح' }, { action: 'close', title: 'إغلاق' }],
+  }));
 });
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'close') return;
-
   const url = event.notification.data?.url || '/';
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.postMessage({ type: 'navigate', url });
-          return client.focus();
-        }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if ('focus' in c) { c.postMessage({ type: 'navigate', url }); return c.focus(); }
       }
       if (clients.openWindow) return clients.openWindow(url);
     })
