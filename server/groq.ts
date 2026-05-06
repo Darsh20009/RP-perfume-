@@ -209,8 +209,15 @@ export function detectLang(text: string): "ar" | "en" {
 
 const LANG_DIRECTIVE = (lang: "ar" | "en") =>
   lang === "ar"
-    ? `\n\n🌐 **اللغة:** المستخدم كتب بالعربية — أجب بالعربية الفصحى المهذبة والراقية.`
-    : `\n\n🌐 **Language:** The user wrote in English — reply in clear, polished, native English.`;
+    ? `\n\n🌐 **قاعدة اللغة — إلزامية بالكامل:**
+- أجب بالعربية الفصحى الراقية فقط — لا استثناء.
+- يُحظر تماماً استخدام الفرنسية أو الإنجليزية أو أي لغة أخرى في الرد.
+- إذا كانت كلمة تقنية شائعة (مثل Top notes, Oud) يمكنك كتابة مقابلها العربي.
+- لا تخلط اللغات أبداً تحت أي ظرف.`
+    : `\n\n🌐 **Language rule — strictly mandatory:**
+- Reply in clear, polished English ONLY — no exceptions.
+- Do NOT mix Arabic, French, or any other language into your reply.
+- Technical terms like "oud" or "bakhoor" are acceptable as-is.`;
 
 const PERFUME_SYSTEM_PROMPT_AR = `أنت "آر اف" — المستشار الشخصي الفاخر لمتجر عطور آر اف (RF Perfume)، خبير عطور عالمي يعرف الفنون والأسرار.
 
