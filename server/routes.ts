@@ -39,7 +39,7 @@ import {
 } from "./tamara";
 import {
   sendOrderConfirmationEmail, sendOrderStatusEmail,
-  sendWelcomeEmail, sendPaymentConfirmationEmail
+  sendWelcomeEmail, sendPaymentConfirmationEmail, sendAdminNewOrderEmail
 } from "./email";
 import {
   initiatePaymobPayment, verifyPaymobHmac, flattenPaymobCallback, isPaymobConfigured,
@@ -235,6 +235,37 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
         { type: "success", link: "/admin", icon: "💳", webPush: true }
       );
     });
+
+    enqueueJob("paid-admin-email-notification", async () => {
+      const customer = await storage.getUser(order.userId);
+      await sendAdminNewOrderEmail({
+        orderRef,
+        orderId: String(order.id),
+        customerName: customer?.name || "عميل",
+        customerPhone: customer?.phone,
+        customerEmail: customer?.email,
+        items: (order.items || []).map((item: any) => ({
+          title: item.title || "",
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          color: item.color,
+          size: item.size,
+        })),
+        subtotal: Number(order.subtotal) || 0,
+        vatAmount: Number(order.vatAmount) || 0,
+        shippingCost: Number(order.shippingCost) || 0,
+        discountAmount: Number(order.discountAmount) || 0,
+        total: Number(order.total) || 0,
+        paymentMethod: order.paymentMethod || "unknown",
+        paymentStatus: "paid",
+        deliveryAddress: order.deliveryAddress,
+        shippingMethod: order.shippingMethod,
+        shippingCompany: order.shippingCompany,
+        couponCode: order.couponCode,
+        notes: order.notes,
+        createdAt: order.createdAt,
+      });
+    }, { critical: false, maxAttempts: 3 });
 
     enqueueJob("paid-notify-customer", async () => {
       await fireNotify(
@@ -1120,6 +1151,37 @@ export async function registerRoutes(
             { type: "info", link: "/admin", icon: "🛒", webPush: true }
           );
         });
+
+        enqueueJob("admin-email-new-order", async () => {
+          const customer = await storage.getUser(order.userId);
+          await sendAdminNewOrderEmail({
+            orderRef,
+            orderId: String(order.id),
+            customerName: customer?.name || "عميل",
+            customerPhone: customer?.phone,
+            customerEmail: customer?.email,
+            items: (order.items || []).map((item: any) => ({
+              title: item.title || "",
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+              color: item.color,
+              size: item.size,
+            })),
+            subtotal: Number(order.subtotal) || 0,
+            vatAmount: Number(order.vatAmount) || 0,
+            shippingCost: Number(order.shippingCost) || 0,
+            discountAmount: Number(order.discountAmount) || 0,
+            total: Number(order.total) || 0,
+            paymentMethod: order.paymentMethod || "unknown",
+            paymentStatus: order.paymentStatus || "pending",
+            deliveryAddress: order.deliveryAddress,
+            shippingMethod: order.shippingMethod,
+            shippingCompany: order.shippingCompany,
+            couponCode: order.couponCode,
+            notes: order.notes,
+            createdAt: order.createdAt,
+          });
+        }, { critical: false, maxAttempts: 3 });
 
         enqueueJob("notify-customer-order-received", async () => {
           await fireNotify(

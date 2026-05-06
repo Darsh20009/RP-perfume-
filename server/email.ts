@@ -851,5 +851,240 @@ export async function sendActivationEmail(params: {
   });
 }
 
+// ─── Admin New Order Notification ──────────────────────────────────────────────
+
+/**
+ * Sends a detailed admin notification email for every new or paid order.
+ * From: info@rfperfume.sa  →  To: firstrafiff@gmail.com
+ */
+export async function sendAdminNewOrderEmail(params: {
+  orderRef: string;
+  orderId: string;
+  customerName: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  items: Array<{ title: string; quantity: number; price: number; color?: string; size?: string }>;
+  subtotal: number;
+  vatAmount: number;
+  shippingCost: number;
+  discountAmount?: number;
+  total: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  deliveryAddress?: string;
+  shippingMethod?: string;
+  shippingCompany?: string;
+  branchName?: string;
+  couponCode?: string;
+  notes?: string;
+  createdAt?: Date;
+}): Promise<{ success: boolean; error?: string }> {
+  const paymentLabels: Record<string, string> = {
+    wallet: "محفظة آر اف",
+    bank_transfer: "تحويل بنكي",
+    tap: "بطاقة بنكية (Paymob)",
+    stc_pay: "STC Pay",
+    apple_pay: "Apple Pay",
+    tamara: "تمارة — تقسيط",
+    tabby: "تابي — تقسيط",
+  };
+
+  const paymentStatusLabels: Record<string, { ar: string; color: string }> = {
+    pending: { ar: "في الانتظار", color: "#d97706" },
+    paid: { ar: "مدفوع ✅", color: "#16a34a" },
+    pending_payment: { ar: "ينتظر الدفع", color: "#2563eb" },
+    failed: { ar: "فشل الدفع", color: "#dc2626" },
+    refunded: { ar: "مُسترجع", color: "#9333ea" },
+  };
+
+  const pSt = paymentStatusLabels[params.paymentStatus] || { ar: params.paymentStatus, color: "#64748b" };
+  const now = params.createdAt ? new Date(params.createdAt) : new Date();
+  const dateStr = now.toLocaleString("ar-SA", { dateStyle: "full", timeStyle: "short" });
+
+  const GOLD = "#c9a96e";
+  const NAVY = "#1a2744";
+  const TD = `padding:12px 10px;font-size:13px;font-weight:700;color:#1a1a1a;border-bottom:1px solid rgba(0,0,0,0.07);font-family:'Segoe UI',Tahoma,Arial,sans-serif;`;
+
+  const itemsRows = params.items.map(item => `
+    <tr>
+      <td style="${TD}text-align:right;">${item.title}${item.color ? ` — ${item.color}` : ""}${item.size ? ` / ${item.size}` : ""}</td>
+      <td style="${TD}text-align:center;font-weight:900;">${item.quantity}</td>
+      <td style="${TD}text-align:center;">${item.price.toLocaleString("ar-SA")} ر.س</td>
+      <td style="${TD}text-align:left;font-weight:900;color:${NAVY};">${(item.price * item.quantity).toLocaleString("ar-SA")} ر.س</td>
+    </tr>
+  `).join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>طلب جديد #${params.orderRef}</title>
+<style>
+  body { margin:0;padding:0;background-color:#f4f4f0;font-family:'Segoe UI',Tahoma,Arial,sans-serif; }
+  .container { max-width:680px;margin:0 auto; }
+  table { border-collapse:collapse; }
+  @media (max-width:600px) { .container { width:100%!important; } .px { padding-left:20px!important;padding-right:20px!important; } }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f0;direction:rtl;">
+<table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td align="center" style="padding:32px 16px;">
+<table class="container" role="presentation" border="0" cellspacing="0" cellpadding="0" width="680" style="max-width:680px;background:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+  <!-- Header -->
+  <tr>
+    <td align="center" style="background:${NAVY};background-image:linear-gradient(135deg,#0f1a2e 0%,${NAVY} 50%,#243154 100%);padding:28px 40px;border-bottom:3px solid ${GOLD};">
+      <div style="color:${GOLD};font-size:12px;font-weight:900;letter-spacing:0.4em;text-transform:uppercase;margin-bottom:6px;">عطور آر اف — لوحة الإدارة</div>
+      <div style="color:#ffffff;font-size:24px;font-weight:900;letter-spacing:0.05em;">🛒 طلب جديد وارد</div>
+      <div style="margin-top:10px;display:inline-block;padding:6px 20px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.4);border-radius:4px;color:${GOLD};font-size:18px;font-weight:900;letter-spacing:0.15em;">#${params.orderRef}</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;margin-top:10px;">${dateStr}</div>
+    </td>
+  </tr>
+
+  <!-- Status Alert -->
+  <tr>
+    <td style="background:${pSt.color}12;border-bottom:3px solid ${pSt.color};padding:14px 40px;">
+      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td style="font-size:14px;font-weight:900;color:${pSt.color};text-align:right;">
+            حالة الدفع: ${pSt.ar}
+          </td>
+          <td style="font-size:13px;font-weight:700;color:rgba(0,0,0,0.55);text-align:left;">
+            ${paymentLabels[params.paymentMethod] || params.paymentMethod}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Body -->
+  <tr>
+    <td class="px" style="padding:36px 40px;direction:rtl;">
+
+      <!-- Customer Info -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:10px;font-weight:900;color:rgba(0,0,0,0.35);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid ${GOLD}20;">معلومات العميل</div>
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f8f8f6;border:1px solid rgba(0,0,0,0.08);border-radius:6px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+              ${infoRow("الاسم", params.customerName)}
+              ${params.customerPhone ? infoRow("الهاتف", `<a href="tel:${params.customerPhone}" style="color:${NAVY};font-weight:900;text-decoration:none;">${params.customerPhone}</a>`) : ""}
+              ${params.customerEmail ? infoRow("البريد", `<a href="mailto:${params.customerEmail}" style="color:${NAVY};font-weight:900;text-decoration:none;">${params.customerEmail}</a>`) : ""}
+              ${params.shippingMethod === "pickup" ? infoRow("طريقة الاستلام", `🏪 استلام من الفرع${params.branchName ? ` — ${params.branchName}` : ""}`) : infoRow("عنوان التوصيل", params.deliveryAddress || "—")}
+              ${params.shippingCompany ? infoRow("شركة الشحن", params.shippingCompany) : ""}
+              ${params.couponCode ? infoRow("كود الخصم", `<code style="background:#fffbec;border:1px solid #f0c674;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:900;">${params.couponCode}</code>`) : ""}
+              ${infoRow("طريقة الدفع", paymentLabels[params.paymentMethod] || params.paymentMethod, true)}
+            </table>
+          </td></tr>
+        </table>
+      </div>
+
+      <!-- Items Table -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:10px;font-weight:900;color:rgba(0,0,0,0.35);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid ${GOLD}20;">المنتجات المطلوبة (${params.items.length} صنف)</div>
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);">
+          <thead>
+            <tr style="background:${NAVY};">
+              <th style="padding:12px 10px;font-size:11px;font-weight:900;color:#ffffff;text-align:right;letter-spacing:0.1em;">المنتج</th>
+              <th style="padding:12px 10px;font-size:11px;font-weight:900;color:#ffffff;text-align:center;letter-spacing:0.1em;">الكمية</th>
+              <th style="padding:12px 10px;font-size:11px;font-weight:900;color:#ffffff;text-align:center;letter-spacing:0.1em;">سعر الوحدة</th>
+              <th style="padding:12px 10px;font-size:11px;font-weight:900;color:#ffffff;text-align:left;letter-spacing:0.1em;">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>${itemsRows}</tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div style="margin-bottom:28px;">
+        <div style="font-size:10px;font-weight:900;color:rgba(0,0,0,0.35);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid ${GOLD}20;">ملخص المبالغ</div>
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="background:#f8f8f6;border:1px solid rgba(0,0,0,0.08);border-radius:6px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+              ${totalRow("المجموع الفرعي", `${params.subtotal.toLocaleString("ar-SA")} ر.س`)}
+              ${totalRow("ضريبة القيمة المضافة 15٪", `${params.vatAmount.toLocaleString("ar-SA")} ر.س`)}
+              ${totalRow("رسوم الشحن", `${params.shippingCost.toLocaleString("ar-SA")} ر.س`)}
+              ${params.discountAmount && params.discountAmount > 0 ? totalRow("الخصم", `-${params.discountAmount.toLocaleString("ar-SA")} ر.س`, { color: "#16a34a" }) : ""}
+              ${totalRow("الإجمالي النهائي", `${params.total.toLocaleString("ar-SA")} ر.س`, { final: true })}
+            </table>
+          </td></tr>
+        </table>
+      </div>
+
+      ${params.notes ? `
+      <div style="margin-bottom:24px;background:#fffbec;border:1px solid #f0c674;border-radius:6px;padding:14px 20px;">
+        <div style="font-size:11px;font-weight:900;color:#92400e;margin-bottom:4px;">ملاحظات العميل</div>
+        <div style="font-size:13px;color:#78350f;line-height:1.7;">${params.notes}</div>
+      </div>` : ""}
+
+      <!-- CTA -->
+      <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin:8px auto 24px;">
+        <tr>
+          <td align="center" style="background:${NAVY};border-radius:6px;padding:0 4px;">
+            <a href="${SITE.URL}/admin" target="_blank" style="display:inline-block;background:${NAVY};color:#ffffff;font-size:13px;font-weight:900;padding:16px 40px;text-decoration:none;letter-spacing:0.12em;border-radius:6px;">
+              عرض الطلب في لوحة التحكم →
+            </a>
+          </td>
+          <td width="12"></td>
+          <td align="center" style="background:${GOLD};border-radius:6px;padding:0 4px;">
+            <a href="${SITE.URL}/admin" target="_blank" style="display:inline-block;background:${GOLD};color:#000000;font-size:13px;font-weight:900;padding:16px 32px;text-decoration:none;letter-spacing:0.12em;border-radius:6px;">
+              إدارة الطلبات
+            </a>
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td align="center" style="background:#0f1a2e;padding:24px 40px;border-top:1px solid rgba(201,169,110,0.2);">
+      <div style="color:${GOLD};font-size:10px;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;margin-bottom:6px;">RF Perfume — Admin Notification</div>
+      <div style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:600;">هذا البريد إشعار داخلي للإدارة فقط · ${SITE.DOMAIN}</div>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "firstrafiff@gmail.com";
+  const apiKey = process.env.SMTP2GO_API_KEY;
+  if (!apiKey) {
+    console.warn("[AdminEmail] SMTP2GO_API_KEY not set — skipping admin notification");
+    return { success: false, error: "SMTP2GO_API_KEY not configured" };
+  }
+
+  try {
+    const res = await fetch("https://api.smtp2go.com/v3/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        sender: `عطور آر اف — الإدارة <info@rfperfume.sa>`,
+        to: [`${adminEmail}`],
+        subject: `🛒 طلب جديد #${params.orderRef} — ${params.total.toLocaleString("ar-SA")} ر.س — ${params.customerName}`,
+        html_body: html,
+        text_body: `طلب جديد #${params.orderRef}\nالعميل: ${params.customerName}\nالهاتف: ${params.customerPhone || "—"}\nالإجمالي: ${params.total.toLocaleString("ar-SA")} ر.س\nالدفع: ${params.paymentMethod}\nالحالة: ${params.paymentStatus}`,
+      }),
+    });
+    const data = await res.json().catch(() => ({})) as any;
+    if (!res.ok || data?.data?.succeeded === 0) {
+      const err = JSON.stringify(data);
+      console.warn("[AdminEmail] send failed:", err);
+      return { success: false, error: err };
+    }
+    console.log(`[AdminEmail] ✅ order #${params.orderRef} → ${adminEmail}`);
+    return { success: true };
+  } catch (e: any) {
+    console.error("[AdminEmail] exception:", e?.message);
+    return { success: false, error: e?.message };
+  }
+}
+
 /** Low-level direct send — for custom use */
 export { sendEmail };

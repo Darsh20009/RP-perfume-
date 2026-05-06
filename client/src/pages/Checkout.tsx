@@ -44,7 +44,7 @@ export default function Checkout() {
   const { toast } = useToast();
 
   const [paymentMethod, setPaymentMethod] = useState<
-    "wallet" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara"
+    "wallet" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara" | "bank_transfer"
   >("wallet");
   const [tamaraInstallments, setTamaraInstallments] = useState<2 | 3 | 4>(3);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -995,10 +995,62 @@ export default function Checkout() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-sm">بطاقة بنكية</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">مدى · فيزا · ماستركارد</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">مدى · فيزا · ماستركارد · Paymob</p>
                     </div>
                     <CardBrandsLogo className="h-5 shrink-0 opacity-70" />
                   </label>
+                )}
+
+                {/* Bank Transfer */}
+                {enabledMethods.bank_transfer !== false && (
+                  <div className={`border-2 rounded-xl transition-all ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
+                    <label htmlFor="pay-bank" className="flex items-center gap-3 p-3.5 cursor-pointer">
+                      <RadioGroupItem value="bank_transfer" id="pay-bank" className="shrink-0" />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${paymentMethod === "bank_transfer" ? "bg-primary/10" : "bg-gray-100"}`}>
+                        <ArrowLeftRight className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-500"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm">تحويل بنكي</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">تحويل مباشر · يتطلب تأكيد يدوي</p>
+                      </div>
+                    </label>
+                    {paymentMethod === "bank_transfer" && (
+                      <div className="px-4 pb-4 -mt-1">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                          <p className="text-[11px] font-black text-amber-800 mb-1">تفاصيل الحساب البنكي</p>
+                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                            {storeSettings?.bankName && (
+                              <div>
+                                <p className="text-gray-500 font-bold">البنك</p>
+                                <p className="font-black text-gray-800">{storeSettings.bankName}</p>
+                              </div>
+                            )}
+                            {storeSettings?.bankAccountHolder && (
+                              <div>
+                                <p className="text-gray-500 font-bold">اسم المستفيد</p>
+                                <p className="font-black text-gray-800">{storeSettings.bankAccountHolder}</p>
+                              </div>
+                            )}
+                            {storeSettings?.bankIBAN && (
+                              <div className="col-span-2">
+                                <p className="text-gray-500 font-bold">رقم الآيبان (IBAN)</p>
+                                <p className="font-black text-gray-800 text-[10px] tracking-wide font-mono">{storeSettings.bankIBAN}</p>
+                              </div>
+                            )}
+                            {storeSettings?.bankAccountNumber && (
+                              <div>
+                                <p className="text-gray-500 font-bold">رقم الحساب</p>
+                                <p className="font-black text-gray-800 font-mono">{storeSettings.bankAccountNumber}</p>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-amber-700 font-bold mt-2 pt-2 border-t border-amber-200">
+                            ⚠️ بعد التحويل أرسل إيصال الدفع على واتساب أو البريد الإلكتروني لتأكيد طلبك
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* Apple Pay */}
