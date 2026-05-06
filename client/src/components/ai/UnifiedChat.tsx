@@ -221,47 +221,33 @@ export const UnifiedChat = memo(function UnifiedChat() {
   const accentColor = isAdvisor ? "#DFB369" : "#2B2B60";
 
   return (
-    <div className="fixed bottom-6 left-0 z-50" dir="rtl">
-      {/* ── Closed Side-Tab (square, logo, protrudes from edge) ───── */}
+    <div className="fixed bottom-6 left-4 z-50" dir="rtl">
+      {/* ── Closed FAB (small circle) ───────────────────────────── */}
       <AnimatePresence>
         {view === "closed" && (
           <motion.button
             key="fab"
-            initial={{ opacity: 0, x: -80 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -80 }}
-            transition={{ type: "spring", stiffness: 220, damping: 24 }}
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => setView("menu")}
             aria-label="افتح قائمة التواصل"
-            className="group relative flex items-center justify-center w-16 h-20 shadow-[8px_8px_40px_rgba(26,39,68,0.4)] hover:w-20 transition-all duration-300 active:scale-95 overflow-hidden"
+            className="relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(26,39,68,0.38)] active:scale-95 overflow-hidden"
             style={{
-              borderTopRightRadius: 22,
-              borderBottomRightRadius: 22,
-              background: "linear-gradient(135deg, #2B2B60 0%, #243154 50%, #2B2B60 100%)",
+              background: "linear-gradient(135deg, #2B2B60 0%, #243154 60%, #2B2B60 100%)",
+              border: "2px solid rgba(223,179,105,0.6)",
             }}
           >
-            {/* Gold border on the right edge */}
-            <span
-              className="absolute right-0 top-0 bottom-0 w-1"
-              style={{ background: "linear-gradient(to bottom, #ecc78a, #DFB369, #c89853)" }}
-            />
-            {/* Inner gold ring */}
-            <span
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                borderTop: "1px solid rgba(201,169,110,0.4)",
-                borderBottom: "1px solid rgba(201,169,110,0.4)",
-                borderTopRightRadius: 22,
-                borderBottomRightRadius: 22,
-              }}
-            />
             {/* Live dot */}
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-md ring-1 ring-white/50" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow ring-2 ring-white/50 z-10" />
             {/* Logo */}
             <img
               src={LOGO_LIGHT}
               alt="عطور آر اف"
-              className="relative h-12 w-auto object-contain transition-transform  drop-shadow-lg"
+              className="relative h-8 w-auto object-contain drop-shadow-lg"
               draggable={false}
             />
           </motion.button>
