@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback, memo, useMemo } from "react";
-import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check, Mic, MicOff } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,58 +64,8 @@ export const UnifiedChat = memo(function UnifiedChat() {
   const [supportMessages, setSupportMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<any>(null);
-
-  // ─── Web Speech API (voice input) ────────────────────────────────
-  const speechSupported = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-  }, []);
-
-  const startListening = useCallback(() => {
-    if (!speechSupported || isListening) return;
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const rec = new SR();
-    rec.lang = "ar-SA";
-    rec.continuous = false;
-    rec.interimResults = true;
-    rec.maxAlternatives = 1;
-    let finalText = "";
-    rec.onresult = (e: any) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += t;
-        else interim += t;
-      }
-      setInput((finalText + interim).trim());
-    };
-    rec.onerror = () => setIsListening(false);
-    rec.onend = () => { setIsListening(false); recognitionRef.current = null; };
-    try {
-      rec.start();
-      recognitionRef.current = rec;
-      setIsListening(true);
-    } catch {
-      setIsListening(false);
-    }
-  }, [speechSupported, isListening]);
-
-  const stopListening = useCallback(() => {
-    try { recognitionRef.current?.stop(); } catch { /* ignore */ }
-    setIsListening(false);
-  }, []);
-
-  // Stop microphone on unmount or when chat closes — prevents "zombie" recognition
-  useEffect(() => {
-    return () => { try { recognitionRef.current?.stop(); } catch { /* ignore */ } };
-  }, []);
-  useEffect(() => {
-    if (view !== "chat" && isListening) stopListening();
-  }, [view, isListening, stopListening]);
 
   // Strip a single leading emoji + space from a chip label to get clean send text
   const stripEmojiPrefix = (s: string): string => {
@@ -543,29 +493,11 @@ export const UnifiedChat = memo(function UnifiedChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={isListening ? "🎙️ أتحدث الآن…" : (isAdvisor ? "اسألنا عن العطور… / Ask…" : "اكتب رسالتك… / Type…")}
-                  className={`flex-1 h-11 px-4 rounded-full bg-[#FFFFFF] border text-sm font-medium focus:outline-none transition-all ${
-                    isListening ? "border-red-400 ring-2 ring-red-200" : "border-gray-200 focus:border-[#DFB369]"
-                  }`}
+                  placeholder={isAdvisor ? "اسألنا عن العطور… / Ask…" : "اكتب رسالتك… / Type…"}
+                  className="flex-1 h-11 px-4 rounded-full bg-[#FFFFFF] border border-gray-200 focus:border-[#DFB369] text-sm font-medium focus:outline-none transition-all"
                   disabled={isLoading}
                   data-testid="input-chat-message"
                 />
-                {speechSupported && (
-                  <button
-                    onClick={isListening ? stopListening : startListening}
-                    disabled={isLoading}
-                    aria-label={isListening ? "إيقاف الاستماع" : "تحدث بدلاً من الكتابة"}
-                    title={isListening ? "إيقاف" : "تحدث"}
-                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-md ${
-                      isListening
-                        ? "bg-red-500 text-white animate-pulse"
-                        : "bg-white border border-gray-200 text-[#2B2B60] hover:border-[#DFB369] hover:bg-[#DFB369]/5"
-                    }`}
-                    data-testid="button-voice-input"
-                  >
-                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </button>
-                )}
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}
@@ -578,7 +510,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
                 </button>
               </div>
               <p className="text-[9px] text-gray-400 text-center mt-2 font-bold tracking-wide">
-                {speechSupported ? "اكتب أو تحدث · " : ""}مدعوم بالذكاء الاصطناعي · عطور آر اف
+                مدعوم بالذكاء الاصطناعي · عطور آر اف
               </p>
             </div>
           </motion.div>
