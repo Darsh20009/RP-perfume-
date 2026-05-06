@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  MapPin, Truck, CreditCard, Apple, Landmark, Lock,
+  MapPin, Truck, CreditCard, Apple, Lock,
   Check, Wallet, Smartphone, CheckCircle2,
   ShieldCheck, ChevronDown, ChevronUp, Store, Phone, Clock, Package
 } from "lucide-react";
@@ -43,7 +43,7 @@ export default function Checkout() {
   const { toast } = useToast();
 
   const [paymentMethod, setPaymentMethod] = useState<
-    "wallet" | "bank_transfer" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara"
+    "wallet" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara"
   >("wallet");
   const [tamaraInstallments, setTamaraInstallments] = useState<2 | 3 | 4>(3);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -61,33 +61,7 @@ export default function Checkout() {
   const [paymobSheetOpen, setPaymobSheetOpen] = useState(false);
   const [paymobIframeUrl, setPaymobIframeUrl] = useState<string>("");
   const [paymobOrderIdState, setPaymobOrderIdState] = useState<string>("");
-  const [redirectingTo, setRedirectingTo] = useState<null | "tamara" | "tabby" | "paymob">(null);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setReceiptFile(file);
-  };
-
-  const uploadReceipt = async (): Promise<string | null> => {
-    if (!receiptFile) return null;
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", receiptFile);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("فشل رفع الإيصال");
-      const data = await res.json();
-      return data.url;
-    } catch (error: any) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const [redirectingTo, setRedirectingTo] = useState<null | "tamara" | "tabby">(null);
 
   const [shippingMode, setShippingMode] = useState<"pickup" | "delivery">("pickup");
   const [pickupBranchId, setPickupBranchId] = useState<string>("");
@@ -183,7 +157,7 @@ export default function Checkout() {
 
   const enabledMethods = storeSettings?.paymentMethods || {
     wallet: true, tap: true, stc_pay: true, apple_pay: true,
-    bank_transfer: true, tamara: true, tabby: true,
+    tamara: true, tabby: true,
   };
 
   // ── Shipping rate from Storage Station ──────────────────────────────────────
@@ -283,10 +257,6 @@ export default function Checkout() {
       toast({ title: "يجب إتمام التحقق من STC Pay أولاً", variant: "destructive" });
       return;
     }
-    if (paymentMethod === "bank_transfer" && !receiptFile) {
-      toast({ title: "الإيصال مطلوب", description: "يرجى رفع صورة إيصال التحويل البنكي", variant: "destructive" });
-      return;
-    }
     await handleFinalCheckout();
   };
 
@@ -295,12 +265,6 @@ export default function Checkout() {
     try {
       const NEEDS_GATEWAY = ["tap", "apple_pay", "tabby", "tamara"];
       const requiresGateway = NEEDS_GATEWAY.includes(paymentMethod);
-
-      let receiptUrl = null;
-      if (paymentMethod === "bank_transfer") {
-        receiptUrl = await uploadReceipt();
-        if (!receiptUrl) { setIsSubmitting(false); return; }
-      }
 
       const isDelivery = shippingMode === "delivery";
       const deliveryAddrStr = isDelivery
@@ -340,8 +304,7 @@ export default function Checkout() {
           country: "SA",
         } : undefined,
         paymentMethod,
-        bankTransferReceipt: receiptUrl || undefined,
-        status: requiresGateway || paymentMethod === "bank_transfer" ? "pending_payment" : "new",
+        status: requiresGateway ? "pending_payment" : "new",
         paymentStatus: paymentMethod === "wallet" ? "paid" : "pending",
       };
 
@@ -372,13 +335,10 @@ export default function Checkout() {
           });
           const paymobData = await paymobRes.json();
           if (paymobData.success && paymobData.iframeUrl) {
-            clearCart();
-            setRedirectingTo("paymob");
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                window.location.href = paymobData.iframeUrl;
-              });
-            });
+            setPaymobIframeUrl(paymobData.iframeUrl);
+            setPaymobOrderIdState(String(order.id || order._id));
+            setPaymobSheetOpen(true);
+            setIsSubmitting(false);
             return;
           } else {
             await cancelPendingOrder(paymobData.error || "paymob_no_url");
@@ -503,7 +463,17 @@ export default function Checkout() {
       cancelled = true;
       if (intervalId) { clearInterval(intervalId); intervalId = null; }
       setPaymobSheetOpen(false);
-      if (paid) setLocation(`/orders/${paymobOrderIdState}/success?paid=paymob`);
+      if (paid) {
+        clearCart();
+        setLocation(`/orders/${paymobOrderIdState}/success?paid=paymob`);
+      } else {
+        toast({
+          title: "رُفض الدفع",
+          description: "لم تكتمل عملية الدفع. يمكنك المحاولة مرة أخرى.",
+          variant: "destructive",
+          duration: 6000,
+        });
+      }
     };
 
     const ALLOWED_ORIGINS = ["https://accept.paymob.com", "https://ksa.paymob.com"];
@@ -537,7 +507,7 @@ export default function Checkout() {
   const CtaButton = () => (
     <Button
       onClick={handleCheckout}
-      disabled={isSubmitting || (paymentMethod === "bank_transfer" && !receiptFile) || (paymentMethod === "stc_pay" && !paymentConfirmed)}
+      disabled={isSubmitting || (paymentMethod === "stc_pay" && !paymentConfirmed)}
       data-testid="button-confirm-order"
       className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95 transition-all"
     >
@@ -1050,50 +1020,6 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {/* Bank Transfer */}
-                {enabledMethods.bank_transfer !== false && (
-                  <div className={`border-2 rounded-xl transition-all ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <label htmlFor="pay-bank" className="flex items-center gap-3 p-3.5 cursor-pointer">
-                      <RadioGroupItem value="bank_transfer" id="pay-bank" className="shrink-0" />
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${paymentMethod === "bank_transfer" ? "bg-primary/10" : "bg-gray-100"}`}>
-                        <Landmark className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-500"}`} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-black text-sm">تحويل بنكي</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">ارفع إيصال التحويل</p>
-                      </div>
-                    </label>
-                    {paymentMethod === "bank_transfer" && storeSettings && (
-                      <div className="px-4 pb-4 space-y-3">
-                        <div className="bg-white rounded-xl border border-gray-100 p-3 text-xs space-y-1.5">
-                          {storeSettings.bankName && <div className="flex justify-between"><span className="text-gray-400 font-bold">البنك</span><span className="font-black">{storeSettings.bankName}</span></div>}
-                          {storeSettings.bankAccountHolder && <div className="flex justify-between"><span className="text-gray-400 font-bold">الاسم</span><span className="font-black">{storeSettings.bankAccountHolder}</span></div>}
-                          {storeSettings.bankIBAN && <div className="flex justify-between"><span className="text-gray-400 font-bold">IBAN</span><span className="font-black text-[11px]" dir="ltr">{storeSettings.bankIBAN}</span></div>}
-                        </div>
-                        <label className="block">
-                          <span className="text-xs font-black text-gray-700 mb-1.5 block">رفع إيصال التحويل *</span>
-                          <div className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${receiptFile ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                            <input type="file" accept="image/*,application/pdf" onChange={handleReceiptUpload} className="hidden" id="receipt-upload" />
-                            <label htmlFor="receipt-upload" className="cursor-pointer block">
-                              {receiptFile ? (
-                                <div className="flex items-center justify-center gap-2 text-primary">
-                                  <CheckCircle2 className="h-5 w-5" />
-                                  <span className="font-black text-sm">{receiptFile.name}</span>
-                                </div>
-                              ) : (
-                                <div className="text-gray-400">
-                                  <Landmark className="h-7 w-7 mx-auto mb-1.5 opacity-30" />
-                                  <p className="text-xs font-bold">اضغط لرفع الإيصال</p>
-                                  <p className="text-[10px] mt-0.5">صورة أو PDF</p>
-                                </div>
-                              )}
-                            </label>
-                          </div>
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                )}
               </RadioGroup>
 
               {/* Security badge */}
@@ -1210,14 +1136,18 @@ export default function Checkout() {
       {/* Auth modal */}
       {!user && <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultTab="login" />}
 
-      {/* Paymob bottom-sheet (fallback) */}
+      {/* Paymob bottom-sheet */}
       <Sheet open={paymobSheetOpen} onOpenChange={(open) => {
-        if (!open) {
-          setPaymobSheetOpen(false);
-          if (!paymobCompletedRef.current && paymobOrderIdState) {
-            setLocation(`/orders/${paymobOrderIdState}`);
-          }
+        if (!open && !paymobCompletedRef.current && paymobOrderIdState) {
+          fetch(`/api/orders/${paymobOrderIdState}/cancel`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ reason: "user_cancelled_payment" }),
+          }).catch(() => {});
+          toast({ title: "تم إلغاء عملية الدفع", description: "يمكنك المحاولة مرة أخرى", duration: 4000 });
         }
+        if (!open) setPaymobSheetOpen(false);
       }}>
         <SheetContent side="bottom" className="h-[92vh] sm:h-[88vh] p-0 rounded-t-3xl overflow-hidden border-t-2 border-primary flex flex-col bg-white" data-testid="sheet-paymob-checkout">
           <SheetHeader className="px-4 py-3 border-b border-gray-200 bg-white shrink-0">
@@ -1229,10 +1159,7 @@ export default function Checkout() {
               <button
                 type="button"
                 aria-label="إغلاق"
-                onClick={() => {
-                  setPaymobSheetOpen(false);
-                  if (paymobOrderIdState) setLocation(`/orders/${paymobOrderIdState}`);
-                }}
+                onClick={() => setPaymobSheetOpen(false)}
                 className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
                 data-testid="button-close-paymob-sheet"
               >
