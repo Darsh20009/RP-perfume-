@@ -355,6 +355,30 @@ export class MongoDBStorage implements IStorage {
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
+    // ── 0. PRE-VALIDATE branch stock for pickup orders ─────────────────────
+    // Check BEFORE touching global stock so we can reject early and cleanly.
+    if (insertOrder.shippingMethod === "pickup" && insertOrder.pickupBranch) {
+      const { BranchStockModel } = await import("./models");
+      const branchId = String(insertOrder.pickupBranch);
+      for (const item of insertOrder.items) {
+        if (!item.variantSku) continue;
+        if (item.variantSku === "default" || item.variantSku.startsWith("default-")) continue;
+        const branchRow = await BranchStockModel.findOne({
+          branchId, productId: item.productId, variantSku: item.variantSku,
+        }).lean() as any;
+        // Only block if a branch row EXISTS and is insufficient.
+        // If no row exists at all the branch hasn't set up stock tracking yet —
+        // fall through to the global check which will gate the order.
+        if (branchRow && Number(branchRow.stock || 0) < item.quantity) {
+          const err: any = new Error(`OUT_OF_STOCK:${item.variantSku}`);
+          err.code = "OUT_OF_STOCK";
+          err.variantSku = item.variantSku;
+          err.branchStock = true;
+          throw err;
+        }
+      }
+    }
+
     // 1. ATOMIC stock deduction with overselling prevention.
     //    Each $inc is gated by `stock >= quantity`, so two concurrent buyers
     //    cannot both win the last unit. Items already reserved are rolled
@@ -389,46 +413,25 @@ export class MongoDBStorage implements IStorage {
       reserved.push({ productId: item.productId, variantSku: item.variantSku, quantity: item.quantity });
 
       // ── Per-branch stock deduction for pickup orders ───────────────────
-      // Tracks each branch's physical stock separately so the branch
-      // dashboard reflects the deduction. On first encounter, bootstrap
-      // from the global variant stock to keep numbers consistent.
+      // Only deducts if the branch already has an explicit stock row.
+      // Does NOT bootstrap fake numbers — branches must set up their stock
+      // via admin inventory panel or stock transfers before receiving orders.
       if (insertOrder.shippingMethod === "pickup" && insertOrder.pickupBranch) {
         try {
           const { BranchStockModel } = await import("./models");
           const branchId = String(insertOrder.pickupBranch);
-          // Step 1: atomic decrement if a row already exists with enough stock.
-          let dec = await BranchStockModel.findOneAndUpdate(
+          // Atomic decrement only if a row exists with enough stock.
+          const dec = await BranchStockModel.findOneAndUpdate(
             { branchId, productId: item.productId, variantSku: item.variantSku, stock: { $gte: item.quantity } },
             { $inc: { stock: -item.quantity } },
             { new: true }
           );
           if (!dec) {
-            // Step 2: bootstrap a row using the PRE-deduction global stock.
-            // Using $setOnInsert means concurrent bootstrappers don't trample
-            // each other; whichever loses the race just no-ops here.
-            const variantNow = (updated as any).variants.find((v: any) => v.sku === item.variantSku);
-            const globalAfter = Math.max(0, Number(variantNow?.stock ?? 0));
-            const bootstrapInitial = globalAfter + item.quantity; // pre-deduction global
+            // Row exists but stock insufficient, or no row — clamp to 0 if row exists
             await BranchStockModel.updateOne(
               { branchId, productId: item.productId, variantSku: item.variantSku },
-              { $setOnInsert: { stock: bootstrapInitial } },
-              { upsert: true }
+              { $set: { stock: 0 } }
             ).catch(() => {});
-            // Step 3: retry the atomic decrement now that the row exists.
-            // All concurrent orders converge here so each gets its own deduction.
-            dec = await BranchStockModel.findOneAndUpdate(
-              { branchId, productId: item.productId, variantSku: item.variantSku, stock: { $gte: item.quantity } },
-              { $inc: { stock: -item.quantity } },
-              { new: true }
-            );
-            if (!dec) {
-              // Branch stock genuinely depleted (e.g., manually set to 0). Clamp to 0
-              // so the branch UI shows zero rather than going negative.
-              await BranchStockModel.updateOne(
-                { branchId, productId: item.productId, variantSku: item.variantSku },
-                { $set: { stock: 0 } }
-              ).catch(() => {});
-            }
           }
         } catch (e: any) {
           console.error("[STOCK] branch deduction failed:", e?.message);

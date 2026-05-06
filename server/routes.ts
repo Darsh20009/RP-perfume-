@@ -1165,7 +1165,10 @@ export async function registerRoutes(
               }
             } catch {}
           }
-          return res.status(409).json({ message: "نفدت كمية أحد المنتجات قبل إتمام الطلب", variantSku: e.variantSku, code: "OUT_OF_STOCK" });
+          const msg = e.branchStock
+            ? "هذا المنتج غير متوفر في الفرع المختار — يرجى اختيار فرع آخر أو التوصيل"
+            : "نفدت كمية أحد المنتجات قبل إتمام الطلب";
+          return res.status(409).json({ message: msg, variantSku: e.variantSku, code: "OUT_OF_STOCK", branchStock: !!e.branchStock });
         }
         throw e;
       }
@@ -1798,20 +1801,44 @@ export async function registerRoutes(
     }
   });
 
-  // Branches — public list. Includes a lightweight inventory snapshot
+  // Branches — public list. Includes a per-branch inventory snapshot
   // (sku → stock) so checkout can warn shoppers about out-of-stock items
   // at the chosen pickup branch without exposing prices/costs.
   app.get("/api/branches", async (_req, res) => {
     try {
       const branches = await storage.getBranches();
       const products = await storage.getProducts();
-      const stockBySku: Array<{ sku: string; stock: number }> = [];
+
+      // Build global stock lookup: sku → stock (fallback for branches with no rows yet)
+      const globalBySku = new Map<string, number>();
       for (const p of products as any[]) {
         for (const v of (p.variants || [])) {
-          if (v?.sku) stockBySku.push({ sku: v.sku, stock: Number(v.stock) || 0 });
+          if (v?.sku) globalBySku.set(String(v.sku), Number(v.stock) || 0);
         }
       }
-      const enriched = branches.map((b: any) => ({ ...b, inventory: stockBySku }));
+
+      // Fetch ALL branch stock rows in one query and group by branchId
+      const { BranchStockModel } = await import("./models");
+      const allBranchRows = await BranchStockModel.find().lean() as any[];
+      const branchSkuStock = new Map<string, Map<string, number>>();
+      for (const row of allBranchRows) {
+        const bId = String(row.branchId);
+        if (!branchSkuStock.has(bId)) branchSkuStock.set(bId, new Map());
+        const cur = branchSkuStock.get(bId)!.get(String(row.variantSku)) ?? 0;
+        branchSkuStock.get(bId)!.set(String(row.variantSku), cur + Number(row.stock || 0));
+      }
+
+      // For each branch: use branch-specific stock if a row exists, else global fallback
+      const enriched = branches.map((b: any) => {
+        const branchId = String(b.id || b._id);
+        const branchMap = branchSkuStock.get(branchId);
+        const inventory: Array<{ sku: string; stock: number }> = [];
+        for (const [sku, globalStock] of globalBySku.entries()) {
+          const stock = branchMap?.has(sku) ? branchMap.get(sku)! : globalStock;
+          inventory.push({ sku, stock });
+        }
+        return { ...b, inventory };
+      });
       res.json(enriched);
     } catch (err: any) {
       console.error("[API] branches.list error:", err?.message);
