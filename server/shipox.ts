@@ -67,7 +67,7 @@ async function getToken(): Promise<string> {
     throw new Error(`[Shipox] Auth failed (${res.status}): ${data?.message || text}`);
   }
 
-  const token = data?.token || data?.access_token || data?.jwt;
+  const token = data?.data?.id_token || data?.token || data?.access_token || data?.jwt;
   if (!token) throw new Error("[Shipox] No token in auth response");
 
   tokenCache = { token, expiresAt: Date.now() + 55 * 60 * 1000 };
@@ -98,10 +98,13 @@ async function shipoxRequest(
   try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
   if (!res.ok) {
-    const msg = data?.message || data?.detail || data?.title || text || res.statusText;
+    const msg = data?.message || data?.detail || data?.title || data?.data?.message || text || res.statusText;
     throw new Error(`[Shipox] HTTP ${res.status}: ${msg}`);
   }
-  return data;
+  // Shipox wraps all responses in { data: {...}, request_id, status }
+  return (data && typeof data === "object" && "data" in data && "status" in data)
+    ? data.data
+    : data;
 }
 
 export interface ShipoxOrderResult {
