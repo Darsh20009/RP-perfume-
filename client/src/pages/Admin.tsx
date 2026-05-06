@@ -36,6 +36,7 @@ import AdminAiInsights from "@/pages/admin/AdminAiInsights";
 import AdminSystemHealth from "@/pages/admin/AdminSystemHealth";
 import AdminIntegrations from "@/pages/admin/AdminIntegrations";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
+import { NotificationBell } from "@/components/notification-bell";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
 import {
@@ -5609,6 +5610,7 @@ export default function Admin() {
                 <span className="sm:hidden">{pendingCount}</span>
               </button>
             )}
+            <NotificationBell />
             <button
               onClick={() => queryClient.invalidateQueries()}
               className="p-2 rounded-xl text-slate-400 hover:text-[#DFB369] hover:bg-slate-50 transition-all"
