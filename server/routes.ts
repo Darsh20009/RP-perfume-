@@ -2387,7 +2387,9 @@ export async function registerRoutes(
   app.patch("/api/admin/inventory/:id", checkPermission("settings.manage"), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const item = await storage.updateBranchStock(req.params.id, req.body.stock);
+      const branchId = req.body.branchId || (req.query.branchId as string) || "central";
+      const stock = Math.max(0, Number(req.body.stock) || 0);
+      const item = await storage.updateBranchStock(req.params.id, branchId, stock);
       res.json(item);
     } catch (err: any) {
       console.error("[API] inventory.update error:", err?.message);

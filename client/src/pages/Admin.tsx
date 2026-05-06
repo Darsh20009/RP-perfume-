@@ -4367,14 +4367,221 @@ const AdminAuditLogs = () => {
 
 
 const AdminBranchInventory = () => {
+  const { toast } = useToast();
+  const { products = [] } = useProducts();
+  const { data: branches = [] } = useQuery<any[]>({ queryKey: ["/api/admin/branches"] });
+
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editStock, setEditStock] = useState<number>(0);
+
+  const activeBranches = (branches as any[]).filter((b: any) => b.isActive !== false);
+
+  const { data: inventory = [], isLoading: inventoryLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/inventory", selectedBranchId],
+    queryFn: async () => {
+      if (!selectedBranchId) return [];
+      const res = await fetch(`/api/admin/inventory?branchId=${selectedBranchId}`);
+      return res.json();
+    },
+    enabled: !!selectedBranchId,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, stock }: { id: string; stock: number }) => {
+      const res = await apiRequest("PATCH", `/api/admin/inventory/${encodeURIComponent(id)}`, { stock, branchId: selectedBranchId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/inventory", selectedBranchId] });
+      toast({ title: "✅ تم تحديث المخزون" });
+      setEditingKey(null);
+    },
+    onError: () => toast({ title: "خطأ في التحديث", variant: "destructive" }),
+  });
+
+  const allVariants = useMemo(() => {
+    const result: Array<{
+      productId: string; productName: string; productImage: string;
+      variantSku: string; variantLabel: string; inventoryId: string | null;
+      stock: number; minStockLevel: number;
+    }> = [];
+    (products as any[]).forEach((product: any) => {
+      const pid = String(product.id || product._id);
+      const pname = product.name || product.nameAr || product.nameEn || "—";
+      const pimg = product.image || (product.images && product.images[0]) || "";
+      const variants: any[] = product.variants || [];
+      if (variants.length === 0) {
+        const sku = product.sku || pid;
+        const inv = (inventory as any[]).find((i: any) => i.productId === pid);
+        result.push({ productId: pid, productName: pname, productImage: pimg, variantSku: sku, variantLabel: "", inventoryId: inv ? String(inv.id || inv._id) : null, stock: inv?.stock ?? 0, minStockLevel: inv?.minStockLevel ?? 5 });
+      } else {
+        variants.forEach((v: any) => {
+          const sku = v.sku || `${pid}-${v.size || v.label || ""}`;
+          const inv = (inventory as any[]).find((i: any) => i.productId === pid && i.variantSku === sku);
+          result.push({ productId: pid, productName: pname, productImage: pimg, variantSku: sku, variantLabel: v.size || v.label || v.nameAr || v.nameEn || "", inventoryId: inv ? String(inv.id || inv._id) : null, stock: inv?.stock ?? 0, minStockLevel: inv?.minStockLevel ?? 5 });
+        });
+      }
+    });
+    return result;
+  }, [products, inventory]);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return allVariants;
+    const q = search.toLowerCase();
+    return allVariants.filter(v => v.productName.toLowerCase().includes(q) || v.variantSku.toLowerCase().includes(q) || v.variantLabel.toLowerCase().includes(q));
+  }, [allVariants, search]);
+
+  const stats = useMemo(() => {
+    const total = allVariants.length;
+    const outOfStock = allVariants.filter(v => v.stock === 0).length;
+    const lowStock = allVariants.filter(v => v.stock > 0 && v.stock <= v.minStockLevel).length;
+    return { total, outOfStock, lowStock, healthy: total - outOfStock - lowStock };
+  }, [allVariants]);
+
+  const handleSave = (variant: typeof allVariants[0]) => {
+    const id = variant.inventoryId || `${variant.productId}::${variant.variantSku}`;
+    updateMutation.mutate({ id, stock: editStock });
+  };
+
   return (
-    <Card className="border-2 border-dashed border-black/10">
-      <CardContent className="p-12 text-center">
-        <Building className="h-12 w-12 mx-auto mb-4 opacity-30" />
-        <p className="font-bold uppercase tracking-widest text-sm">إدارة مخزون الفروع جاهزة للاستخدام</p>
-        <p className="text-xs text-muted-foreground mt-2">يمكن إضافة الميزات المتقدمة لاحقاً</p>
-      </CardContent>
-    </Card>
+    <div className="space-y-6" dir="rtl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-[#2B2B60]">جرد المخزون بالفروع</h2>
+          <p className="text-sm text-gray-700 font-bold mt-0.5">اختر الفرع لعرض وتعديل مستوى المخزون لكل منتج</p>
+        </div>
+        <div className="w-full md:w-72">
+          <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+            <SelectTrigger className="h-11 font-bold border-[#DFB369]/40" data-testid="select-inventory-branch">
+              <SelectValue placeholder="اختر الفرع للعرض..." />
+            </SelectTrigger>
+            <SelectContent>
+              {activeBranches.map((b: any) => (
+                <SelectItem key={b.id || b._id} value={String(b.id || b._id)}>
+                  {b.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {!selectedBranchId ? (
+        <Card className="p-16 text-center border-2 border-dashed border-[#DFB369]/30">
+          <Building2 className="h-14 w-14 mx-auto mb-4 text-[#DFB369]/40" />
+          <p className="font-black text-lg text-[#2B2B60]">اختر فرعاً لعرض مخزونه</p>
+          <p className="text-sm text-gray-700 font-bold mt-1">حدد الفرع من القائمة أعلاه للبدء في مراجعة الجرد</p>
+        </Card>
+      ) : inventoryLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-10 w-10 animate-spin text-[#DFB369]" />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "إجمالي السجلات", value: stats.total, color: "text-[#2B2B60]", bg: "from-[#2B2B60]/5 to-white", icon: Package },
+              { label: "مخزون جيد", value: stats.healthy, color: "text-emerald-700", bg: "from-emerald-50 to-white", icon: CheckCircle2 },
+              { label: "مخزون منخفض", value: stats.lowStock, color: "text-amber-700", bg: "from-amber-50 to-white", icon: AlertCircle },
+              { label: "نفذ تماماً", value: stats.outOfStock, color: "text-red-700", bg: "from-red-50 to-white", icon: XCircle },
+            ].map((s) => {
+              const Icon = s.icon;
+              return (
+                <Card key={s.label} className={`p-4 border border-[#DFB369]/10 bg-gradient-to-br ${s.bg}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className={`h-3.5 w-3.5 ${s.color}`} />
+                    <p className="text-xs font-bold text-gray-600">{s.label}</p>
+                  </div>
+                  <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input placeholder="ابحث بالمنتج أو SKU أو الحجم..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10 h-11 font-bold border-[#DFB369]/30" data-testid="input-inventory-search" />
+          </div>
+
+          <Card className="overflow-hidden border border-[#DFB369]/20">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#2B2B60] text-white">
+                    <th className="p-3 text-right font-black">المنتج</th>
+                    <th className="p-3 text-right font-black">SKU / الحجم</th>
+                    <th className="p-3 text-center font-black">المخزون الحالي</th>
+                    <th className="p-3 text-center font-black">الحالة</th>
+                    <th className="p-3 text-center font-black">تعديل</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-12 text-center text-gray-500 font-bold">
+                        {products.length === 0 ? "لا توجد منتجات في المتجر" : "لا توجد نتائج للبحث"}
+                      </td>
+                    </tr>
+                  ) : filtered.map((variant, idx) => {
+                    const key = `${variant.productId}-${variant.variantSku}`;
+                    const isEditing = editingKey === key;
+                    const stockStatus = variant.stock === 0
+                      ? { label: "نفذ", cls: "bg-red-100 text-red-700 border-red-200" }
+                      : variant.stock <= variant.minStockLevel
+                        ? { label: "منخفض", cls: "bg-amber-100 text-amber-700 border-amber-200" }
+                        : { label: "جيد", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+                    return (
+                      <tr key={key} className={`border-t transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-[#FAF8F4]/40"} hover:bg-[#DFB369]/5`} data-testid={`row-inventory-${variant.variantSku}`}>
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            {variant.productImage ? (
+                              <img src={variant.productImage} alt={variant.productName} className="w-9 h-9 rounded-lg object-cover border border-gray-100 shrink-0" loading="lazy" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0"><Package className="h-4 w-4 text-gray-400" /></div>
+                            )}
+                            <span className="font-black text-[#2B2B60] text-xs leading-tight line-clamp-2">{variant.productName}</span>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <code className="text-xs bg-gray-100 px-2 py-0.5 rounded-md font-mono">{variant.variantSku}</code>
+                          {variant.variantLabel && <span className="block text-[10px] text-gray-500 font-bold mt-0.5">{variant.variantLabel}</span>}
+                        </td>
+                        <td className="p-3 text-center">
+                          {isEditing ? (
+                            <Input type="number" min={0} value={editStock} onChange={e => setEditStock(Math.max(0, Number(e.target.value)))} className="w-20 mx-auto text-center h-8 font-black" autoFocus data-testid={`input-stock-${variant.variantSku}`} />
+                          ) : (
+                            <span className={`text-xl font-black ${variant.stock === 0 ? "text-red-600" : variant.stock <= variant.minStockLevel ? "text-amber-600" : "text-[#2B2B60]"}`}>{variant.stock}</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-center">
+                          <Badge className={`${stockStatus.cls} border font-bold text-[10px]`}>{stockStatus.label}</Badge>
+                        </td>
+                        <td className="p-3 text-center">
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <Button size="sm" className="h-7 px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs" onClick={() => handleSave(variant)} disabled={updateMutation.isPending} data-testid={`button-save-stock-${variant.variantSku}`}>
+                                {updateMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingKey(null)}><X className="h-3 w-3" /></Button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 hover:bg-[#DFB369]/10 hover:text-[#2B2B60]" onClick={() => { setEditingKey(key); setEditStock(variant.stock); }} data-testid={`button-edit-stock-${variant.variantSku}`}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
+      )}
+    </div>
   );
 };
 
@@ -5667,199 +5874,252 @@ const VendorsPanel = () => {
   );
 };
 
+const emptyShippingForm = { name: "", nameEn: "", logo: "", price: 0, estimatedDays: 1, storageXCode: "", isActive: true };
+
 const ShippingCompaniesPanel = () => {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ name: "", nameEn: "", logo: "", trackingUrl: "", isActive: true });
+  const [form, setForm] = useState({ ...emptyShippingForm });
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const { data: companies = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/shipping-companies"] });
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = editing
-        ? await apiRequest("PATCH", `/api/shipping-companies/${editing.id}`, data)
+        ? await apiRequest("PATCH", `/api/shipping-companies/${editing.id || editing._id}`, data)
         : await apiRequest("POST", "/api/shipping-companies", data);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/shipping-companies"] });
-      toast({ title: editing ? "تم التحديث" : "تمت الإضافة" });
-      setShowForm(false);
-      setEditing(null);
-      setForm({ name: "", nameEn: "", logo: "", trackingUrl: "", isActive: true });
+      toast({ title: editing ? "✅ تم تحديث شركة الشحن" : "✅ تمت إضافة شركة الشحن" });
+      setShowForm(false); setEditing(null); setForm({ ...emptyShippingForm });
     },
-    onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    onError: () => toast({ title: "حدث خطأ أثناء الحفظ", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => { await apiRequest("DELETE", `/api/shipping-companies/${id}`); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/shipping-companies"] });
-      toast({ title: "تم الحذف" });
+      toast({ title: "تم حذف شركة الشحن" });
+      setDeleteConfirm(null);
     },
-    onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    onError: () => toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" }),
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/shipping-companies/${id}`, { isActive });
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/shipping-companies"] }),
+    onError: () => toast({ title: "خطأ في تغيير الحالة", variant: "destructive" }),
   });
 
   const openEdit = (c: any) => {
     setEditing(c);
-    setForm({ name: c.name, nameEn: c.nameEn || "", logo: c.logo || "", trackingUrl: c.trackingUrl || "", isActive: c.isActive !== false });
+    setForm({ name: c.name || "", nameEn: c.nameEn || "", logo: c.logo || "", price: c.price ?? 0, estimatedDays: c.estimatedDays ?? 1, storageXCode: c.storageXCode || "", isActive: c.isActive !== false });
     setShowForm(true);
   };
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: "", nameEn: "", logo: "", trackingUrl: "", isActive: true });
+    setForm({ ...emptyShippingForm });
     setShowForm(true);
   };
 
+  const activeCount = (companies as any[]).filter((c: any) => c.isActive !== false).length;
+
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-slate-900">شركات الشحن</h2>
-          <p className="text-xs text-slate-400 mt-0.5">إدارة مزودي خدمة التوصيل</p>
+          <h2 className="text-2xl font-black text-[#2B2B60]">شركات الشحن والتوصيل</h2>
+          <p className="text-sm text-gray-700 font-bold mt-0.5">
+            {companies.length} شركة مسجلة · {activeCount} مفعّلة
+          </p>
         </div>
-        <Button onClick={openNew} className="rounded-none font-black text-xs gap-2" size="sm" data-testid="button-add-shipping">
-          <Plus className="w-3.5 h-3.5" />
-          إضافة شركة
+        <Button onClick={openNew} className="gap-2 bg-[#DFB369] hover:bg-[#c89853] text-[#0F0F0F] font-black h-11 px-5 shadow-md shadow-[#DFB369]/20" data-testid="button-add-shipping">
+          <Plus className="w-4 h-4" />
+          إضافة شركة شحن
         </Button>
       </div>
 
+      {/* Form Dialog */}
       {showForm && (
-        <Card className="border-primary/20 rounded-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-black">{editing ? "تعديل شركة الشحن" : "إضافة شركة جديدة"}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">الاسم بالعربي *</label>
-                <input
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="أرامكس"
-                  className="w-full border border-slate-200 rounded-none px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
-                  data-testid="input-shipping-name"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">الاسم بالإنجليزي</label>
-                <input
-                  value={form.nameEn}
-                  onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))}
-                  placeholder="Aramex"
-                  className="w-full border border-slate-200 rounded-none px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
-                  data-testid="input-shipping-name-en"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">رابط الشعار</label>
-                <input
-                  value={form.logo}
-                  onChange={e => setForm(f => ({ ...f, logo: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full border border-slate-200 rounded-none px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
-                  data-testid="input-shipping-logo"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">رابط التتبع</label>
-                <input
-                  value={form.trackingUrl}
-                  onChange={e => setForm(f => ({ ...f, trackingUrl: e.target.value }))}
-                  placeholder="https://track.aramex.com/?{tracking}"
-                  className="w-full border border-slate-200 rounded-none px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary"
-                  data-testid="input-shipping-tracking"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
-                className={`w-9 h-5 rounded-full transition-colors ${form.isActive ? "bg-emerald-500" : "bg-slate-300"}`}
-                data-testid="toggle-shipping-active"
-              >
-                <span className={`block w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${form.isActive ? "translate-x-4" : "translate-x-0"}`} />
+        <Card className="border-2 border-[#DFB369]/30 bg-gradient-to-br from-[#FAF8F4] to-white shadow-lg">
+          <CardHeader className="pb-3 border-b border-[#DFB369]/20">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-black text-[#2B2B60]">
+                {editing ? "تعديل شركة الشحن" : "إضافة شركة شحن جديدة"}
+              </CardTitle>
+              <button onClick={() => { setShowForm(false); setEditing(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700">
+                <X className="w-4 h-4" />
               </button>
-              <span className="text-xs text-slate-600">{form.isActive ? "مفعّل" : "معطّل"}</span>
             </div>
-            <div className="flex items-center gap-2 pt-2">
-              <Button
-                size="sm"
-                className="rounded-none font-black text-xs"
-                onClick={() => saveMutation.mutate(form)}
-                disabled={!form.name.trim() || saveMutation.isPending}
-                data-testid="button-save-shipping"
-              >
-                {saveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                حفظ
+          </CardHeader>
+          <CardContent className="pt-5 space-y-4">
+            {/* Names */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">اسم الشركة (عربي) *</label>
+                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="مثال: أرامكس" className="h-10 font-bold border-[#DFB369]/30 focus-visible:ring-[#DFB369]" data-testid="input-shipping-name" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">Company Name (English)</label>
+                <Input value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} placeholder="e.g. Aramex" dir="ltr" className="h-10 font-bold border-[#DFB369]/30 focus-visible:ring-[#DFB369]" data-testid="input-shipping-name-en" />
+              </div>
+            </div>
+
+            {/* Price + Days */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">سعر التوصيل (ريال) *</label>
+                <div className="relative">
+                  <Input type="number" min={0} step={0.5} value={form.price} onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} placeholder="30" dir="ltr" className="h-10 font-black border-[#DFB369]/30 focus-visible:ring-[#DFB369] pl-10" data-testid="input-shipping-price" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-gray-500">ر.س</span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">مدة التوصيل المتوقعة *</label>
+                <div className="relative">
+                  <Input type="number" min={1} value={form.estimatedDays} onChange={e => setForm(f => ({ ...f, estimatedDays: parseInt(e.target.value) || 1 }))} placeholder="3" dir="ltr" className="h-10 font-black border-[#DFB369]/30 focus-visible:ring-[#DFB369] pl-14" data-testid="input-shipping-days" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-gray-500">يوم</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Logo + StorageXCode */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">رابط الشعار</label>
+                <Input value={form.logo} onChange={e => setForm(f => ({ ...f, logo: e.target.value }))} placeholder="https://..." dir="ltr" className="h-10 font-bold border-[#DFB369]/30 focus-visible:ring-[#DFB369]" data-testid="input-shipping-logo" />
+                {form.logo && <img src={form.logo} alt="logo preview" className="h-8 object-contain mt-1 rounded border border-gray-100 bg-white p-1" onError={e => (e.currentTarget.style.display = "none")} />}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-[#2B2B60] uppercase tracking-wide">كود Storage Station</label>
+                <Input value={form.storageXCode} onChange={e => setForm(f => ({ ...f, storageXCode: e.target.value }))} placeholder="مثال: ARAMEX_SA" dir="ltr" className="h-10 font-bold border-[#DFB369]/30 focus-visible:ring-[#DFB369]" data-testid="input-shipping-code" />
+                <p className="text-[10px] text-gray-500 font-bold">يُستخدم لربط الطلبات بنظام 3PL التلقائي</p>
+              </div>
+            </div>
+
+            {/* Active toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-[#DFB369]/20">
+              <Switch checked={form.isActive} onCheckedChange={v => setForm(f => ({ ...f, isActive: v }))} data-testid="toggle-shipping-active" />
+              <div>
+                <p className="text-sm font-black text-[#2B2B60]">{form.isActive ? "شركة مفعّلة" : "شركة معطّلة"}</p>
+                <p className="text-[10px] text-gray-500 font-bold">{form.isActive ? "ستظهر للعملاء عند الدفع" : "مخفية من خيارات التوصيل"}</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-1">
+              <Button className="bg-[#2B2B60] hover:bg-[#1c1c45] text-white font-black gap-2" onClick={() => saveMutation.mutate(form)} disabled={!form.name.trim() || form.price < 0 || saveMutation.isPending} data-testid="button-save-shipping">
+                {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editing ? "حفظ التعديلات" : "إضافة الشركة"}
               </Button>
-              <Button size="sm" variant="ghost" className="rounded-none text-xs" onClick={() => setShowForm(false)}>إلغاء</Button>
+              <Button variant="ghost" className="font-bold text-gray-600 hover:text-[#850935]" onClick={() => { setShowForm(false); setEditing(null); }}>إلغاء</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Companies Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-[#DFB369]" />
         </div>
       ) : companies.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <Truck className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-bold">لا توجد شركات شحن بعد</p>
-          <p className="text-xs mt-1">أضف أول شركة شحن لتبدأ</p>
-        </div>
+        <Card className="p-16 text-center border-2 border-dashed border-[#DFB369]/30">
+          <Truck className="w-14 h-14 mx-auto mb-4 text-[#DFB369]/40" />
+          <p className="font-black text-lg text-[#2B2B60]">لا توجد شركات شحن بعد</p>
+          <p className="text-sm text-gray-700 font-bold mt-1">أضف أول شركة لتفعيل خيارات التوصيل في المتجر</p>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {companies.map((c: any) => (
-            <Card key={c.id} className="border-slate-200 rounded-none" data-testid={`card-shipping-${c.id}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {c.logo ? (
-                      <img src={c.logo} alt={c.name} className="w-10 h-10 object-contain rounded-lg border border-slate-100 bg-white p-1 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                        <Truck className="w-5 h-5 text-slate-400" />
+          {(companies as any[]).map((c: any) => {
+            const cid = c.id || c._id;
+            const isConfirmingDelete = deleteConfirm === cid;
+            return (
+              <Card key={cid} className={`overflow-hidden border transition-all hover:shadow-lg ${c.isActive !== false ? "border-[#DFB369]/20 hover:border-[#DFB369]" : "border-gray-200 opacity-70"}`} data-testid={`card-shipping-${cid}`}>
+                {/* Top accent */}
+                <div className={`h-1 w-full ${c.isActive !== false ? "bg-gradient-to-r from-[#DFB369] to-[#2B2B60]" : "bg-gray-300"}`} />
+                <CardContent className="p-4 space-y-3">
+                  {/* Company identity */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {c.logo ? (
+                        <div className="w-12 h-12 rounded-xl border border-gray-100 bg-white p-1.5 shrink-0 flex items-center justify-center">
+                          <img src={c.logo} alt={c.name} className="max-w-full max-h-full object-contain" onError={e => (e.currentTarget.style.display = "none")} />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-[#2B2B60]/5 flex items-center justify-center shrink-0">
+                          <Truck className="w-6 h-6 text-[#2B2B60]/40" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-black text-[#2B2B60] truncate">{c.name}</p>
+                        {c.nameEn && <p className="text-xs text-gray-500 truncate font-bold" dir="ltr">{c.nameEn}</p>}
                       </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-black text-sm text-slate-900 truncate">{c.name}</p>
-                      {c.nameEn && <p className="text-xs text-slate-400 truncate">{c.nameEn}</p>}
-                      <Badge className={`rounded-none text-[9px] font-bold mt-1 ${c.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
-                        {c.isActive !== false ? "مفعّل" : "معطّل"}
-                      </Badge>
+                    </div>
+                    {/* Active toggle */}
+                    <button
+                      onClick={() => toggleActiveMutation.mutate({ id: cid, isActive: !(c.isActive !== false) })}
+                      className={`shrink-0 w-10 h-5.5 rounded-full relative transition-colors ${c.isActive !== false ? "bg-emerald-500" : "bg-gray-300"}`}
+                      style={{ height: "22px", width: "40px" }}
+                      disabled={toggleActiveMutation.isPending}
+                      data-testid={`toggle-active-${cid}`}
+                    >
+                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${c.isActive !== false ? "translate-x-5 left-0.5" : "left-0.5"}`} />
+                    </button>
+                  </div>
+
+                  {/* Price + Days */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-[#FAF8F4] rounded-lg p-2.5 text-center">
+                      <p className="text-[10px] font-bold text-gray-500 mb-0.5">سعر التوصيل</p>
+                      <p className="font-black text-[#2B2B60] text-sm">{Number(c.price || 0).toLocaleString()} ر.س</p>
+                    </div>
+                    <div className="bg-[#FAF8F4] rounded-lg p-2.5 text-center">
+                      <p className="text-[10px] font-bold text-gray-500 mb-0.5">مدة التوصيل</p>
+                      <p className="font-black text-[#2B2B60] text-sm">{c.estimatedDays || "—"} يوم</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => openEdit(c)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
-                      data-testid={`button-edit-shipping-${c.id}`}
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => deleteMutation.mutate(c.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                      data-testid={`button-delete-shipping-${c.id}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+
+                  {/* Status + Actions */}
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                    <Badge className={`text-[10px] font-black border-0 ${c.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                      {c.isActive !== false ? "✓ مفعّلة" : "معطّلة"}
+                    </Badge>
+                    <div className="flex items-center gap-1">
+                      {c.storageXCode && (
+                        <span className="text-[9px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">{c.storageXCode}</span>
+                      )}
+                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-gray-400 hover:text-[#2B2B60] hover:bg-[#DFB369]/10 transition-all" data-testid={`button-edit-shipping-${cid}`}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      {isConfirmingDelete ? (
+                        <>
+                          <button onClick={() => deleteMutation.mutate(cid)} disabled={deleteMutation.isPending} className="px-2 py-1 rounded text-[10px] font-black bg-red-600 text-white hover:bg-red-700 transition-all" data-testid={`button-confirm-delete-${cid}`}>
+                            {deleteMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "تأكيد"}
+                          </button>
+                          <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded text-[10px] font-black bg-gray-100 text-gray-600 hover:bg-gray-200">إلغاء</button>
+                        </>
+                      ) : (
+                        <button onClick={() => setDeleteConfirm(cid)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" data-testid={`button-delete-shipping-${cid}`}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {c.trackingUrl && (
-                  <p className="text-[10px] text-slate-400 mt-2 truncate font-mono">
-                    {c.trackingUrl}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
