@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import DOMPurify from "isomorphic-dompurify";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,9 +14,31 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Mail, Inbox, Send, Star, Trash2, Plus, RefreshCw, Search, Loader2,
   Reply, Forward, X, ChevronRight, Paperclip, AlertCircle, CheckCircle2,
-  Settings as SettingsIcon, Server, ShieldCheck, Sparkles, UserCog, Save
+  Settings as SettingsIcon, Server, ShieldCheck, Sparkles, UserCog, Save,
+  FileText, Image, File, Download, EyeOff, Eye, Languages, Wand2,
+  ChevronDown, ChevronUp, Zap, RotateCcw, Copy, Check, Upload
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+
+type AttachmentFile = {
+  filename: string;
+  data: string;       // base64
+  contentType: string;
+  size: number;
+  previewUrl?: string; // for images
+};
+
+function fileIcon(contentType: string) {
+  if (contentType.startsWith("image/")) return <Image className="w-3.5 h-3.5 text-blue-400" />;
+  if (contentType.includes("pdf")) return <FileText className="w-3.5 h-3.5 text-red-400" />;
+  return <File className="w-3.5 h-3.5 text-slate-400" />;
+}
+
+function fmtBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 type MailAccount = {
   id: string; userId: string; email: string; displayName: string;
@@ -65,7 +87,21 @@ export default function AdminInbox() {
   const [search, setSearch] = useState("");
   const [openMessageId, setOpenMessageId] = useState<string>("");
   const [composeOpen, setComposeOpen] = useState(false);
-  const [composeData, setComposeData] = useState({ to: "", cc: "", subject: "", body: "", inReplyTo: "" });
+  const [composeData, setComposeData] = useState({ to: "", cc: "", bcc: "", subject: "", body: "", inReplyTo: "" });
+  const [showBcc, setShowBcc] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // AI Compose state
+  const [showAi, setShowAi] = useState(false);
+  const [aiMode, setAiMode] = useState<"write" | "improve" | "reply" | "translate" | "subject">("write");
+  const [aiTone, setAiTone] = useState("formal");
+  const [aiLang, setAiLang] = useState("ar");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiResult, setAiResult] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiCopied, setAiCopied] = useState(false);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
 
   // ─── Accounts ────────────────────────────────────────────────────────
@@ -137,12 +173,106 @@ export default function AdminInbox() {
   const sendMutation = useMutation({
     mutationFn: async (payload: any) => apiRequest("POST", "/api/admin/inbox/send", payload),
     onSuccess: () => {
-      toast({ title: "✅ تم الإرسال" });
+      toast({ title: "✅ تم الإرسال بنجاح" });
       setComposeOpen(false);
-      setComposeData({ to: "", cc: "", subject: "", body: "", inReplyTo: "" });
+      setComposeData({ to: "", cc: "", bcc: "", subject: "", body: "", inReplyTo: "" });
+      setAttachments([]);
+      setShowBcc(false);
+      setShowAi(false);
+      setAiResult("");
+      setAiPrompt("");
     },
     onError: (e: any) => toast({ title: "فشل الإرسال", description: e?.message, variant: "destructive" }),
   });
+
+  // ─── File Handling ────────────────────────────────────────────────────
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const MAX_SIZE = 20 * 1024 * 1024; // 20MB per file
+    Array.from(files).forEach(file => {
+      if (file.size > MAX_SIZE) {
+        toast({ title: "الملف كبير جداً", description: `${file.name} يتجاوز 20 ميجابايت`, variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        const base64 = dataUrl.split(",")[1];
+        const attachment: AttachmentFile = {
+          filename: file.name,
+          data: base64,
+          contentType: file.type || "application/octet-stream",
+          size: file.size,
+          previewUrl: file.type.startsWith("image/") ? dataUrl : undefined,
+        };
+        setAttachments(prev => [...prev, attachment]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, [toast]);
+
+  const removeAttachment = (idx: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  };
+
+  // ─── AI Compose ───────────────────────────────────────────────────────
+  const runAiCompose = async () => {
+    if (!aiPrompt.trim() && !composeData.body.trim()) {
+      toast({ title: "أدخل وصفاً للذكاء الاصطناعي", variant: "destructive" });
+      return;
+    }
+    setAiLoading(true);
+    setAiResult("");
+    try {
+      const res = await fetch("/api/admin/inbox/ai-compose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          mode: aiMode,
+          tone: aiTone,
+          language: aiLang,
+          prompt: aiPrompt,
+          currentBody: composeData.body,
+          subject: composeData.subject,
+          recipientContext: composeData.to,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setAiResult(data.text || "");
+      } else {
+        toast({ title: "خطأ في الذكاء الاصطناعي", description: data.message, variant: "destructive" });
+      }
+    } catch (e: any) {
+      toast({ title: "خطأ في الاتصال", description: e.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const applyAiResult = () => {
+    if (aiMode === "subject") {
+      // Extract first suggestion and use it as subject
+      const firstLine = aiResult.split("\n").find(l => l.trim()) || "";
+      const cleaned = firstLine.replace(/^[\d.\-\)\s]+/, "").trim();
+      setComposeData(prev => ({ ...prev, subject: cleaned }));
+    } else {
+      setComposeData(prev => ({ ...prev, body: aiResult }));
+    }
+    toast({ title: "✅ تم تطبيق النص" });
+  };
+
+  const copyAiResult = () => {
+    navigator.clipboard.writeText(aiResult);
+    setAiCopied(true);
+    setTimeout(() => setAiCopied(false), 2000);
+  };
 
   // ─── Handlers ────────────────────────────────────────────────────────
   const openMessage_ = (m: MailMessage) => {
@@ -154,20 +284,24 @@ export default function AdminInbox() {
     setComposeData({
       to: openMessage.fromEmail,
       cc: "",
+      bcc: "",
       subject: openMessage.subject.startsWith("Re:") ? openMessage.subject : `Re: ${openMessage.subject}`,
       body: `\n\n----- الرسالة الأصلية -----\nمن: ${openMessage.fromName || openMessage.fromEmail}\nالموضوع: ${openMessage.subject}\n\n${openMessage.textBody || ""}`,
       inReplyTo: openMessage.messageId,
     });
+    setAttachments([]);
+    setAiMode("reply");
     setComposeOpen(true);
   };
   const handleForward = () => {
     if (!openMessage) return;
     setComposeData({
-      to: "", cc: "",
+      to: "", cc: "", bcc: "",
       subject: openMessage.subject.startsWith("Fwd:") ? openMessage.subject : `Fwd: ${openMessage.subject}`,
       body: `\n\n----- بريد مُعاد توجيهه -----\nمن: ${openMessage.fromName || openMessage.fromEmail}\nالتاريخ: ${new Date(openMessage.date).toLocaleString("ar-SA")}\nالموضوع: ${openMessage.subject}\n\n${openMessage.textBody || ""}`,
       inReplyTo: "",
     });
+    setAttachments([]);
     setComposeOpen(true);
   };
   const handleSend = () => {
@@ -179,10 +313,16 @@ export default function AdminInbox() {
       accountId,
       to: composeData.to.split(",").map(s => s.trim()).filter(Boolean),
       cc: composeData.cc ? composeData.cc.split(",").map(s => s.trim()).filter(Boolean) : undefined,
+      bcc: composeData.bcc ? composeData.bcc.split(",").map(s => s.trim()).filter(Boolean) : undefined,
       subject: composeData.subject,
       text: composeData.body,
-      html: `<div dir="auto" style="font-family:Tahoma,Arial,sans-serif;white-space:pre-wrap;">${composeData.body.replace(/</g, "&lt;")}</div>`,
+      html: `<div dir="auto" style="font-family:Tahoma,Arial,sans-serif;white-space:pre-wrap;">${composeData.body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`,
       inReplyTo: composeData.inReplyTo || undefined,
+      attachments: attachments.length > 0 ? attachments.map(a => ({
+        filename: a.filename,
+        data: a.data,
+        contentType: a.contentType,
+      })) : undefined,
     });
   };
 
@@ -489,41 +629,327 @@ export default function AdminInbox() {
         </div>
       </div>
 
-      {/* Compose Dialog */}
-      <Dialog open={composeOpen} onOpenChange={setComposeOpen}>
-        <DialogContent className="max-w-2xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right font-black text-[#2B2B60]">رسالة جديدة</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs font-bold">من</Label>
-              <Input value={currentAccount?.email || ""} disabled className="h-10 rounded-lg font-mono text-xs" />
+      {/* ── Advanced Compose Dialog ── */}
+      <Dialog open={composeOpen} onOpenChange={(o) => { setComposeOpen(o); if (!o) { setAiResult(""); setAiPrompt(""); setShowAi(false); } }}>
+        <DialogContent className="max-w-3xl w-full p-0 gap-0 overflow-hidden" dir="rtl">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3.5 bg-[#2B2B60] border-b border-[#DFB369]/20">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#DFB369]/15 border border-[#DFB369]/30 flex items-center justify-center">
+                <Send className="w-3.5 h-3.5 text-[#DFB369]" />
+              </div>
+              <div>
+                <h2 className="text-sm font-black text-white">
+                  {composeData.inReplyTo ? "رد على الرسالة" : "رسالة جديدة"}
+                </h2>
+                <p className="text-[10px] text-white/40">{currentAccount?.email}</p>
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-bold">إلى *</Label>
-              <Input value={composeData.to} onChange={e => setComposeData({ ...composeData, to: e.target.value })} placeholder="email@example.com" dir="ltr" className="h-10 rounded-lg" data-testid="input-compose-to" />
+            <button onClick={() => setComposeOpen(false)} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <X className="w-3.5 h-3.5 text-white/70" />
+            </button>
+          </div>
+
+          <div className="flex flex-col max-h-[85vh] overflow-hidden">
+            {/* Fields */}
+            <div className="px-5 pt-4 pb-2 space-y-2.5 border-b border-slate-100">
+              {/* To */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black text-slate-400 w-10 text-left shrink-0">إلى</span>
+                <Input
+                  value={composeData.to}
+                  onChange={e => setComposeData(p => ({ ...p, to: e.target.value }))}
+                  placeholder="email@example.com, ..."
+                  dir="ltr"
+                  className="h-9 rounded-xl border-slate-200 text-xs font-mono flex-1"
+                  data-testid="input-compose-to"
+                />
+                <button onClick={() => setShowBcc(v => !v)} className="text-[10px] text-slate-400 hover:text-[#DFB369] font-bold transition-colors shrink-0">
+                  {showBcc ? "إخفاء BCC" : "+ BCC"}
+                </button>
+              </div>
+              {/* CC */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black text-slate-400 w-10 text-left shrink-0">CC</span>
+                <Input
+                  value={composeData.cc}
+                  onChange={e => setComposeData(p => ({ ...p, cc: e.target.value }))}
+                  placeholder="نسخة إلى..."
+                  dir="ltr"
+                  className="h-9 rounded-xl border-slate-200 text-xs font-mono flex-1"
+                />
+              </div>
+              {/* BCC */}
+              {showBcc && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black text-slate-400 w-10 text-left shrink-0">BCC</span>
+                  <Input
+                    value={composeData.bcc}
+                    onChange={e => setComposeData(p => ({ ...p, bcc: e.target.value }))}
+                    placeholder="نسخة مخفية..."
+                    dir="ltr"
+                    className="h-9 rounded-xl border-slate-200 text-xs font-mono flex-1"
+                  />
+                </div>
+              )}
+              {/* Subject */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black text-slate-400 w-10 text-left shrink-0">الموضوع</span>
+                <Input
+                  value={composeData.subject}
+                  onChange={e => setComposeData(p => ({ ...p, subject: e.target.value }))}
+                  placeholder="عنوان الرسالة..."
+                  className="h-9 rounded-xl border-slate-200 text-xs flex-1"
+                  data-testid="input-compose-subject"
+                />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-bold">نسخة (CC)</Label>
-              <Input value={composeData.cc} onChange={e => setComposeData({ ...composeData, cc: e.target.value })} placeholder="email1@..., email2@..." dir="ltr" className="h-10 rounded-lg" />
+
+            {/* AI Panel */}
+            <div className="border-b border-slate-100">
+              <button
+                onClick={() => setShowAi(v => !v)}
+                className="w-full flex items-center gap-2 px-5 py-2.5 hover:bg-slate-50 transition-colors group"
+                data-testid="button-toggle-ai"
+              >
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+                <span className="text-xs font-black text-slate-700 flex-1 text-right">كتابة بالذكاء الاصطناعي</span>
+                <span className="text-[10px] text-slate-400 font-bold">قوّي بـ AI</span>
+                {showAi ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+              </button>
+
+              {showAi && (
+                <div className="px-5 pb-4 space-y-3 bg-gradient-to-br from-purple-50/50 to-indigo-50/30 border-t border-purple-100">
+                  {/* Mode + Tone + Lang selectors */}
+                  <div className="grid grid-cols-3 gap-2 pt-3">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 mb-1">الوظيفة</p>
+                      <Select value={aiMode} onValueChange={v => setAiMode(v as any)}>
+                        <SelectTrigger className="h-8 rounded-lg text-xs border-purple-200 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="write"><span className="flex items-center gap-1.5"><Wand2 className="w-3 h-3" />كتابة من الصفر</span></SelectItem>
+                          <SelectItem value="improve"><span className="flex items-center gap-1.5"><Zap className="w-3 h-3" />تحسين النص</span></SelectItem>
+                          <SelectItem value="reply"><span className="flex items-center gap-1.5"><Reply className="w-3 h-3" />كتابة رد</span></SelectItem>
+                          <SelectItem value="translate"><span className="flex items-center gap-1.5"><Languages className="w-3 h-3" />ترجمة</span></SelectItem>
+                          <SelectItem value="subject"><span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3" />اقتراح موضوع</span></SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 mb-1">الأسلوب</p>
+                      <Select value={aiTone} onValueChange={setAiTone}>
+                        <SelectTrigger className="h-8 rounded-lg text-xs border-purple-200 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="formal">رسمي</SelectItem>
+                          <SelectItem value="friendly">ودّي</SelectItem>
+                          <SelectItem value="concise">مختصر</SelectItem>
+                          <SelectItem value="detailed">تفصيلي</SelectItem>
+                          <SelectItem value="apologetic">اعتذاري</SelectItem>
+                          <SelectItem value="assertive">حازم</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 mb-1">اللغة</p>
+                      <Select value={aiLang} onValueChange={setAiLang}>
+                        <SelectTrigger className="h-8 rounded-lg text-xs border-purple-200 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ar">العربية</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="auto">تلقائي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Prompt input */}
+                  <div>
+                    <Textarea
+                      value={aiPrompt}
+                      onChange={e => setAiPrompt(e.target.value)}
+                      placeholder={
+                        aiMode === "write" ? "صف ما تريد كتابته... (مثال: رد على شكوى عميل بخصوص تأخير الشحن)" :
+                        aiMode === "improve" ? "تعليمات للتحسين (اختياري)" :
+                        aiMode === "reply" ? "ما الذي تريد الرد به؟ أو اتركه فارغاً للرد التلقائي" :
+                        aiMode === "translate" ? "النص موجود في المحتوى أدناه" :
+                        "سيقترح الذكاء الاصطناعي مواضيع بناءً على المحتوى"
+                      }
+                      rows={2}
+                      className="rounded-xl border-purple-200 bg-white text-xs resize-none"
+                      data-testid="input-ai-prompt"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={runAiCompose}
+                      disabled={aiLoading}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl gap-1.5 font-black"
+                      data-testid="button-ai-generate"
+                    >
+                      {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {aiLoading ? "جاري التوليد..." : "توليد"}
+                    </Button>
+                    {aiResult && (
+                      <>
+                        <Button onClick={applyAiResult} size="sm" variant="outline" className="rounded-xl gap-1.5 font-bold text-xs border-purple-200 text-purple-700 hover:bg-purple-50">
+                          <Check className="w-3 h-3" />
+                          {aiMode === "subject" ? "استخدم كموضوع" : "استخدم في الرسالة"}
+                        </Button>
+                        <Button onClick={copyAiResult} size="sm" variant="ghost" className="rounded-xl gap-1.5 font-bold text-xs text-slate-500">
+                          {aiCopied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                          {aiCopied ? "نُسخ" : "نسخ"}
+                        </Button>
+                        <Button onClick={() => setAiResult("")} size="sm" variant="ghost" className="rounded-xl gap-1 font-bold text-xs text-slate-400">
+                          <RotateCcw className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* AI Result preview */}
+                  {aiResult && (
+                    <div className="rounded-xl border border-purple-200 bg-white p-3 max-h-36 overflow-y-auto">
+                      <p className="text-[10px] font-black text-purple-500 mb-2 uppercase tracking-wider">نتيجة الذكاء الاصطناعي</p>
+                      <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-sans">{aiResult}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div>
-              <Label className="text-xs font-bold">الموضوع *</Label>
-              <Input value={composeData.subject} onChange={e => setComposeData({ ...composeData, subject: e.target.value })} className="h-10 rounded-lg" data-testid="input-compose-subject" />
+
+            {/* Body textarea */}
+            <div className="flex-1 px-5 py-3 overflow-y-auto">
+              <Textarea
+                value={composeData.body}
+                onChange={e => setComposeData(p => ({ ...p, body: e.target.value }))}
+                placeholder="اكتب رسالتك هنا..."
+                className="min-h-[200px] h-full rounded-xl border-slate-200 text-sm font-sans resize-none leading-relaxed"
+                data-testid="input-compose-body"
+              />
+              <p className="text-[10px] text-slate-400 mt-1 text-left tabular-nums">{composeData.body.length} حرف</p>
             </div>
-            <div>
-              <Label className="text-xs font-bold">المحتوى</Label>
-              <Textarea value={composeData.body} onChange={e => setComposeData({ ...composeData, body: e.target.value })} rows={10} className="rounded-lg font-sans" data-testid="input-compose-body" />
+
+            {/* Attachments preview */}
+            {attachments.length > 0 && (
+              <div className="px-5 pb-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">المرفقات ({attachments.length})</p>
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((a, i) => (
+                    <div key={i} className="relative group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:border-slate-300 transition-colors max-w-[200px]">
+                      {a.previewUrl ? (
+                        <img src={a.previewUrl} alt={a.filename} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-slate-200" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                          {fileIcon(a.contentType)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold text-slate-700 truncate">{a.filename}</p>
+                        <p className="text-[9px] text-slate-400">{fmtBytes(a.size)}</p>
+                      </div>
+                      <button
+                        onClick={() => removeAttachment(i)}
+                        className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-red-500 text-white hidden group-hover:flex items-center justify-center"
+                        data-testid={`button-remove-attachment-${i}`}
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Drop zone (shown when dragging) */}
+            {dragOver && (
+              <div className="mx-5 mb-3 border-2 border-dashed border-[#DFB369] rounded-xl p-6 text-center bg-[#DFB369]/5 animate-pulse">
+                <Upload className="w-6 h-6 mx-auto text-[#DFB369] mb-1" />
+                <p className="text-sm font-black text-[#DFB369]">أفلت الملفات هنا</p>
+              </div>
+            )}
+
+            {/* Footer toolbar */}
+            <div
+              className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/60"
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+            >
+              <div className="flex items-center gap-1.5">
+                {/* Attach file */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={e => { if (e.target.files) { addFiles(e.target.files); e.target.value = ""; } }}
+                  data-testid="input-file-attachment"
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-xl text-slate-500 hover:text-[#2B2B60] hover:bg-slate-100 font-bold text-xs"
+                  title="إرفاق ملف"
+                  data-testid="button-attach-file"
+                >
+                  <Paperclip className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">إرفاق</span>
+                </Button>
+                {/* Attach image */}
+                <Button
+                  onClick={() => {
+                    const inp = document.createElement("input");
+                    inp.type = "file";
+                    inp.accept = "image/*";
+                    inp.multiple = true;
+                    inp.onchange = () => { if (inp.files) addFiles(inp.files); };
+                    inp.click();
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-xl text-slate-500 hover:text-[#2B2B60] hover:bg-slate-100 font-bold text-xs"
+                  title="إرفاق صورة"
+                  data-testid="button-attach-image"
+                >
+                  <Image className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">صورة</span>
+                </Button>
+
+                {attachments.length > 0 && (
+                  <Badge variant="secondary" className="text-[10px] font-black bg-[#DFB369]/15 text-[#b8903a] border-0">
+                    {attachments.length} مرفق
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setComposeOpen(false)} variant="outline" size="sm" className="h-8 rounded-xl text-xs font-bold">
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={sendMutation.isPending || !composeData.to || !composeData.subject}
+                  size="sm"
+                  className="h-8 bg-[#DFB369] hover:bg-[#c89853] text-white rounded-xl gap-1.5 font-black px-5"
+                  data-testid="button-send-message"
+                >
+                  {sendMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                  إرسال
+                </Button>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => setComposeOpen(false)} variant="outline">إلغاء</Button>
-            <Button onClick={handleSend} disabled={sendMutation.isPending} className="bg-[#2B2B60] text-white gap-2" data-testid="button-send-message">
-              {sendMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              إرسال
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

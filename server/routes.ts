@@ -6202,19 +6202,82 @@ export async function registerRoutes(
 
   app.post("/api/admin/inbox/send", inboxAccess, async (req, res) => {
     try {
-      const { accountId, to, cc, bcc, subject, html, text, inReplyTo, references } = req.body || {};
+      const { accountId, to, cc, bcc, subject, html, text, inReplyTo, references, attachments } = req.body || {};
       if (!accountId || !to || !subject) return res.status(400).json({ message: "accountId, to, subject مطلوبة" });
       const chk = await assertAccountAccess(req, accountId);
       if (!chk.ok) return res.status(chk.status).json({ message: chk.message });
+
+      // Convert base64 attachments → Buffers for nodemailer
+      const parsedAttachments = Array.isArray(attachments)
+        ? attachments.map((a: any) => ({
+            filename: a.filename || "attachment",
+            contentType: a.contentType || "application/octet-stream",
+            content: a.data ? Buffer.from(a.data, "base64") : Buffer.alloc(0),
+          }))
+        : undefined;
+
       const r = await sendInboxMessage(accountId, {
         to: Array.isArray(to) ? to : [to],
         cc: cc ? (Array.isArray(cc) ? cc : [cc]) : undefined,
         bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
         subject, html, text, inReplyTo,
         references: Array.isArray(references) ? references : (references ? [references] : undefined),
+        attachments: parsedAttachments,
       });
       res.json({ ok: true, ...r });
     } catch (err: any) { res.status(500).json({ message: err.message, ok: false }); }
+  });
+
+  // ─── AI Email Compose ──────────────────────────────────────────────────────
+  app.post("/api/admin/inbox/ai-compose", inboxAccess, async (req, res) => {
+    try {
+      const { prompt, mode, tone, language, currentBody, subject, recipientContext } = req.body || {};
+      if (!prompt && !currentBody) return res.status(400).json({ message: "prompt مطلوب" });
+
+      const toneMap: Record<string, string> = {
+        formal: "رسمي واحترافي جداً",
+        friendly: "ودّي وحيوي مع الاحتفاظ بالمهنية",
+        concise: "مختصر ومباشر",
+        detailed: "تفصيلي وشامل",
+        apologetic: "اعتذاري ومتعاطف",
+        assertive: "حازم وواضح",
+      };
+      const langInstr = language === "en"
+        ? "Write ONLY in English."
+        : language === "ar"
+        ? "اكتب باللغة العربية فقط."
+        : "اكتب باللغة التي يناسبها السياق (عربي أو إنجليزي).";
+
+      const toneInstr = toneMap[tone] || toneMap.formal;
+
+      let systemPrompt = `أنت مساعد كتابة بريد إلكتروني محترف لشركة عطور آر اف الفاخرة. 
+الأسلوب: ${toneInstr}. ${langInstr}
+لا تضف أي تفسيرات أو عناوين، أعد فقط نص البريد جاهزاً للإرسال.`;
+
+      let userMsg = "";
+      if (mode === "improve") {
+        userMsg = `حسّن وطوّر نص البريد التالي:\n\n${currentBody}\n\n${prompt ? `تعليمات إضافية: ${prompt}` : ""}`;
+      } else if (mode === "translate") {
+        const target = language === "en" ? "الإنجليزية" : "العربية";
+        userMsg = `ترجم النص التالي إلى اللغة ${target} مع الحفاظ على الأسلوب المهني:\n\n${currentBody}`;
+      } else if (mode === "subject") {
+        userMsg = `اقترح 5 عناوين بريد إلكتروني مناسبة للرسالة التالية. أعدها كقائمة مرقّمة فقط:\n\n${currentBody || prompt}`;
+      } else if (mode === "reply") {
+        userMsg = `اكتب ردّاً على البريد التالي:\n${subject ? `الموضوع: ${subject}\n` : ""}${recipientContext ? `من: ${recipientContext}\n` : ""}\n${currentBody}\n\n${prompt ? `التعليمات: ${prompt}` : ""}`;
+      } else {
+        // mode === "write" (default)
+        userMsg = `اكتب بريداً إلكترونياً بناءً على التعليمات التالية:\n${prompt}${subject ? `\nالموضوع: ${subject}` : ""}`;
+      }
+
+      const { groqChatFor } = await import("./groq");
+      const result = await groqChatFor(
+        [{ role: "system", content: systemPrompt }, { role: "user", content: userMsg }],
+        1500, "employee"
+      );
+      res.json({ ok: true, text: result });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, message: err.message });
+    }
   });
 
   // ─── System Health ────────────────────────────────────────────────────────
