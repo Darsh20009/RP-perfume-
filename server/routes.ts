@@ -6155,6 +6155,114 @@ export async function registerRoutes(
     } catch (err: any) { res.status(500).json({ message: err.message, ok: false }); }
   });
 
+  // ─── System Health ────────────────────────────────────────────────────────
+  app.get("/api/admin/system-health", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== "admin") return res.sendStatus(403);
+    try {
+      const mongoose = (await import("mongoose")).default;
+      const { OrderModel: OM, InvoiceModel: IM } = await import("./models");
+
+      // DB size from MongoDB stats
+      let dbSizeMB = 0;
+      try {
+        const db = mongoose.connection.db;
+        if (db) {
+          const stats = await db.stats();
+          dbSizeMB = (stats.dataSize + stats.indexSize) / (1024 * 1024);
+        }
+      } catch {}
+
+      // Email sent this month
+      let emailSentThisMonth = 0;
+      try {
+        const start = new Date();
+        start.setDate(1); start.setHours(0, 0, 0, 0);
+        emailSentThisMonth = await IM.countDocuments({ createdAt: { $gte: start } });
+        // Also count from orders (order confirmation emails)
+        emailSentThisMonth += await OM.countDocuments({
+          paidNotificationsSent: true,
+          paidAt: { $gte: start }
+        });
+      } catch {}
+
+      // AI token usage this month (from store settings counter)
+      let aiTokensUsed = 0;
+      try {
+        const storeDoc = await StoreSettingsModel.findOne({}).select("aiTokensUsedThisMonth aiTokensResetAt").lean();
+        const doc = storeDoc as any;
+        if (doc) {
+          const resetAt: Date = doc.aiTokensResetAt || new Date(0);
+          const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+          aiTokensUsed = (resetAt < monthStart) ? 0 : (doc.aiTokensUsedThisMonth || 0);
+        }
+      } catch {}
+
+      // Uptime hours this month
+      const uptimeSec = process.uptime();
+      const uptimeHours = uptimeSec / 3600;
+
+      // Cron health (last job run)
+      const qStats = getQueueStats();
+
+      res.json({
+        ai: { used: aiTokensUsed, limit: 25_000_000 },
+        db: { usedMB: Math.round(dbSizeMB * 10) / 10, limitMB: 512 },
+        hosting: { uptimeHours: Math.round(uptimeHours * 10) / 10, limitHours: 750 },
+        email: { sent: emailSentThisMonth, limit: 1000 },
+        cron: { intervalMin: 1, jobsCompleted: qStats.completed || 0, jobsFailed: qStats.failed || 0 },
+        mongo: { connected: mongoose.connection.readyState === 1, state: mongoose.connection.readyState },
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ─── Integrations Status ──────────────────────────────────────────────────
+  app.get("/api/admin/integrations-status", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== "admin") return res.sendStatus(403);
+    try {
+      const cfg = {
+        paymob: {
+          secretKey: !!process.env.PAYMOB_SECRET_KEY,
+          publicKey: !!process.env.PAYMOB_PUBLIC_KEY,
+          integrationId: !!process.env.PAYMOB_INTEGRATION_ID,
+          hmacSecret: !!process.env.PAYMOB_HMAC_SECRET,
+        },
+        tabby: {
+          secretKey: !!process.env.TABBY_SECRET_KEY,
+          publicKey: !!process.env.TABBY_PUBLIC_KEY,
+          webhookSecret: !!process.env.TABBY_WEBHOOK_SECRET,
+          merchantCode: !!process.env.TABBY_MERCHANT_CODE,
+        },
+        tamara: {
+          apiToken: !!process.env.TAMARA_API_TOKEN,
+          notificationToken: !!process.env.TAMARA_NOTIFICATION_TOKEN,
+          publicKey: !!process.env.TAMARA_PUBLIC_KEY,
+        },
+        gemini: {
+          key1: !!process.env.GEMINI_API_KEY,
+          key2: !!process.env.GEMINI_API_KEY_2,
+          key3: !!process.env.GEMINI_API_KEY_3,
+        },
+        kimi: { apiKey: !!process.env.KIMI_API_KEY },
+        smtp: { apiKey: !!process.env.SMTP2GO_API_KEY },
+        google: { clientId: !!process.env.GOOGLE_CLIENT_ID, clientSecret: !!process.env.GOOGLE_CLIENT_SECRET },
+        apple: { clientId: !!process.env.APPLE_CLIENT_ID, redirectUri: !!process.env.APPLE_REDIRECT_URI },
+        storageStation: { apiKey: !!process.env.STORAGE_STATION_API_KEY, apiSecret: !!process.env.STORAGE_STATION_API_SECRET },
+        mongo: { uri: !!process.env.MONGODB_URI },
+        session: { secret: !!process.env.SESSION_SECRET },
+        vapid: { publicKey: !!process.env.VAPID_PUBLIC_KEY, privateKey: !!process.env.VAPID_PRIVATE_KEY },
+      };
+      res.json(cfg);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Background sync (every 2 minutes)
   setInterval(async () => {
     try {

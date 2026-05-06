@@ -33,6 +33,8 @@ import AdminStats from "@/pages/admin/AdminStats";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminPages from "@/pages/admin/AdminPages";
 import AdminAiInsights from "@/pages/admin/AdminAiInsights";
+import AdminSystemHealth from "@/pages/admin/AdminSystemHealth";
+import AdminIntegrations from "@/pages/admin/AdminIntegrations";
 import { EmployeeAssistant } from "@/components/admin/EmployeeAssistant";
 const logoImg = "/images/logos/logo-light.png";
 const logoDarkImg = "/images/logos/logo-dark.png";
@@ -5113,12 +5115,12 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
         { id: "pages", label: "صفحات المتجر", icon: FileText },
       ]
     },
-    {
+    ...(user?.role === "admin" ? [{
       label: "ذكاء اصطناعي",
       items: [
         { id: "ai-insights", label: "تحليلات المخزون AI", icon: Brain },
       ]
-    },
+    }] : []),
     {
       label: "النظام",
       items: [
@@ -5126,6 +5128,10 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
         { id: "email", label: "البريد الإلكتروني", icon: Send },
         { id: "logs", label: "سجل العمليات", icon: History },
         { id: "settings", label: "إعدادات المتجر", icon: Settings2 },
+        ...(user?.role === "admin" ? [
+          { id: "health", label: "صحة النظام", icon: Activity },
+          { id: "integrations", label: "ربط الخدمات", icon: Shield },
+        ] : []),
       ]
     },
   ];
@@ -5298,6 +5304,8 @@ const pageTitles: Record<string, string> = {
   email:        "البريد الإلكتروني",
   logs:         "سجل العمليات",
   settings:     "إعدادات المتجر",
+  health:       "صحة النظام",
+  integrations: "ربط الخدمات والمفاتيح",
 };
 
 export default function Admin() {
@@ -5447,12 +5455,14 @@ export default function Admin() {
                 {activeTab === "email"     && <AdminEmail />}
                 {activeTab === "logs"      && <AdminAuditLogs />}
                 {activeTab === "settings"  && <StoreSettingsPanel />}
+                {activeTab === "health"    && user?.role === "admin" && <AdminSystemHealth />}
+                {activeTab === "integrations" && user?.role === "admin" && <AdminIntegrations />}
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
       </main>
-      <EmployeeAssistant />
+      {user?.role === "admin" && <EmployeeAssistant />}
     </div>
   );
 }
