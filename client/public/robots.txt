@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /api/*
+Disallow: /pos
+Disallow: /branch-dashboard
+Disallow: /branch-login
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Crawl-delay: 2
+
+Sitemap: https://rfperfume.sa/sitemap.xml

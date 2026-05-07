@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/hooks/use-products";
 import { Input } from "@/components/ui/input";
@@ -238,6 +239,13 @@ export default function Products() {
 
   return (
     <Layout>
+      <SEO
+        title="تسوق العطور الفاخرة — عطور آر اف RF Perfume"
+        description="تصفح أكبر مجموعة عطور فاخرة في السعودية من متجر آر اف RF Perfume — عود كمبودي، مسك أبيض، بخور فاخر، عطور رجالية ونسائية. أسعار مناسبة وشحن سريع لجميع مدن السعودية."
+        keywords="تسوق عطور, عطور آر اف, RF Perfume, شراء عطور اونلاين, أفضل عطور سعودية, عطور فاخرة, عطور رجالية, عطور نسائية, عود, مسك, بخور, عطور الرياض, عطور جدة, عطور السعودية"
+        canonical="/products"
+        ogType="website"
+      />
       <div className="min-h-screen bg-background">
 
         {/* ── TOP BAR ─────────────────────────────────────────────────── */}

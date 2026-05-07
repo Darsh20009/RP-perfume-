@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { useProduct } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { trackPixelEvent } from "@/lib/pixels";
@@ -345,8 +346,29 @@ export default function ProductDetails() {
     setTimeout(() => setIsAnimating(false), 1000);
   };
 
+  const currentPrice = selectedVariant?.price ?? product.price;
+  const stockCount = typeof (product as any).stock === "number" ? (product as any).stock : 1;
+
   return (
     <Layout>
+      <SEO
+        title={`${product.name}${(product as any).nameEn ? ` | ${(product as any).nameEn}` : ""} — عطور آر اف`}
+        description={`اشتري ${product.name} من متجر عطور آر اف RF Perfume. ${(product as any).description ? String((product as any).description).slice(0, 120) : "عطر فاخر أصيل"} — توصيل سريع لجميع مدن السعودية.`}
+        keywords={`${product.name}, ${(product as any).nameEn || ""}, عطر فاخر, عطور آر اف, RF Perfume, عطور سعودية, شراء عطر اونلاين, ${product.name} سعر, عطر ${product.name}`}
+        canonical={`/products/${product.id || (product as any)._id}`}
+        ogImage={(product.images && product.images[0]) || undefined}
+        ogType="product"
+        productSchema={{
+          name: product.name,
+          nameEn: (product as any).nameEn,
+          description: (product as any).description ? String((product as any).description).slice(0, 200) : undefined,
+          image: (product.images && product.images[0]) || undefined,
+          price: currentPrice,
+          sku: selectedVariant?.sku || (product as any).sku,
+          brand: "عطور آر اف | RF Perfume",
+          availability: stockCount > 0 ? "InStock" : "OutOfStock",
+        }}
+      />
       <div className="container py-12 sm:py-16 md:py-20 lg:py-24">
         <div className={`grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 xl:gap-24 items-start ${language === 'ar' ? '' : 'lg:flex-row-reverse'}`}>
           {/* Image Gallery */}

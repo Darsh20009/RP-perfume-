@@ -38,6 +38,11 @@ export async function setupVite(server: Server, app: Express) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
 
+    // Let Express handle XML / txt / json at known non-SPA paths
+    if (url === "/sitemap.xml" || url === "/robots.txt" || url.startsWith("/api/")) {
+      return next();
+    }
+
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,

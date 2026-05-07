@@ -530,6 +530,60 @@ export async function registerRoutes(
     }
   });
 
+  // Dynamic sitemap.xml — pulled live from MongoDB products + categories
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const [products, categories] = await Promise.all([
+        storage.getProducts(),
+        storage.getCategories(),
+      ]);
+      const BASE = "https://rfperfume.sa";
+      const now = new Date().toISOString().split("T")[0];
+
+      const staticUrls = [
+        { loc: BASE, priority: "1.0", changefreq: "daily" },
+        { loc: `${BASE}/products`, priority: "0.9", changefreq: "daily" },
+        { loc: `${BASE}/about`, priority: "0.6", changefreq: "monthly" },
+        { loc: `${BASE}/contact`, priority: "0.6", changefreq: "monthly" },
+        { loc: `${BASE}/branches`, priority: "0.7", changefreq: "weekly" },
+      ];
+
+      const categoryUrls = (categories || []).map((c: any) => ({
+        loc: `${BASE}/products?category=${c.slug || c.id}`,
+        priority: "0.8",
+        changefreq: "weekly",
+      }));
+
+      const productUrls = (products || []).map((p: any) => ({
+        loc: `${BASE}/products/${p._id || p.id}`,
+        priority: "0.85",
+        changefreq: "weekly",
+      }));
+
+      const allUrls = [...staticUrls, ...categoryUrls, ...productUrls];
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="${u.loc}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${u.loc}"/>
+  </url>`).join("\n")}
+</urlset>`;
+
+      res.set("Content-Type", "application/xml; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=3600");
+      res.send(xml);
+    } catch (err) {
+      res.status(500).send("<!-- sitemap error -->");
+    }
+  });
+
   // Apple Maps JWT token for MapKit JS
   // Prefers env-secrets (APPLE_MAPS_PRIVATE_KEY/KEY_ID/TEAM_ID) over disk file fallback
   function getMapsSigningConfig(): { privateKey: string; keyId: string; teamId: string } | null {
