@@ -184,20 +184,19 @@ export const UnifiedChat = memo(function UnifiedChat() {
             whileTap={{ scale: 0.93 }}
             onClick={() => setView("menu")}
             aria-label="افتح قائمة التواصل"
-            className="relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(26,39,68,0.38)] active:scale-95 overflow-hidden"
+            className="relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_32px_rgba(26,39,68,0.28)] active:scale-95 overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, #2B2B60 0%, #243154 60%, #2B2B60 100%)",
-              border: "2px solid rgba(223,179,105,0.6)",
+              background: "#FFFFFF",
+              border: "2px solid rgba(223,179,105,0.5)",
             }}
           >
             {/* Live dot */}
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow ring-2 ring-white/50 z-10" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow ring-2 ring-white/80 z-10" />
             {/* Logo */}
             <img
               src={LOGO_LIGHT}
               alt="عطور آر اف"
               className="relative h-9 w-auto object-contain"
-              style={{ filter: "invert(1) brightness(2)" }}
               draggable={false}
             />
           </motion.button>
