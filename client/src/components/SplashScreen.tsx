@@ -24,6 +24,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       const onCanPlay = () => {
         clearTimeout(failFallback);
         setVideoLoaded(true);
+        video.playbackRate = 3;
         video.play().catch(() => {});
       };
       const onEnded = () => dismiss();
