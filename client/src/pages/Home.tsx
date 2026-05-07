@@ -21,6 +21,7 @@ import brandCtaImg from "@assets/Screenshot_2026-04-16_at_2.09.21_PM_17772314881
 import menCategoryImg from "@assets/Screenshot_2026-04-27_at_8.03.23_PM_1777309823245.png";
 import womenCategoryImg from "@assets/Screenshot_2026-04-27_at_7.46.24_PM_1777310249418.png";
 import unisexCategoryImg from "@assets/Screenshot_2026-04-27_at_8.25.47_PM_1777310771479.png";
+import bodySprayCategoryImg from "@assets/Screenshot_2026-05-07_at_6.31.22_AM_1778124884908.png";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { RiyalSign } from "@/components/RiyalSign";
@@ -194,14 +195,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CATEGORY HERO TILES — 3 framed images side-by-side, always one row ─────────────── */}
+      {/* ── CATEGORY HERO TILES — 4 framed images side-by-side, always one row ─────────────── */}
       {dbCategories && dbCategories.length > 0 && (() => {
         const heroBySlug: Record<string, string> = {
           men: menCategoryImg,
           women: womenCategoryImg,
           unisex: unisexCategoryImg,
+          "body-and-hair-spray": bodySprayCategoryImg,
         };
-        const heroOrder = ["men", "women", "unisex"];
+        const heroOrder = ["men", "women", "unisex", "body-and-hair-spray"];
         const roots = dbCategories.filter((c: any) => !c.parentId);
         const heroTiles = heroOrder
           .map((slug) => roots.find((c: any) => c.slug === slug))
@@ -210,7 +212,7 @@ export default function Home() {
         return (
           <section className="py-6 md:py-10 bg-white" data-testid="section-category-mosaic">
             <div className="container px-4">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto">
+              <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto">
                 {heroTiles.map((cat: any, idx: number) => {
                   const catName = isRtl ? (cat.nameAr || cat.name) : cat.name;
                   const heroImg = heroBySlug[cat.slug];
