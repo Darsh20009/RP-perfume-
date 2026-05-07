@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   MapPin, Truck, CreditCard, Apple, Lock,
-  Check, Wallet, Smartphone, CheckCircle2,
+  Check, Wallet, CheckCircle2,
   ShieldCheck, ChevronDown, ChevronUp, Store, Phone, Clock, Package,
   AlertTriangle, Trash2, ArrowLeftRight, LocateFixed, Loader2 as Spin
 } from "lucide-react";
@@ -21,10 +21,9 @@ import { X, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AuthModal } from "@/components/AuthModal";
 import {
-  CardBrandsLogo, STCPayLogo, ApplePayLogo,
+  CardBrandsLogo, ApplePayLogo,
   TabbyLogo, TamaraLogo,
 } from "@/components/payment/PaymentBrands";
-import { STCPayForm } from "@/components/payment/STCPayForm";
 import { RiyalSign } from "@/components/RiyalSign";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,10 +44,9 @@ export default function Checkout() {
   const { toast } = useToast();
 
   const [paymentMethod, setPaymentMethod] = useState<
-    "wallet" | "tap" | "stc_pay" | "apple_pay" | "tabby" | "tamara" | "bank_transfer"
+    "wallet" | "tap" | "apple_pay" | "tabby" | "tamara"
   >("wallet");
   const [tamaraInstallments, setTamaraInstallments] = useState<2 | 3 | 4>(3);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   const isAppleDevice = useMemo(() => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -210,7 +208,7 @@ export default function Checkout() {
   const loyaltyDiscount = useLoyaltyPoints ? Math.min(availableLoyaltyPoints / 100, 50) : 0;
 
   const enabledMethods = storeSettings?.paymentMethods || {
-    wallet: true, tap: true, stc_pay: true, apple_pay: true,
+    wallet: true, tap: true, apple_pay: true,
     tamara: true, tabby: true,
   };
 
@@ -331,10 +329,6 @@ export default function Checkout() {
         description: `رصيدك: ${user.walletBalance} ر.س، المطلوب: ${finalTotal.toFixed(2)} ر.س`,
         variant: "destructive",
       });
-      return;
-    }
-    if (paymentMethod === "stc_pay" && !paymentConfirmed) {
-      toast({ title: "يجب إتمام التحقق من STC Pay أولاً", variant: "destructive" });
       return;
     }
     await handleFinalCheckout();
@@ -596,7 +590,7 @@ export default function Checkout() {
   const CtaButton = () => (
     <Button
       onClick={handleCheckout}
-      disabled={isSubmitting || (paymentMethod === "stc_pay" && !paymentConfirmed)}
+      disabled={isSubmitting}
       data-testid="button-confirm-order"
       className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95 transition-all"
     >
@@ -898,39 +892,61 @@ export default function Checkout() {
               {/* ── Delivery: address form ── */}
               {shippingMode === "delivery" && (
                 <div className="space-y-3">
+                  {/* GPS detect card */}
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={geoLocating}
+                    data-testid="button-detect-location"
+                    className="w-full relative overflow-hidden rounded-2xl border-2 border-dashed border-primary/40 bg-gradient-to-l from-primary/5 via-primary/10 to-primary/5 p-4 flex items-center gap-3 transition-all hover:border-primary/70 hover:shadow-md hover:shadow-primary/10 active:scale-[0.99] disabled:opacity-60 group"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all ${geoLocating ? "bg-primary/20" : "bg-primary text-white group-hover:scale-110"}`}>
+                      {geoLocating
+                        ? <Spin className="w-5 h-5 animate-spin text-primary" />
+                        : <LocateFixed className="w-5 h-5 text-white" />
+                      }
+                    </div>
+                    <div className="text-right flex-1">
+                      <p className="font-black text-sm text-gray-800">
+                        {geoLocating ? "جاري تحديد موقعك..." : "تحديد موقعي تلقائياً"}
+                      </p>
+                      <p className="text-[11px] text-gray-500 mt-0.5 font-bold">
+                        {geoLocating ? "يرجى الانتظار…" : "اضغط لتحديد مدينتك وعنوانك بدقة"}
+                      </p>
+                    </div>
+                    {!geoLocating && (
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <MapPin className="w-14 h-14 text-primary" />
+                      </div>
+                    )}
+                    {deliveryCity && !geoLocating && (
+                      <div className="shrink-0 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-white" />
+                      </div>
+                    )}
+                  </button>
+
                   {/* City selector */}
                   <div className="relative">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-black text-gray-500">المدينة *</label>
-                      <button
-                        type="button"
-                        onClick={detectLocation}
-                        disabled={geoLocating}
-                        data-testid="button-detect-location"
-                        className="flex items-center gap-1 text-[11px] font-black text-primary hover:text-primary/80 disabled:opacity-50 transition-colors"
-                      >
-                        {geoLocating
-                          ? <Spin className="w-3 h-3 animate-spin" />
-                          : <LocateFixed className="w-3 h-3" />
-                        }
-                        {geoLocating ? "جاري تحديد موقعك..." : "تحديد موقعي تلقائياً"}
-                      </button>
-                    </div>
+                    <label className="text-[11px] font-black text-gray-500 mb-1.5 block flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-primary" />
+                      المدينة *
+                    </label>
                     <button
                       type="button"
                       data-testid="select-delivery-city"
                       onClick={() => setCityDropOpen(v => !v)}
-                      className={`w-full h-11 px-3 border-2 rounded-xl text-sm font-bold text-right flex items-center justify-between transition-all ${
-                        deliveryCity ? "border-primary/40 bg-primary/5" : "border-gray-200"
+                      className={`w-full h-12 px-4 border-2 rounded-xl text-sm font-bold text-right flex items-center justify-between transition-all shadow-sm ${
+                        deliveryCity
+                          ? "border-primary bg-primary/5 text-gray-900"
+                          : "border-gray-200 bg-white text-gray-400 hover:border-primary/40"
                       }`}
                     >
-                      <span className={deliveryCity ? "text-gray-900" : "text-gray-400"}>
-                        {deliveryCity || "اختر المدينة..."}
-                      </span>
+                      <span>{deliveryCity || "اختر المدينة..."}</span>
                       <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${cityDropOpen ? "rotate-180" : ""}`} />
                     </button>
                     {cityDropOpen && (
-                      <div className="absolute z-20 top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                      <div className="absolute z-20 top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
                         <div className="p-2 border-b border-gray-100">
                           <Input
                             placeholder="ابحث عن مدينة..."
@@ -953,11 +969,12 @@ export default function Checkout() {
                                   setCityDropOpen(false);
                                   setCitySearch("");
                                 }}
-                                className={`w-full text-right px-4 py-2.5 text-sm font-bold hover:bg-gray-50 transition-colors ${
-                                  deliveryCity === city ? "bg-primary/5 text-primary" : ""
+                                className={`w-full text-right px-4 py-2.5 text-sm font-bold hover:bg-primary/5 transition-colors flex items-center justify-between ${
+                                  deliveryCity === city ? "bg-primary/10 text-primary" : "text-gray-700"
                                 }`}
                               >
-                                {city}
+                                <span>{city}</span>
+                                {deliveryCity === city && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
                               </button>
                             ))}
                         </div>
@@ -967,35 +984,40 @@ export default function Checkout() {
 
                   {/* Street */}
                   <div>
-                    <label className="text-[11px] font-black text-gray-500 mb-1 block">الشارع *</label>
+                    <label className="text-[11px] font-black text-gray-500 mb-1.5 block flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-primary opacity-60" />
+                      الشارع *
+                    </label>
                     <Input
                       placeholder="اسم الشارع أو رقم المبنى..."
                       value={deliveryStreet}
                       onChange={(e) => setDeliveryStreet(e.target.value)}
-                      className="h-11 border-gray-200 rounded-xl focus-visible:ring-primary/30"
+                      className="h-12 border-2 border-gray-200 rounded-xl focus-visible:ring-primary/30 focus-visible:border-primary/40 shadow-sm"
                       data-testid="input-delivery-street"
                     />
                   </div>
 
                   {/* District */}
                   <div>
-                    <label className="text-[11px] font-black text-gray-500 mb-1 block">الحي (اختياري)</label>
+                    <label className="text-[11px] font-black text-gray-500 mb-1.5 block">الحي (اختياري)</label>
                     <Input
                       placeholder="اسم الحي..."
                       value={deliveryDistrict}
                       onChange={(e) => setDeliveryDistrict(e.target.value)}
-                      className="h-11 border-gray-200 rounded-xl focus-visible:ring-primary/30"
+                      className="h-12 border-2 border-gray-200 rounded-xl focus-visible:ring-primary/30 focus-visible:border-primary/40 shadow-sm"
                       data-testid="input-delivery-district"
                     />
                   </div>
 
                   {/* Shipping rate display */}
                   {deliveryCity && (
-                    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                    <div className={`flex items-center justify-between p-3.5 rounded-xl border-2 transition-all ${
                       shippingRateData?.isFree ? "border-emerald-200 bg-emerald-50" : "border-blue-100 bg-blue-50"
                     }`}>
-                      <div className="flex items-center gap-2">
-                        <Truck className={`h-4 w-4 ${shippingRateData?.isFree ? "text-emerald-600" : "text-blue-600"}`} />
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${shippingRateData?.isFree ? "bg-emerald-100" : "bg-blue-100"}`}>
+                          <Truck className={`h-4 w-4 ${shippingRateData?.isFree ? "text-emerald-600" : "text-blue-600"}`} />
+                        </div>
                         <div>
                           <p className={`text-xs font-black ${shippingRateData?.isFree ? "text-emerald-700" : "text-blue-700"}`}>
                             {shippingRateData?.methodTitle || "التوصيل"}
@@ -1009,7 +1031,7 @@ export default function Checkout() {
                         <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                       ) : (
                         <span className={`font-black text-sm ${shippingRateData?.isFree ? "text-emerald-600" : "text-blue-700"}`}>
-                          {shippingRateData?.isFree ? "مجاني" : `${shippingRateData?.cost?.toLocaleString() ?? 0} ر.س`}
+                          {shippingRateData?.isFree ? "🎉 مجاني" : `${shippingRateData?.cost?.toLocaleString() ?? 0} ر.س`}
                         </span>
                       )}
                     </div>
@@ -1046,7 +1068,7 @@ export default function Checkout() {
 
               <RadioGroup
                 value={paymentMethod}
-                onValueChange={(v) => { setPaymentMethod(v as any); setPaymentConfirmed(false); }}
+                onValueChange={(v) => { setPaymentMethod(v as any); }}
                 className="space-y-2.5"
               >
                 {/* Wallet */}
@@ -1078,57 +1100,6 @@ export default function Checkout() {
                   </label>
                 )}
 
-                {/* Bank Transfer */}
-                {enabledMethods.bank_transfer !== false && (
-                  <div className={`border-2 rounded-xl transition-all ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <label htmlFor="pay-bank" className="flex items-center gap-3 p-3.5 cursor-pointer">
-                      <RadioGroupItem value="bank_transfer" id="pay-bank" className="shrink-0" />
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${paymentMethod === "bank_transfer" ? "bg-primary/10" : "bg-gray-100"}`}>
-                        <ArrowLeftRight className={`h-5 w-5 ${paymentMethod === "bank_transfer" ? "text-primary" : "text-gray-500"}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-black text-sm">تحويل بنكي</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">تحويل مباشر · يتطلب تأكيد يدوي</p>
-                      </div>
-                    </label>
-                    {paymentMethod === "bank_transfer" && (
-                      <div className="px-4 pb-4 -mt-1">
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
-                          <p className="text-[11px] font-black text-amber-800 mb-1">تفاصيل الحساب البنكي</p>
-                          <div className="grid grid-cols-2 gap-2 text-[11px]">
-                            {storeSettings?.bankName && (
-                              <div>
-                                <p className="text-gray-500 font-bold">البنك</p>
-                                <p className="font-black text-gray-800">{storeSettings.bankName}</p>
-                              </div>
-                            )}
-                            {storeSettings?.bankAccountHolder && (
-                              <div>
-                                <p className="text-gray-500 font-bold">اسم المستفيد</p>
-                                <p className="font-black text-gray-800">{storeSettings.bankAccountHolder}</p>
-                              </div>
-                            )}
-                            {storeSettings?.bankIBAN && (
-                              <div className="col-span-2">
-                                <p className="text-gray-500 font-bold">رقم الآيبان (IBAN)</p>
-                                <p className="font-black text-gray-800 text-[10px] tracking-wide font-mono">{storeSettings.bankIBAN}</p>
-                              </div>
-                            )}
-                            {storeSettings?.bankAccountNumber && (
-                              <div>
-                                <p className="text-gray-500 font-bold">رقم الحساب</p>
-                                <p className="font-black text-gray-800 font-mono">{storeSettings.bankAccountNumber}</p>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-amber-700 font-bold mt-2 pt-2 border-t border-amber-200">
-                            ⚠️ بعد التحويل أرسل إيصال الدفع على واتساب أو البريد الإلكتروني لتأكيد طلبك
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Apple Pay */}
                 {enabledMethods.apple_pay !== false && isAppleDevice && (
@@ -1144,32 +1115,6 @@ export default function Checkout() {
                   </label>
                 )}
 
-                {/* STC Pay */}
-                {enabledMethods.stc_pay !== false && (
-                  <div className={`border-2 rounded-xl transition-all ${paymentMethod === "stc_pay" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <label htmlFor="pay-stc" className="flex items-center gap-3 p-3.5 cursor-pointer">
-                      <RadioGroupItem value="stc_pay" id="pay-stc" className="shrink-0" />
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${paymentMethod === "stc_pay" ? "bg-primary/10" : "bg-gray-100"}`}>
-                        <Smartphone className={`h-5 w-5 ${paymentMethod === "stc_pay" ? "text-primary" : "text-gray-500"}`} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-black text-sm">STC Pay</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">دفع بمحفظة STC</p>
-                      </div>
-                      <STCPayLogo className="h-6 shrink-0 opacity-80" />
-                    </label>
-                    {paymentMethod === "stc_pay" && (
-                      <div className="px-4 pb-4">
-                        <STCPayForm
-                          orderId=""
-                          amount={finalTotal}
-                          onSuccess={() => setPaymentConfirmed(true)}
-                          onError={(msg) => toast({ title: "STC Pay", description: msg, variant: "destructive" })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Tabby */}
                 {enabledMethods.tabby !== false && (

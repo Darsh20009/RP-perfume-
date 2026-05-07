@@ -4087,14 +4087,7 @@ export async function registerRoutes(
         return res.json(result);
       }
 
-      // Fallback: simulator
-      const sim = await simulateTamaraCheckout({
-        orderId: String(orderId),
-        amount: Number(amount),
-        customer: customer || { name: "Customer", phone: "", email: "" },
-        installments: installments || 4,
-      });
-      res.json(sim);
+      return res.status(503).json({ success: false, error: "تمارا غير متاحة حالياً، الرجاء اختيار طريقة دفع أخرى" });
     } catch (err: any) {
       console.error("[API] pay.tamara error:", err?.message);
       res.status(500).json({ success: false, error: "خطأ في تمارة" });
@@ -4104,12 +4097,8 @@ export async function registerRoutes(
   app.post("/api/payments/tamara/confirm", async (req, res) => {
     // SECURITY: this endpoint is for the LEGACY in-app simulator only. In production
     // (or whenever real Tamara credentials are configured), real Tamara payments are
-    // confirmed exclusively through /api/payments/tamara/return + /webhook (both
-    // re-validated against Tamara API). Keeping this open would let a caller mark
-    // any sessionId as paid by spoofing the simulator. Hard-disable it in those cases.
-    if (process.env.NODE_ENV === "production" || isTamaraConfigured()) {
-      return res.status(410).json({ success: false, error: "simulator_disabled" });
-    }
+    // Simulator confirm endpoint is permanently disabled — payments confirmed via /return + webhook.
+    return res.status(410).json({ success: false, error: "simulator_disabled" });
     try {
       const { sessionId } = req.body;
       if (!sessionId) return res.status(400).json({ success: false });
@@ -4337,12 +4326,7 @@ export async function registerRoutes(
         return res.json(result);
       }
 
-      // Fallback: simulator
-      const result = await simulateTabbyCheckout({
-        orderId, amount,
-        customer: customer || { name: "Customer", phone: "", email: "" }
-      });
-      res.json(result);
+      return res.status(503).json({ success: false, error: "تابي غير متاحة حالياً، الرجاء اختيار طريقة دفع أخرى" });
     } catch (err: any) {
       console.error("[API] pay.tabby error:", err?.message);
       res.status(500).json({ success: false, error: "خطأ في تابي" });
@@ -4367,10 +4351,7 @@ export async function registerRoutes(
         return res.json({ success: r.status === "CLOSED", status: r.status, paymentId: pid });
       }
 
-      // Simulator fallback
-      await new Promise(r => setTimeout(r, 1500));
-      const result = await simulateTabbyConfirm(sessionId || paymentId || orderId || "");
-      res.json(result);
+      return res.status(410).json({ success: false, error: "simulator_disabled" });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }

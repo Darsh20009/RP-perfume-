@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from "react";
 import { Send, X, Loader2, Sparkles, Headphones, ShoppingBag, Eye, Check } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
@@ -103,7 +103,6 @@ export const UnifiedChat = memo(function UnifiedChat() {
   const handleSend = useCallback(async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || isLoading) return;
-    if (isListening) stopListening();
     const userMsg = text;
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMsg }]);
@@ -136,7 +135,7 @@ export const UnifiedChat = memo(function UnifiedChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, isListening, stopListening, activeTab, messages, user, setMessages]);
+  }, [input, isLoading, activeTab, messages, user, setMessages]);
 
   // ─── Dynamic quick-reply suggestions based on last assistant message ──
   const quickReplies = useMemo<string[]>(() => {
