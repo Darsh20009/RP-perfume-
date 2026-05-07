@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 import { RiyalSign } from "@/components/RiyalSign";
 
-const LOGO_LIGHT = "/images/logos/logo-light-nobg.png";
+const LOGO_LIGHT = "/images/rf-logo-black.png";
 
 interface AdvisorProduct {
   id: string;
@@ -196,7 +196,8 @@ export const UnifiedChat = memo(function UnifiedChat() {
             <img
               src={LOGO_LIGHT}
               alt="عطور آر اف"
-              className="relative h-8 w-auto object-contain drop-shadow-lg"
+              className="relative h-9 w-auto object-contain"
+              style={{ filter: "invert(1) brightness(2)" }}
               draggable={false}
             />
           </motion.button>
