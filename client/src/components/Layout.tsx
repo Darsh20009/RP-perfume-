@@ -723,7 +723,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 className="flex flex-row items-center gap-3 group transition-transform"
               >
                 <img 
-                  src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png" 
+                  src="/images/sijil-tijari-logo.png"
                   loading="lazy" 
                   alt="السجل التجاري" 
                   className="h-10 sm:h-12 w-auto object-contain flex-shrink-0" 
@@ -750,6 +750,26 @@ export function Layout({ children }: { children: ReactNode }) {
                   <div className="text-[11px] sm:text-xs text-[#DFB369] font-black">312037024200003</div>
                 </div>
               </div>
+              {/* Business Center Accreditation */}
+              <a
+                href="https://businesscenter.moc.gov.sa"
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-row items-center gap-2 group transition-transform"
+              >
+                <img 
+                  src="https://assets.zid.store/themes/f9f0914d-3c58-493b-bd83-260ed3cb4e82/business_center.png"
+                  loading="lazy" 
+                  alt="مركز الأعمال" 
+                  className="h-5 sm:h-6 w-auto object-contain flex-shrink-0" 
+                />
+                <div className="text-right">
+                  <div className="text-[8px] sm:text-[9px] text-gray-700 font-bold uppercase tracking-widest">
+                    معتمد من
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-[#DFB369] font-black group-hover:underline">مركز الأعمال</div>
+                </div>
+              </a>
             </div>
           </div>
 
