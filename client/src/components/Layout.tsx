@@ -568,10 +568,10 @@ export function Layout({ children }: { children: ReactNode }) {
             <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-800">
               <li><Link href="/pages/about" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'من نحن' : 'About Us'}</Link></li>
               <li><Link href="/terms" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}</Link></li>
-              <li><Link href="/pages/privacy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link></li>
+              <li><Link href="/privacy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link></li>
               <li><Link href="/pages/loyalty" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'برنامج ولاء العملاء' : 'Loyalty Program'}</Link></li>
-              <li><Link href="/pages/shipping-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الشحن والتوصيل' : 'Shipping Policy'}</Link></li>
-              <li><Link href="/pages/return-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الاسترجاع والاستبدال' : 'Return Policy'}</Link></li>
+              <li><Link href="/shipping-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الشحن والتوصيل' : 'Shipping Policy'}</Link></li>
+              <li><Link href="/return-policy" className="hover:text-[#DFB369] transition-colors">{language === 'ar' ? 'سياسة الاسترجاع والاستبدال' : 'Return Policy'}</Link></li>
             </ul>
           </div>
 
