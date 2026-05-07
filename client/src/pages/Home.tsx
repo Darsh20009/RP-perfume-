@@ -505,7 +505,7 @@ export default function Home() {
               <div className="p-6">
                 <div className={`flex items-center justify-between mb-5 ${isRtl ? "flex-row-reverse" : ""}`}>
                   <div className="bg-purple-50 rounded-xl px-4 py-2 border border-purple-100">
-                    <img src="/uploads/tamara-logo.png" alt="Tamara" className="h-10 w-auto object-contain" />
+                    <img src="/uploads/tamara-logo.png" alt="Tamara" className="h-14 w-auto object-contain" />
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-600 text-[10px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
