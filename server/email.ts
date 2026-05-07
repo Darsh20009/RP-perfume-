@@ -1052,21 +1052,27 @@ export async function sendAdminNewOrderEmail(params: {
 </body>
 </html>`;
 
-  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || "firstrafiff@gmail.com";
-  const apiKey = process.env.SMTP2GO_API_KEY;
-  if (!apiKey) {
+  // Admin destination: env var → params override → fallback
+  const adminEmail = (params as any).adminEmailOverride
+    || process.env.ADMIN_NOTIFICATION_EMAIL
+    || "firstrafiff@gmail.com";
+
+  let credentials: ReturnType<typeof getCredentials>;
+  try {
+    credentials = getCredentials();
+  } catch {
     console.warn("[AdminEmail] SMTP2GO_API_KEY not set — skipping admin notification");
     return { success: false, error: "SMTP2GO_API_KEY not configured" };
   }
 
   try {
-    const res = await fetch("https://api.smtp2go.com/v3/email/send", {
+    const res = await fetch(SMTP2GO_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        api_key: apiKey,
-        sender: `عطور آر اف — الإدارة <info@rfperfume.sa>`,
-        to: [`${adminEmail}`],
+        api_key: credentials.apiKey,
+        sender: `${credentials.senderName} — الإدارة <${credentials.sender}>`,
+        to: [adminEmail],
         subject: `🛒 طلب جديد #${params.orderRef} — ${params.total.toLocaleString("ar-SA")} ر.س — ${params.customerName}`,
         html_body: html,
         text_body: `طلب جديد #${params.orderRef}\nالعميل: ${params.customerName}\nالهاتف: ${params.customerPhone || "—"}\nالإجمالي: ${params.total.toLocaleString("ar-SA")} ر.س\nالدفع: ${params.paymentMethod}\nالحالة: ${params.paymentStatus}`,
@@ -1074,15 +1080,15 @@ export async function sendAdminNewOrderEmail(params: {
     });
     const data = await res.json().catch(() => ({})) as any;
     if (!res.ok || data?.data?.succeeded === 0) {
-      const err = JSON.stringify(data);
-      console.warn("[AdminEmail] send failed:", err);
-      return { success: false, error: err };
+      const errMsg = JSON.stringify(data);
+      console.warn(`[AdminEmail] send failed for #${params.orderRef}:`, errMsg);
+      throw new Error(errMsg);
     }
     console.log(`[AdminEmail] ✅ order #${params.orderRef} → ${adminEmail}`);
     return { success: true };
   } catch (e: any) {
     console.error("[AdminEmail] exception:", e?.message);
-    return { success: false, error: e?.message };
+    throw e;
   }
 }
 

@@ -93,28 +93,42 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className={s.cls} data-testid={`badge-status-${status}`}>{s.label}</Badge>;
 }
 
-// Short, attention-grabbing beep for new-order alerts (encoded WAV, ~0.5s)
-// Played on first user gesture; on autoplay-blocked browsers a bell icon flashes.
-function playBeep() {
+// Shared AudioContext — created once after first user gesture and reused.
+// Safari/iOS requires explicit .resume() before scheduling nodes.
+let _sharedAudioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext | null {
   try {
-    const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+    if (!_sharedAudioCtx || _sharedAudioCtx.state === "closed") {
+      _sharedAudioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+    }
+    return _sharedAudioCtx;
+  } catch { return null; }
+}
+
+// Short, attention-grabbing beep for new-order alerts (~0.5s, 3-tone)
+// Returns a promise that resolves when the sound has been initiated.
+async function playBeep(): Promise<void> {
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    // Resume the context if it was suspended (required on Safari/iOS)
+    if (ctx.state === "suspended") await ctx.resume();
     const beepOnce = (when: number, freq: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
-      gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + when + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + when + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + 0.20);
       osc.connect(gain).connect(ctx.destination);
       osc.start(ctx.currentTime + when);
-      osc.stop(ctx.currentTime + when + 0.2);
+      osc.stop(ctx.currentTime + when + 0.22);
     };
     beepOnce(0,    880);
-    beepOnce(0.22, 1175);
-    beepOnce(0.44, 880);
-    setTimeout(() => ctx.close().catch(() => {}), 1200);
-  } catch { /* ignore */ }
+    beepOnce(0.25, 1175);
+    beepOnce(0.50, 880);
+  } catch { /* ignore — never crash the UI */ }
 }
 
 function PrintInvoiceButton({ orderId }: { orderId: string }) {
@@ -266,25 +280,27 @@ function BranchOrdersTab() {
   const { toast } = useToast();
 
   // ── New-order audio alert ────────────────────────────────────────────────
-  // Compares the latest set of order IDs to the previous snapshot. On the
-  // first poll cycle we only seed the baseline (no beep). Later polls beep
-  // whenever a brand-new order id appears.
   const seenIdsRef = useRef<Set<string> | null>(null);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const audioEnabledRef = useRef(false);
-  useEffect(() => {
-    // Enable audio after first user interaction (browser autoplay policy)
-    const enable = () => { audioEnabledRef.current = true; };
-    window.addEventListener("click",   enable, { once: true });
-    window.addEventListener("keydown", enable, { once: true });
-    return () => {
-      window.removeEventListener("click", enable);
-      window.removeEventListener("keydown", enable);
-    };
-  }, []);
+
+  // Explicit enable: user clicks the bell button → unlock AudioContext + mark enabled
+  const enableAudio = async () => {
+    try {
+      const ctx = getAudioCtx();
+      if (ctx && ctx.state === "suspended") await ctx.resume();
+    } catch {}
+    audioEnabledRef.current = true;
+    setAudioEnabled(true);
+    // Play a test beep so the user confirms the sound works
+    playBeep();
+  };
+
   useEffect(() => {
     if (!Array.isArray(orders)) return;
     const ids = new Set<string>(orders.map((o: any) => String(o.id || o._id)));
     if (seenIdsRef.current === null) {
+      // First load — seed baseline, no beep
       seenIdsRef.current = ids;
       return;
     }
@@ -414,6 +430,38 @@ function BranchOrdersTab() {
             })}
           </div>
         </Card>
+      )}
+
+      {/* Audio enable banner — shown until staff taps the button */}
+      {!audioEnabled && (
+        <div className="flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-2xl px-4 py-3 no-print">
+          <span className="text-2xl">🔔</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-black text-amber-800">تنبيهات الصوت معطّلة</p>
+            <p className="text-xs text-amber-700 font-bold">اضغط على الزر لتفعيل صوت الطلبات الجديدة</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={enableAudio}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-black shrink-0"
+            data-testid="button-enable-audio"
+          >
+            تفعيل الصوت 🔊
+          </Button>
+        </div>
+      )}
+      {audioEnabled && (
+        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 no-print">
+          <span className="text-lg">🔊</span>
+          <p className="text-xs font-black text-emerald-700 flex-1">تنبيهات الصوت مفعّلة — ستسمع صوتاً عند كل طلب جديد</p>
+          <button
+            onClick={() => { audioEnabledRef.current = false; setAudioEnabled(false); }}
+            className="text-xs text-emerald-600 hover:text-emerald-800 font-bold underline"
+            data-testid="button-disable-audio"
+          >
+            إيقاف
+          </button>
+        </div>
       )}
 
       {/* Filters bar */}

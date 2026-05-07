@@ -285,7 +285,9 @@ export default function Checkout() {
   const vatIncluded = Math.round(subtotal * 15 / 115 * 100) / 100;
   const finalTotal = Math.max(0, subtotal - discountAmount - loyaltyDiscount - bundleSavings + shippingCostValue);
 
-  // Branch stock check
+  // Branch stock check — only flag items where the branch has a dedicated row
+  // AND the stock is genuinely insufficient. If the branch hasn't set up rows
+  // (branchSpecific=false), we show the item as available and let the server decide.
   const branchStockIssues = (() => {
     if (!selectedBranch) return [] as string[];
     const issues: string[] = [];
@@ -293,8 +295,11 @@ export default function Checkout() {
     for (const it of items) {
       if (!it.variantSku) continue;
       const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
-      const stock = rec ? Number(rec.stock || 0) : null;
-      if (stock !== null && stock < it.quantity) {
+      if (!rec) continue;
+      const isBranchSpecific = rec.branchSpecific === true;
+      if (!isBranchSpecific) continue; // no dedicated row — server will gate if needed
+      const stock = Number(rec.stock || 0);
+      if (stock < it.quantity) {
         issues.push(`${it.title} — متوفر ${stock} فقط`);
       }
     }
@@ -760,8 +765,16 @@ export default function Checkout() {
                         const branchInv: any[] = (br as any).inventory || [];
                         const itemsAvail = items.map((it) => {
                           const rec = branchInv.find((b: any) => b.sku === it.variantSku || b.variantSku === it.variantSku);
+                          // branchSpecific=true means the branch has a dedicated row — stock number is authoritative.
+                          // branchSpecific=false means this is a global fallback — if stock shows 0 here,
+                          // the branch may still have physical units (no branch rows set up yet), so we
+                          // treat it as available and let the server gate the order.
+                          const isBranchSpecific = rec?.branchSpecific === true;
                           const stock = rec ? Number(rec.stock || 0) : null;
-                          return { item: it, stock, available: stock === null || stock >= it.quantity };
+                          const available = stock === null
+                            || (!isBranchSpecific && stock === 0)  // no branch rows — defer to server
+                            || stock >= it.quantity;
+                          return { item: it, stock, isBranchSpecific, available };
                         });
                         const allAvail = itemsAvail.every(x => x.available);
                         const noneAvail = itemsAvail.every(x => !x.available);

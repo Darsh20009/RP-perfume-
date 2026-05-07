@@ -243,7 +243,11 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
     });
 
     enqueueJob("paid-admin-email-notification", async () => {
-      const customer = await storage.getUser(order.userId);
+      const [customer, settings] = await Promise.all([
+        storage.getUser(order.userId),
+        storage.getStoreSettings(),
+      ]);
+      const adminEmailOverride = settings?.adminNotificationEmail || settings?.storeEmail || undefined;
       await sendAdminNewOrderEmail({
         orderRef,
         orderId: String(order.id),
@@ -270,7 +274,8 @@ async function dispatchOrderPaidSideEffects(orderId: string) {
         couponCode: order.couponCode,
         notes: order.notes,
         createdAt: order.createdAt,
-      });
+        ...(adminEmailOverride ? { adminEmailOverride } : {}),
+      } as any);
     }, { critical: false, maxAttempts: 3 });
 
     enqueueJob("paid-notify-customer", async () => {
@@ -1203,7 +1208,11 @@ export async function registerRoutes(
         });
 
         enqueueJob("admin-email-new-order", async () => {
-          const customer = await storage.getUser(order.userId);
+          const [customer, settings] = await Promise.all([
+            storage.getUser(order.userId),
+            storage.getStoreSettings(),
+          ]);
+          const adminEmailOverride = settings?.adminNotificationEmail || settings?.storeEmail || undefined;
           await sendAdminNewOrderEmail({
             orderRef,
             orderId: String(order.id),
@@ -1230,7 +1239,8 @@ export async function registerRoutes(
             couponCode: order.couponCode,
             notes: order.notes,
             createdAt: order.createdAt,
-          });
+            ...(adminEmailOverride ? { adminEmailOverride } : {}),
+          } as any);
         }, { critical: false, maxAttempts: 3 });
 
         enqueueJob("notify-customer-order-received", async () => {
@@ -1828,14 +1838,18 @@ export async function registerRoutes(
         branchSkuStock.get(bId)!.set(String(row.variantSku), cur + Number(row.stock || 0));
       }
 
-      // For each branch: use branch-specific stock if a row exists, else global fallback
+      // For each branch: use branch-specific stock if a row exists, else global fallback.
+      // branchSpecific=true means the branch has its own isolated stock row for that SKU.
+      // The checkout uses this flag to distinguish "branch has 0 units" vs "branch
+      // hasn't set up stock rows yet" — the latter allows the order to proceed.
       const enriched = branches.map((b: any) => {
         const branchId = String(b.id || b._id);
         const branchMap = branchSkuStock.get(branchId);
-        const inventory: Array<{ sku: string; stock: number }> = [];
+        const inventory: Array<{ sku: string; stock: number; branchSpecific: boolean }> = [];
         for (const [sku, globalStock] of globalBySku.entries()) {
-          const stock = branchMap?.has(sku) ? branchMap.get(sku)! : globalStock;
-          inventory.push({ sku, stock });
+          const isBranchSpecific = !!(branchMap?.has(sku));
+          const stock = isBranchSpecific ? branchMap!.get(sku)! : globalStock;
+          inventory.push({ sku, stock, branchSpecific: isBranchSpecific });
         }
         return { ...b, inventory };
       });
