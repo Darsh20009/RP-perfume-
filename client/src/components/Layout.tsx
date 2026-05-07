@@ -713,8 +713,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Commercial Registration & Tax */}
-          <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
-            <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10">
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8">
               {/* Commercial Registration */}
               <a
                 href="https://qr.saudibusiness.gov.sa/viewcr?nCrNumber=et1BNw5nU2a6R1GygbnoPA=="
@@ -774,7 +774,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Copyright */}
-          <div className="mt-6 sm:mt-10 md:mt-12 pt-5 sm:pt-7 md:pt-8 border-t border-gray-200">
+          <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-xs sm:text-sm text-gray-700">© 2026 عطور آر اف | RF Perfume. {t('allRightsReserved')}.</p>
             <p className="mt-2 text-[10px] sm:text-xs text-gray-700">
               rfperfume.sa
