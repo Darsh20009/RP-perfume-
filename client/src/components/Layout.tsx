@@ -706,8 +706,8 @@ export function Layout({ children }: { children: ReactNode }) {
               <div className="h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Tabby">
                 <img src="/uploads/tabby-logo.png" alt="Tabby" className="h-7 w-auto object-contain" />
               </div>
-              <div className="h-20 px-2 rounded-xl bg-gray-50 border border-gray-200 flex items-center  transition-transform shadow-sm cursor-default" title="Tamara">
-                <img src="/uploads/tamara-logo.png" alt="Tamara" className="h-full w-auto object-contain" />
+              <div className="h-10 px-1 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden transition-transform shadow-sm cursor-default" title="Tamara">
+                <img src="/uploads/tamara-logo.png" alt="Tamara" className="h-20 w-auto object-contain" />
               </div>
             </div>
           </div>

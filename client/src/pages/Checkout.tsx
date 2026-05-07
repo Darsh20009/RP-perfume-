@@ -1164,7 +1164,9 @@ export default function Checkout() {
                   <div className={`border-2 rounded-xl transition-all ${paymentMethod === "tamara" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}>
                     <label htmlFor="pay-tamara" className="flex items-center gap-3 p-3.5 cursor-pointer">
                       <RadioGroupItem value="tamara" id="pay-tamara" className="shrink-0" />
-                      <TamaraLogo className="h-28 shrink-0" />
+                      <div className="h-10 overflow-hidden flex items-center justify-center shrink-0">
+                        <TamaraLogo className="h-20" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-black text-sm">Tamara — قسّمها على {tamaraInstallments}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">بدون فوائد · موافقة فورية</p>
