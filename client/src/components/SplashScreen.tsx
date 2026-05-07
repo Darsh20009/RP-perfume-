@@ -51,7 +51,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-[#f6f6f5]"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-white"
         >
           {!videoLoaded && (
             <motion.div
@@ -74,7 +74,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             playsInline
             preload="auto"
             className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ background: "#f6f6f5" }}
+            style={{ background: "#FFFFFF" }}
           />
         </motion.div>
       )}
