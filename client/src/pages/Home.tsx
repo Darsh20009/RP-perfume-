@@ -589,6 +589,71 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── BRAND STORY ─────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-[#FAF8F4] overflow-hidden">
+        <div className="container px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative"
+          >
+            {/* Decorative top line */}
+            <div className="flex items-center justify-center gap-4 mb-10">
+              <div className="h-px w-16 bg-[#DFB369]" />
+              <img src={logoImg} alt="RF Perfume" className="h-8 w-auto opacity-80" />
+              <div className="h-px w-16 bg-[#DFB369]" />
+            </div>
+
+            {/* Label */}
+            <p className="text-center text-[10px] font-bold uppercase tracking-[0.4em] text-[#DFB369] mb-4">
+              {tx("رؤيتنا", "Our Vision")}
+            </p>
+
+            {/* Main quote */}
+            <blockquote className={`text-center ${isRtl ? "font-arabic" : ""}`}>
+              {/* Opening guillemet */}
+              <span className="block text-5xl md:text-6xl leading-none text-[#DFB369]/30 font-serif mb-2 select-none">
+                ❝
+              </span>
+              <p className="text-[#2B2B60] text-lg md:text-2xl lg:text-3xl font-bold leading-relaxed md:leading-loose max-w-3xl mx-auto px-4">
+                {isRtl
+                  ? <>
+                      نحن في{" "}
+                      <span className="text-[#DFB369]">RF PERFUME</span>{" "}
+                      ندرك أهمية التميز لدى عملائنا، ولذلك نحرص على تقديم مجموعة عطور تجمع بين{" "}
+                      <span className="italic">الفخامة والتنوع.</span>
+                    </>
+                  : <>
+                      At <span className="text-[#DFB369]">RF PERFUME</span>, we recognize the importance of distinction for our customers, offering a collection that unites{" "}
+                      <span className="italic">luxury and diversity.</span>
+                    </>
+                }
+              </p>
+              <p className="mt-6 text-gray-600 text-sm md:text-base leading-relaxed md:leading-loose max-w-2xl mx-auto px-4">
+                {isRtl
+                  ? "نلتزم بأن يحمل كل عطر طابعًا فريدًا يعكس ذوق وهوية مستخدمه، لنمنحكم تجربة عطرية تليق بتطلعاتكم."
+                  : "We are committed to giving every fragrance a unique character that reflects its wearer's taste and identity — an olfactory experience worthy of your aspirations."}
+              </p>
+              {/* Closing guillemet */}
+              <span className="block text-5xl md:text-6xl leading-none text-[#DFB369]/30 font-serif mt-2 select-none">
+                ❞
+              </span>
+            </blockquote>
+
+            {/* Bottom decorative divider */}
+            <div className="flex items-center justify-center gap-3 mt-10">
+              <div className="h-px flex-1 max-w-24 bg-gradient-to-r from-transparent to-[#DFB369]/40" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#DFB369]" />
+              <div className="w-2.5 h-2.5 rounded-full border-2 border-[#DFB369]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#DFB369]" />
+              <div className="h-px flex-1 max-w-24 bg-gradient-to-l from-transparent to-[#DFB369]/40" />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── BRAND CTA ──────────────────────────────────── */}
       <section className="relative py-24 md:py-36 overflow-hidden bg-[#2B2B60]">
         <img src="/images/banners/promo-luxury-1.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" loading="lazy" />
