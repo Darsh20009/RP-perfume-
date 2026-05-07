@@ -27,8 +27,8 @@ export function TabbyLogo({ className = "h-7" }: { className?: string }) {
   return <img src={tabbyImg} alt="Tabby" className={`${className} object-contain`} />;
 }
 
-export function TamaraLogo({ className = "h-7" }: { className?: string }) {
-  return <img src={tamaraImg} alt="Tamara" className={`${className} object-contain`} />;
+export function TamaraLogo({ className = "h-10" }: { className?: string }) {
+  return <img src={tamaraImg} alt="Tamara" className={`${className} w-auto object-contain`} />;
 }
 
 export function AlRajhiLogo({ className = "h-10" }: { className?: string }) {
