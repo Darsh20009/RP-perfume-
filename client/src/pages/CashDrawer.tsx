@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, DollarSign, Lock, Unlock, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  Loader2, Lock, Unlock, TrendingUp, TrendingDown,
+  Clock, Wallet, CheckCircle, AlertTriangle, Minus as MinusIcon,
+  History, Calendar
+} from "lucide-react";
 import type { CashShift } from "@shared/schema";
 import { RiyalSign } from "@/components/RiyalSign";
 
@@ -30,6 +34,8 @@ export default function CashDrawer() {
   });
 
   const activeShift = shifts?.find(s => s.status === "open");
+  const closedShifts = shifts?.filter(s => s.status === "closed")
+    .sort((a, b) => new Date(b.closedAt || 0).getTime() - new Date(a.closedAt || 0).getTime()) ?? [];
 
   const openShiftMutation = useMutation({
     mutationFn: async () => {
@@ -54,7 +60,7 @@ export default function CashDrawer() {
       if (!activeShift?.id) throw new Error("لا توجد وردية مفتوحة");
       const res = await apiRequest("PATCH", `/api/cash-shifts/${activeShift.id}/close`, {
         actualCash: Number(actualCash) || 0,
-        expectedCash: (activeShift.openingBalance || 0),
+        expectedCash: activeShift.openingBalance || 0,
       });
       return res.json();
     },
@@ -69,217 +75,303 @@ export default function CashDrawer() {
     },
   });
 
+  const diff = actualCash ? Number(actualCash) - (activeShift?.openingBalance || 0) : null;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#DFB369]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">{activeShift ? "الوردية المفتوحة" : "صندوق النقد"}</h1>
-          <p className="text-muted-foreground">إدارة وردية النقد اليومية</p>
+    <div className="min-h-screen p-6 md:p-8 space-y-6" dir="rtl">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-[#2B2B60]">صندوق النقد</h1>
+        <p className="text-sm text-gray-600 font-bold mt-1">إدارة وردية النقد اليومية للفرع</p>
+      </div>
+
+      {/* Status Banner */}
+      <div className={`rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg ${
+        activeShift
+          ? "bg-gradient-to-l from-emerald-600 to-emerald-700 text-white"
+          : "bg-gradient-to-l from-[#2B2B60] to-[#1c1c45] text-white"
+      }`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+            activeShift ? "bg-white/20" : "bg-white/10"
+          }`}>
+            {activeShift
+              ? <Unlock className="h-7 w-7 text-white" />
+              : <Lock className="h-7 w-7 text-white" />
+            }
+          </div>
+          <div>
+            <p className="font-black text-xl">
+              {activeShift ? "وردية مفتوحة" : "لا توجد وردية مفتوحة"}
+            </p>
+            <p className="text-sm opacity-80 font-bold">
+              {activeShift
+                ? `فُتحت الساعة ${new Date(activeShift.openedAt || new Date()).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}`
+                : "قم بفتح وردية جديدة لبدء العمل"
+              }
+            </p>
+          </div>
         </div>
 
-        {/* Active Shift Card */}
         {activeShift ? (
-          <Card className="mb-8 border-green-200 bg-green-50">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-green-700">
-                    <Unlock className="h-5 w-5" />
-                    وردية مفتوحة
-                  </CardTitle>
-                  <CardDescription className="text-green-600">
-                    من {new Date(activeShift.openedAt || new Date()).toLocaleTimeString("ar-SA")}
-                  </CardDescription>
-                </div>
-                <Badge className="bg-green-600">{activeShift.status === "open" ? "مفتوحة" : "مغلقة"}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-4 rounded border border-green-200">
-                  <p className="text-sm text-muted-foreground mb-1">الرصيد الافتتاحي</p>
-                  <p className="text-3xl font-black text-green-700">{activeShift.openingBalance?.toFixed(2)} <RiyalSign /></p>
-                </div>
-                <div className="bg-white p-4 rounded border border-green-200">
-                  <p className="text-sm text-muted-foreground mb-1">المتوقع</p>
-                  <p className="text-3xl font-black text-blue-700">{(activeShift.openingBalance || 0).toFixed(2)} <RiyalSign /></p>
-                </div>
-              </div>
-
-              <Dialog open={isCloseDialogOpen} onOpenChange={setIsCloseDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full h-12 font-black uppercase tracking-widest gap-2" variant="destructive">
-                    <Lock className="h-4 w-4" />
-                    إغلاق الوردية
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>إغلاق الوردية</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-bold mb-1 block">الرصيد الفعلي في الصندوق (<RiyalSign />)</label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={actualCash}
-                        onChange={(e) => setActualCash(e.target.value)}
-                        step="0.5"
-                        min="0"
-                      />
-                    </div>
-                    {actualCash && (
-                      <div className="p-3 bg-muted rounded space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>الرصيد المتوقع:</span>
-                          <span className="font-bold">{(activeShift.openingBalance || 0).toFixed(2)} <RiyalSign /></span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>الرصيد الفعلي:</span>
-                          <span className="font-bold">{Number(actualCash).toFixed(2)} <RiyalSign /></span>
-                        </div>
-                        <div className={`flex justify-between text-sm font-black pt-2 border-t ${
-                          Number(actualCash) === (activeShift.openingBalance || 0)
-                            ? "text-green-600"
-                            : Number(actualCash) > (activeShift.openingBalance || 0)
-                            ? "text-blue-600"
-                            : "text-red-600"
-                        }`}>
-                          <span>الفرق:</span>
-                          <span>{(Number(actualCash) - (activeShift.openingBalance || 0)).toFixed(2)} <RiyalSign /></span>
-                        </div>
-                      </div>
-                    )}
-                    <Button
-                      onClick={() => closeShiftMutation.mutate()}
-                      disabled={!actualCash || closeShiftMutation.isPending}
-                      className="w-full"
-                    >
-                      {closeShiftMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "تأكيد الإغلاق"}
-                    </Button>
+          <Dialog open={isCloseDialogOpen} onOpenChange={setIsCloseDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 font-black h-12 px-6 gap-2"
+                variant="outline"
+                data-testid="button-close-shift"
+              >
+                <Lock className="h-4 w-4" />
+                إغلاق الوردية
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[440px]" dir="rtl">
+              <DialogHeader>
+                <DialogTitle className="text-right text-xl font-black text-[#2B2B60]">تأكيد إغلاق الوردية</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-5 pt-2">
+                <div className="bg-[#FAF8F4] rounded-xl p-4 space-y-2 border border-[#DFB369]/20">
+                  <p className="text-xs font-black text-gray-500 uppercase tracking-wider">معلومات الوردية</p>
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-gray-600">وقت الفتح:</span>
+                    <span>{new Date(activeShift?.openedAt || new Date()).toLocaleTimeString("ar-SA")}</span>
                   </div>
-                </DialogContent>
-              </Dialog>
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-gray-600">الرصيد الافتتاحي:</span>
+                    <span className="text-[#2B2B60]">{(activeShift?.openingBalance || 0).toFixed(2)} <RiyalSign /></span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-black text-[#2B2B60] mb-2 block">الرصيد الفعلي في الصندوق</label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={actualCash}
+                      onChange={(e) => setActualCash(e.target.value)}
+                      step="0.5"
+                      min="0"
+                      className="h-12 text-lg font-black pr-4"
+                      data-testid="input-actual-cash"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500"><RiyalSign /></span>
+                  </div>
+                </div>
+
+                {actualCash && diff !== null && (
+                  <div className={`rounded-xl p-4 border ${
+                    diff === 0 ? "bg-emerald-50 border-emerald-200" :
+                    diff > 0 ? "bg-blue-50 border-blue-200" : "bg-red-50 border-red-200"
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {diff === 0
+                          ? <CheckCircle className="h-5 w-5 text-emerald-600" />
+                          : diff > 0
+                          ? <TrendingUp className="h-5 w-5 text-blue-600" />
+                          : <AlertTriangle className="h-5 w-5 text-red-600" />
+                        }
+                        <span className="font-black text-sm">
+                          {diff === 0 ? "الصندوق متطابق تمامًا" : diff > 0 ? "يوجد فائض" : "يوجد عجز"}
+                        </span>
+                      </div>
+                      <span className={`text-lg font-black ${diff === 0 ? "text-emerald-700" : diff > 0 ? "text-blue-700" : "text-red-700"}`}>
+                        {diff > 0 ? "+" : ""}{diff.toFixed(2)} <RiyalSign />
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => closeShiftMutation.mutate()}
+                  disabled={!actualCash || closeShiftMutation.isPending}
+                  className="w-full h-12 bg-[#2B2B60] hover:bg-[#1c1c45] font-black text-white"
+                >
+                  {closeShiftMutation.isPending
+                    ? <Loader2 className="animate-spin h-4 w-4" />
+                    : "تأكيد إغلاق الوردية"
+                  }
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Dialog open={isOpenDialogOpen} onOpenChange={setIsOpenDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-[#DFB369] hover:bg-[#c89853] text-[#0F0F0F] font-black h-12 px-6 gap-2 shadow-lg shadow-[#DFB369]/30"
+                data-testid="button-open-shift"
+              >
+                <Unlock className="h-4 w-4" />
+                فتح وردية جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[400px]" dir="rtl">
+              <DialogHeader>
+                <DialogTitle className="text-right text-xl font-black text-[#2B2B60]">فتح وردية جديدة</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <label className="text-sm font-black text-[#2B2B60] mb-2 block">الرصيد الافتتاحي</label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={openingBalance}
+                      onChange={(e) => setOpeningBalance(e.target.value)}
+                      step="0.5"
+                      min="0"
+                      className="h-12 text-lg font-black pr-4"
+                      data-testid="input-opening-balance"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500"><RiyalSign /></span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 font-bold">أدخل المبلغ النقدي الموجود في الصندوق عند بداية الوردية</p>
+                </div>
+                <Button
+                  onClick={() => openShiftMutation.mutate()}
+                  disabled={openShiftMutation.isPending}
+                  className="w-full h-12 bg-[#DFB369] hover:bg-[#c89853] text-[#0F0F0F] font-black"
+                >
+                  {openShiftMutation.isPending
+                    ? <Loader2 className="animate-spin h-4 w-4" />
+                    : "فتح الوردية"
+                  }
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Active Shift Details */}
+      {activeShift && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="border border-[#DFB369]/20 bg-gradient-to-br from-white to-[#FAF8F4]">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">الرصيد الافتتاحي</span>
+                <Wallet className="h-4 w-4 text-[#DFB369]" />
+              </div>
+              <p className="text-3xl font-black text-[#2B2B60]">
+                {(activeShift.openingBalance || 0).toFixed(2)} <span className="text-xl"><RiyalSign /></span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border border-[#DFB369]/20 bg-gradient-to-br from-white to-[#FAF8F4]">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">وقت الفتح</span>
+                <Clock className="h-4 w-4 text-[#DFB369]" />
+              </div>
+              <p className="text-3xl font-black text-[#2B2B60]">
+                {new Date(activeShift.openedAt || new Date()).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border border-emerald-200 bg-gradient-to-br from-white to-emerald-50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">الحالة</span>
+                <CheckCircle className="h-4 w-4 text-emerald-500" />
+              </div>
+              <p className="text-3xl font-black text-emerald-600">مفتوحة</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Closed Shifts Log */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <History className="h-5 w-5 text-[#DFB369]" />
+          <h2 className="text-xl font-black text-[#2B2B60]">سجل الورديات المغلقة</h2>
+          <Badge variant="outline" className="border-[#DFB369]/40 text-[#2B2B60] font-black">
+            {closedShifts.length} وردية
+          </Badge>
+        </div>
+
+        {closedShifts.length === 0 ? (
+          <Card className="border-dashed border-2 border-[#DFB369]/20">
+            <CardContent className="py-16 text-center">
+              <History className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="font-black text-gray-500">لم تغلق أي وردية بعد</p>
             </CardContent>
           </Card>
         ) : (
-          <Card className="mb-8 border-blue-200 bg-blue-50">
-            <CardHeader>
-              <CardTitle className="text-blue-700">لا توجد وردية مفتوحة</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Dialog open={isOpenDialogOpen} onOpenChange={setIsOpenDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full h-12 font-black uppercase tracking-widest gap-2">
-                    <Unlock className="h-4 w-4" />
-                    فتح وردية جديدة
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>فتح وردية جديدة</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-bold mb-1 block">الرصيد الافتتاحي (<RiyalSign />)</label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={openingBalance}
-                        onChange={(e) => setOpeningBalance(e.target.value)}
-                        step="0.5"
-                        min="0"
-                      />
-                    </div>
-                    <Button
-                      onClick={() => openShiftMutation.mutate()}
-                      disabled={openShiftMutation.isPending}
-                      className="w-full"
-                    >
-                      {openShiftMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "فتح الوردية"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Closed Shifts Report */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">سجل الورديات المغلقة</h2>
-          {shifts?.filter(s => s.status === "closed").length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <p>لم تغلق أي وردية بعد</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {shifts
-                ?.filter(s => s.status === "closed")
-                .sort((a, b) => new Date(b.closedAt || 0).getTime() - new Date(a.closedAt || 0).getTime())
-                .map((shift) => (
-                  <Card key={shift.id} data-testid={`card-shift-${shift.id}`}>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="space-y-3">
+            {closedShifts.map((shift) => {
+              const d = shift.difference || 0;
+              return (
+                <Card
+                  key={shift.id}
+                  className="border border-[#DFB369]/15 hover:border-[#DFB369]/40 hover:shadow-md transition-all"
+                  data-testid={`card-shift-${shift.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+                      <div className="flex items-center gap-3 col-span-2 md:col-span-1">
+                        <div className="w-9 h-9 rounded-xl bg-[#FAF8F4] flex items-center justify-center border border-[#DFB369]/20">
+                          <Calendar className="h-4 w-4 text-[#DFB369]" />
+                        </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">التاريخ والوقت</p>
-                          <p className="text-sm font-bold">
-                            {new Date(shift.closedAt || new Date()).toLocaleString("ar-SA")}
+                          <p className="text-[10px] font-black text-gray-500 uppercase">التاريخ</p>
+                          <p className="text-sm font-bold text-[#2B2B60]">
+                            {new Date(shift.closedAt || new Date()).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" })}
                           </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">الرصيد الافتتاحي</p>
-                          <p className="text-sm font-bold">{shift.openingBalance?.toFixed(2)} <RiyalSign /></p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">الرصيد الفعلي</p>
-                          <p className="text-sm font-bold">{shift.actualCash?.toFixed(2)} <RiyalSign /></p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">الفرق</p>
-                          <p className={`text-sm font-bold flex items-center gap-1 ${
-                            (shift.difference || 0) === 0
-                              ? "text-green-600"
-                              : (shift.difference || 0) > 0
-                              ? "text-blue-600"
-                              : "text-red-600"
-                          }`}>
-                            {(shift.difference || 0) > 0 ? <TrendingUp className="h-4 w-4" /> : (shift.difference || 0) < 0 ? <TrendingDown className="h-4 w-4" /> : null}
-                            {(shift.difference || 0).toFixed(2)} <RiyalSign />
-                          </p>
-                        </div>
-                        <div className="flex justify-end">
-                          <Badge
-                            variant="outline"
-                            className={
-                              (shift.difference || 0) === 0
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : (shift.difference || 0) > 0
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : "bg-red-50 text-red-700 border-red-200"
-                            }
-                          >
-                            {(shift.difference || 0) === 0 ? "متطابق" : (shift.difference || 0) > 0 ? "زيادة" : "عجز"}
-                          </Badge>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          )}
-        </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-gray-500 uppercase mb-1">الافتتاحي</p>
+                        <p className="text-sm font-black text-[#2B2B60]">{(shift.openingBalance || 0).toFixed(2)} <RiyalSign /></p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-gray-500 uppercase mb-1">الفعلي</p>
+                        <p className="text-sm font-black text-[#2B2B60]">{(shift.actualCash || 0).toFixed(2)} <RiyalSign /></p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-gray-500 uppercase mb-1">الفرق</p>
+                        <p className={`text-sm font-black flex items-center gap-1 ${
+                          d === 0 ? "text-emerald-600" : d > 0 ? "text-blue-600" : "text-red-600"
+                        }`}>
+                          {d > 0 ? <TrendingUp className="h-3.5 w-3.5" /> : d < 0 ? <TrendingDown className="h-3.5 w-3.5" /> : <MinusIcon className="h-3.5 w-3.5" />}
+                          {d > 0 ? "+" : ""}{d.toFixed(2)} <RiyalSign />
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Badge
+                          className={`font-black text-xs px-3 py-1 ${
+                            d === 0
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : d > 0
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-red-50 text-red-700 border border-red-200"
+                          }`}
+                          variant="outline"
+                        >
+                          {d === 0 ? "✓ متطابق" : d > 0 ? "فائض" : "عجز"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
