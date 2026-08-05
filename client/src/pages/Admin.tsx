@@ -33,6 +33,7 @@ import AdminStats from "@/pages/admin/AdminStats";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminPages from "@/pages/admin/AdminPages";
 import AdminAiInsights from "@/pages/admin/AdminAiInsights";
+import AdminGPT from "@/pages/admin/AdminGPT";
 import AdminSystemHealth from "@/pages/admin/AdminSystemHealth";
 import AdminIntegrations from "@/pages/admin/AdminIntegrations";
 import AdminPixels from "@/pages/admin/AdminPixels";
@@ -5518,6 +5519,7 @@ const AdminSidebar = ({ activeTab, onTabChange, pendingOrders, mobileOpen = fals
       label: "ذكاء اصطناعي",
       items: [
         { id: "ai-insights", label: "تحليلات المخزون AI", icon: Brain },
+        { id: "chatgpt", label: "مساعد ChatGPT", icon: Brain },
       ]
     }] : []),
     {
@@ -5705,6 +5707,7 @@ const pageTitles: Record<string, string> = {
   settings:     "إعدادات المتجر",
   health:       "صحة النظام",
   integrations: "ربط الخدمات والمفاتيح",
+  chatgpt:      "مساعد ChatGPT — تطوير النظام",
 };
 
 export default function Admin() {
@@ -5858,6 +5861,7 @@ export default function Admin() {
                 {activeTab === "settings"  && <StoreSettingsPanel />}
                 {activeTab === "health"    && user?.role === "admin" && <AdminSystemHealth />}
                 {activeTab === "integrations" && user?.role === "admin" && <AdminIntegrations />}
+                {activeTab === "chatgpt"   && user?.role === "admin" && <AdminGPT />}
               </motion.div>
             </AnimatePresence>
           </div>

@@ -86,6 +86,7 @@ const upload = multer({
 });
 
 import { registerEmployeeAssistant } from "./employee-assistant";
+import { registerChatGPTAdmin } from "./chatgpt-admin";
 import { CartSessionModel, CancellationPolicyModel, OrderModel } from "./models";
 import { cancelOrder, canCustomerCancel, getPolicy as getCancellationPolicy } from "./cancellation";
 import { startAbandonedCartWorker, notifyCart, markCartConverted } from "./abandoned-carts";
@@ -504,6 +505,7 @@ export async function registerRoutes(
 
   // AI Employee Assistant — must be registered AFTER setupAuth so req.isAuthenticated() exists
   registerEmployeeAssistant(app);
+  registerChatGPTAdmin(app);
 
   // Serve uploaded files — local disk fast-path, Object Storage fallback.
   // Same `/uploads/<filename>` URLs work in both modes so frontend is unchanged.
