@@ -17,6 +17,9 @@ export function useAuth() {
       return api.auth.me.responses[200].parse(await res.json());
     },
     retry: false,
+    staleTime: 5 * 60 * 1000,   // بيانات المستخدم صالحة 5 دقائق — لا refetch تلقائي بعد login
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false, // لا إعادة fetch عند العودة للنافذة
   });
 
   const loginMutation = useMutation({
@@ -53,8 +56,11 @@ export function useAuth() {
         redirectTo: data.redirectTo
       };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // اضبط البيانات المؤقتة فوراً حتى تعمل ProtectedRoute قبل الـ refetch
       queryClient.setQueryData([api.auth.me.path], data);
+      // أعد جلب /api/user تأكيداً بأن الـ session cookie وصلت للمتصفح
+      await queryClient.refetchQueries({ queryKey: [api.auth.me.path] });
       toast({ title: "مرحباً", description: `تم الدخول بنجاح` });
       loadCartFromServer();
     },
