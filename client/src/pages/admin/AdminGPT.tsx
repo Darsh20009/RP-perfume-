@@ -158,9 +158,9 @@ export default function AdminGPT() {
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-xs font-black text-white tracking-tight">ChatGPT — مساعد RF</p>
+              <p className="text-xs font-black text-white tracking-tight">مساعد RF الذكي</p>
               <p className="text-[9px] text-white/50 font-medium tracking-widest uppercase">
-                {configured ? `gpt-4o · ${messages.length} رسالة` : "غير مضبوط"}
+                {configured ? `Kimi AI · ${messages.length} رسالة` : "غير مضبوط"}
               </p>
             </div>
           </div>
@@ -188,7 +188,8 @@ export default function AdminGPT() {
           <div className="mx-4 mt-3 flex items-start gap-2 rounded-none border border-amber-200 bg-amber-50 p-3">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-xs text-amber-800 leading-relaxed">
-              <strong>OPENAI_API_KEY</strong> غير مضبوط. أضفه في إعدادات Replit Secrets لتفعيل المساعد.
+              <strong>KIMI_API_KEY</strong> غير مضبوط. أضفه في Replit Secrets للتفعيل.{" "}
+              <a href="https://platform.moonshot.cn" target="_blank" rel="noopener noreferrer" className="underline font-bold">احصل على مفتاح مجاني ←</a>
             </p>
           </div>
         )}
@@ -305,7 +306,7 @@ export default function AdminGPT() {
             </Button>
           </div>
           <p className="text-[9px] text-black/30 mt-1.5 text-center tracking-wide">
-            المحادثة محفوظة محلياً · GPT-4o
+            المحادثة محفوظة محلياً · Kimi moonshot-v1-32k
           </p>
         </div>
       </div>
