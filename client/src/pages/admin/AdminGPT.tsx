@@ -218,13 +218,30 @@ export default function AdminGPT() {
         ...nextMsgs.slice(-16).map(({ role, content }) => ({ role, content })),
       ];
 
-      const result = await window.puter!.ai.chat(conversation, { model: "gpt-4o-mini" }) as any;
+      let reply = "";
 
-      // Puter returns {message:{content}} or the content directly
-      const reply: string =
-        typeof result === "string"
-          ? result
-          : result?.message?.content ?? result?.content ?? JSON.stringify(result);
+      // Try Puter first (GPT-4o-mini, free)
+      try {
+        const result = await window.puter!.ai.chat(conversation, { model: "gpt-4o-mini" }) as any;
+        reply =
+          typeof result === "string"
+            ? result
+            : result?.message?.content ?? result?.content ?? JSON.stringify(result);
+      } catch (puterErr: any) {
+        // Fallback: ask the backend to use Kimi if available
+        const fallbackRes = await fetch("/api/admin/chatgpt-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ messages: nextMsgs.slice(-16).map(({ role, content }) => ({ role, content })) }),
+        });
+        if (!fallbackRes.ok) {
+          const err = await fallbackRes.json().catch(() => ({}));
+          throw new Error(err.message || `Puter: ${puterErr?.message}`);
+        }
+        const data = await fallbackRes.json();
+        reply = data.reply;
+      }
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
     } catch (err: any) {
