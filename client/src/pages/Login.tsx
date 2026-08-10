@@ -23,6 +23,18 @@ const loginSchema = z.object({
   password: z.string().optional(),
 });
 
+const dashboardRoles = ["admin", "assistant_manager", "tech_support", "accountant", "legal_consultant", "employee", "support", "cashier"];
+
+function decodeRedirect(value: string | null) {
+  if (!value) return null;
+  try {
+    const decoded = decodeURIComponent(value);
+    return decoded.startsWith("/") && !decoded.startsWith("//") ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function Login() {
   const { login, isLoggingIn, user } = useAuth();
   const [, setLocation] = useLocation();
@@ -32,7 +44,7 @@ export default function Login() {
   const { googleEnabled, appleEnabled, anyEnabled } = useAuthProviders();
 
   const searchParams = new URLSearchParams(window.location.search);
-  const redirectParam = searchParams.get("redirect");
+  const redirectParam = decodeRedirect(searchParams.get("redirect"));
   const branchParam = searchParams.get("branch");
 
   // When the URL carries ?branch=ID, fetch the branch info from the public
@@ -72,8 +84,8 @@ export default function Login() {
           setLocation("/profile?mustChangePassword=true");
           return;
         }
-        const fallback = userData?.redirectTo || "/";
-        const destination = redirectParam ? decodeURIComponent(redirectParam) : fallback;
+         const fallback = userData?.redirectTo || "/";
+         const destination = redirectParam || fallback;
         setLocation(destination);
       },
     });
@@ -115,7 +127,12 @@ export default function Login() {
   // across renders and avoids React's "Rendered fewer hooks" crash.
   useEffect(() => {
     if (user) {
-      const destination = redirectParam ? decodeURIComponent(redirectParam) : "/";
+      const destination = redirectParam
+        || (dashboardRoles.includes(user.role) && ["dashboard", "both"].includes(user.loginType || "dashboard")
+          ? "/admin"
+          : user.loginType === "pos"
+            ? "/pos"
+            : "/");
       setLocation(destination);
     }
   }, [user, redirectParam, setLocation]);

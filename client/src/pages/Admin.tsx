@@ -5739,7 +5739,10 @@ export default function Admin() {
     return () => clearInterval(iv);
   }, []);
 
-  const adminRoles = ['admin', 'assistant_manager', 'tech_support', 'accountant', 'legal_consultant'];
+  // Keep this list aligned with the staff roles accepted by /api/auth/login.
+  // Otherwise a valid employee login can reach /admin and then be immediately
+  // sent away by this page.
+  const adminRoles = ['admin', 'assistant_manager', 'tech_support', 'accountant', 'legal_consultant', 'employee', 'support', 'cashier'];
   const isStaff = user && adminRoles.includes(user.role);
 
   useEffect(() => {

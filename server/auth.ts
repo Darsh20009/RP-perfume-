@@ -30,6 +30,17 @@ const registerLimiter = rateLimit({
 
 const scryptAsync = promisify(scrypt);
 
+const dashboardRoles = [
+  "admin",
+  "assistant_manager",
+  "tech_support",
+  "accountant",
+  "legal_consultant",
+  "employee",
+  "support",
+  "cashier",
+] as const;
+
 export function setupAuth(app: Express) {
   let sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret || sessionSecret.length < 32) {
@@ -43,12 +54,11 @@ export function setupAuth(app: Express) {
 
   const mongoUri = process.env.MONGODB_URI;
 
-  // Detect if running behind HTTPS proxy (Replit dev preview, deployments).
-  // In an iframe (Replit preview, embedded apps) the cookie is cross-site,
-  // so it MUST be SameSite=None + Secure to be sent at all.
-  const isReplit = !!(process.env.REPL_ID || process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS);
+  // Production is served over HTTPS. The Replit development preview can be
+  // proxied to the browser as plain HTTP (127.0.0.1), so forcing a Secure
+  // cookie there prevents the browser from storing the session at all.
   const isProd = process.env.NODE_ENV === "production";
-  const useCrossSiteCookie = isReplit || isProd;
+  const useSecureCookie = isProd;
 
   const sessionSettings: session.SessionOptions = {
     name: "rf.sid",
@@ -59,8 +69,8 @@ export function setupAuth(app: Express) {
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
-      sameSite: useCrossSiteCookie ? "none" : "lax",
-      secure: useCrossSiteCookie, // required when sameSite=None
+      sameSite: useSecureCookie ? "none" : "lax",
+      secure: useSecureCookie,
       path: "/",
     },
     store: mongoUri
@@ -76,8 +86,8 @@ export function setupAuth(app: Express) {
       : undefined,
   };
 
-  // Always trust the proxy on Replit / production so secure cookies actually flow
-  if (useCrossSiteCookie) {
+  // Trust the proxy in production so secure cookies flow through HTTPS proxies.
+  if (useSecureCookie) {
     app.set("trust proxy", 1);
   }
 
@@ -114,7 +124,7 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "هذا الحساب معطل حالياً" });
         }
 
-        const isStaffOrAdmin = user ? ["admin", "employee", "support", "cashier", "accountant"].includes(user.role) : false;
+        const isStaffOrAdmin = user ? dashboardRoles.includes(user.role as typeof dashboardRoles[number]) : false;
 
         if (isStaffOrAdmin) {
           if (!user || (user as any).isActive === false) {
@@ -291,7 +301,7 @@ export function setupAuth(app: Express) {
         __v: (userResult as any).__v
       } : null;
 
-      const isStaffRole = user && ["admin", "employee", "support", "cashier", "accountant"].includes(user.role);
+       const isStaffRole = user && dashboardRoles.includes(user.role as typeof dashboardRoles[number]);
 
       if (isStaffRole) {
         if (!password || password === "undefined") {
@@ -329,36 +339,56 @@ export function setupAuth(app: Express) {
         __v: (user as any).__v
       };
 
-      req.login(userToLogin as any, (err) => {
+       req.login(userToLogin as any, (err) => {
         if (err) return next(err);
-        const userObj = userToLogin as any;
 
-        if (userObj.mustChangePassword) {
-          const { password: _p, ...safeObj } = userObj;
-          return res.status(200).json({
-            ...safeObj,
-            mustChangePassword: true,
-            redirectTo: "/profile"
-          });
-        }
+         // Passport puts the user ID into the session before invoking this
+         // callback, but a Mongo-backed session store can still be writing the
+         // document asynchronously. Persist it before sending the response so
+         // the very next /api/user request cannot observe a missing session.
+         const finishLogin = () => {
+           const userObj = userToLogin as any;
 
-        const isDashboardAccess = ["dashboard", "both"].includes(userObj.loginType);
-        const isPosAccess = ["pos", "both"].includes(userObj.loginType);
+           if (userObj.mustChangePassword) {
+             const { password: _p, ...safeObj } = userObj;
+             return res.status(200).json({
+               ...safeObj,
+               mustChangePassword: true,
+               redirectTo: "/profile"
+             });
+           }
 
-        let redirectTo = "/";
-        if (["admin", "employee", "support", "cashier", "accountant"].includes(userObj.role)) {
-          if (isDashboardAccess) {
-            redirectTo = "/admin";
-          } else if (isPosAccess) {
-            redirectTo = "/pos";
-          } else {
-            req.logout(() => {});
-            return res.status(403).json({ message: "هذا الحساب لا يملك صلاحية الدخول للوحة التحكم أو نظام البيع" });
+           // Older staff records may not have loginType because the field was
+           // added after they were created. Staff accounts should retain the
+           // original dashboard behavior instead of being rejected on login.
+           const loginType = userObj.loginType || "dashboard";
+           const isDashboardAccess = ["dashboard", "both"].includes(loginType);
+           const isPosAccess = ["pos", "both"].includes(loginType);
+
+           let redirectTo = "/";
+           if (dashboardRoles.includes(userObj.role)) {
+             if (isDashboardAccess) {
+               redirectTo = "/admin";
+             } else if (isPosAccess) {
+               redirectTo = "/pos";
+             } else {
+               req.logout(() => {});
+               return res.status(403).json({ message: "هذا الحساب لا يملك صلاحية الدخول للوحة التحكم أو نظام البيع" });
+             }
           }
-        }
 
-        const { password: _pw, ...safeUser } = userObj;
-        res.status(200).json({ ...safeUser, redirectTo });
+           const { password: _pw, ...safeUser } = userObj;
+           res.status(200).json({ ...safeUser, redirectTo });
+         };
+
+         if (typeof req.session.save === "function") {
+           req.session.save((saveErr) => {
+             if (saveErr) return next(saveErr);
+             finishLogin();
+           });
+         } else {
+           finishLogin();
+         }
       });
     } catch (err) {
       next(err);

@@ -57,10 +57,11 @@ export function useAuth() {
       };
     },
     onSuccess: async (data) => {
-      // اضبط البيانات المؤقتة فوراً حتى تعمل ProtectedRoute قبل الـ refetch
+      // اضبط البيانات فوراً حتى تعمل ProtectedRoute قبل أي تنقل. لا نعيد
+      // طلب /api/user هنا: مع MongoStore قد يصل الرد قبل اكتمال كتابة
+      // الجلسة، فتُستبدل حالة الدخول الناجحة مؤقتاً بـ null ويعود المستخدم
+      // إلى صفحة الدخول.
       queryClient.setQueryData([api.auth.me.path], data);
-      // أعد جلب /api/user تأكيداً بأن الـ session cookie وصلت للمتصفح
-      await queryClient.refetchQueries({ queryKey: [api.auth.me.path] });
       toast({ title: "مرحباً", description: `تم الدخول بنجاح` });
       loadCartFromServer();
     },
